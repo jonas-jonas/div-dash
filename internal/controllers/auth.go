@@ -20,17 +20,26 @@ func PostLogin(c *gin.Context) {
 		return
 	}
 
-	for _, user := range allUsers {
-		if user.Email == loginRequest.Email && user.password == loginRequest.Password {
-			token, err := services.TokenService().GenerateToken(user.ID)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-				return
-			}
-			c.JSON(http.StatusOK, gin.H{"token": token})
+	user, err := services.UserService().FindByEmail(loginRequest.Email)
+
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "wrong credentials"})
 			return
 		}
+		c.Error(err)
+		return
 	}
 
-	c.JSON(http.StatusUnauthorized, gin.H{"message": "wrong credentials"})
+	if user.Password != loginRequest.Password {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "wrong credentials"})
+		return
+	}
+
+	token, err := services.TokenService().GenerateToken(user.ID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

@@ -20,9 +20,9 @@ func New(audience, issuer string, key []byte) *TokenService {
 	return &TokenService{audience: audience, issuer: issuer, key: key, paseto: paseto.V2{}}
 }
 
-func (t *TokenService) GenerateToken(userId int) (string, error) {
+func (t *TokenService) GenerateToken(userId int64) (string, error) {
 
-	userIdString := strconv.Itoa(userId)
+	userIdString := strconv.FormatInt(userId, 10)
 
 	now := time.Now()
 	exp := now.Add(24 * time.Hour)

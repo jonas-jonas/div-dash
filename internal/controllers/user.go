@@ -1,29 +1,23 @@
 package controllers
 
 import (
+	"div-dash/internal/db"
+	"div-dash/internal/services"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-type User struct {
-	ID       int    `json:"id"`
-	Email    string `json:"email"`
-	password string
-}
-
 type CreateUserRequest struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
-var allUsers = []User{
-	{
-		ID:       0,
-		Email:    "test@test.de",
-		password: "password",
-	},
+type UserResponse struct {
+	ID       int64  `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"-"`
 }
 
 func PostUser(c *gin.Context) {
@@ -34,37 +28,44 @@ func PostUser(c *gin.Context) {
 		return
 	}
 
-	for _, user := range allUsers {
-		if user.Email == createUserRequest.Email {
-			c.JSON(http.StatusConflict, gin.H{"message": "A user with email '" + createUserRequest.Email + "' already exists"})
-			return
-		}
+	exists, err := services.UserService().ExistsByEmail(createUserRequest.Email)
+
+	if err != nil {
+		c.Error(err)
+		return
 	}
 
-	user := User{
-		ID:       1,
-		Email:    createUserRequest.Email,
-		password: createUserRequest.Password,
+	if exists {
+		c.JSON(http.StatusConflict, gin.H{"message": "A user with email '" + createUserRequest.Email + "' already exists"})
+		return
 	}
 
-	allUsers = append(allUsers, user)
+	user, err := services.UserService().CreateUser(db.CreateUserParams(createUserRequest))
 
-	c.JSON(http.StatusOK, user)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, UserResponse(user))
 }
 
 func GetUser(c *gin.Context) {
 	idString := c.Param("id")
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Param 'id' must be int, got '" + idString + "'"})
 		return
 	}
-	for _, user := range allUsers {
-		if user.ID == id {
-			c.JSON(http.StatusOK, user)
+
+	user, err := services.UserService().FindById(id)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			c.JSON(http.StatusNotFound, gin.H{"message": "User with id '" + idString + "' not found"})
 			return
 		}
+		c.Error(err)
+		return
 	}
 
-	c.JSON(http.StatusNotFound, gin.H{"message": "User with id '" + idString + "' not found"})
+	c.JSON(http.StatusOK, UserResponse(user))
 }
