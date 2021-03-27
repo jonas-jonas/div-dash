@@ -4,6 +4,7 @@ import (
 	"context"
 	"div-dash/internal/config"
 	"div-dash/internal/db"
+	"div-dash/util/security"
 )
 
 type UserService struct {
@@ -13,8 +14,24 @@ func New() *UserService {
 	return &UserService{}
 }
 
-func (u *UserService) CreateUser(user db.CreateUserParams) (db.User, error) {
+type CreateUserParams struct {
+	Email    string
+	Password string
+}
+
+func (u *UserService) CreateUser(params CreateUserParams) (db.User, error) {
 	ctx := context.Background()
+
+	passwordHash, err := security.HashPassword(params.Password)
+
+	if err != nil {
+		return db.User{}, err
+	}
+
+	user := db.CreateUserParams{
+		Email:        params.Email,
+		PasswordHash: passwordHash,
+	}
 
 	return config.Queries().CreateUser(ctx, user)
 }

@@ -1,6 +1,7 @@
 package security
 
 import (
+	"div-dash/util/testutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,9 +21,8 @@ func TestHashing(t *testing.T) {
 func TestVerify(t *testing.T) {
 
 	password := "pass"
-	hashedPassword := "$2a$10$7V7XXwThPDseRqjdkZB8eeTlJKimUVZ2H0/nQ97w4/ri0brf3PYau"
-
-	result := VerifyPassword(password, hashedPassword)
+	hashedPassword := testutil.PasswordHash
+	result := VerifyHash(password, hashedPassword)
 
 	assert.True(t, result)
 

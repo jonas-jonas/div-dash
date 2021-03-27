@@ -3,6 +3,7 @@ package controllers
 import (
 	"div-dash/internal/db"
 	"div-dash/internal/services"
+	"div-dash/internal/user"
 	"net/http"
 	"strconv"
 
@@ -15,9 +16,15 @@ type CreateUserRequest struct {
 }
 
 type UserResponse struct {
-	ID       int64  `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"-"`
+	ID    int64  `json:"id"`
+	Email string `json:"email"`
+}
+
+func userResponseFromUser(user db.User) UserResponse {
+	return UserResponse{
+		ID:    user.ID,
+		Email: user.Email,
+	}
 }
 
 func PostUser(c *gin.Context) {
@@ -40,13 +47,13 @@ func PostUser(c *gin.Context) {
 		return
 	}
 
-	user, err := services.UserService().CreateUser(db.CreateUserParams(createUserRequest))
+	user, err := services.UserService().CreateUser(user.CreateUserParams(createUserRequest))
 
 	if err != nil {
 		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, UserResponse(user))
+	c.JSON(http.StatusOK, userResponseFromUser(user))
 }
 
 func GetUser(c *gin.Context) {
@@ -67,5 +74,5 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, UserResponse(user))
+	c.JSON(http.StatusOK, userResponseFromUser(user))
 }

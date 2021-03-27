@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"div-dash/internal/config"
-	"div-dash/internal/db"
 	"div-dash/internal/services"
+	"div-dash/internal/user"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,6 +18,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type AnyString struct{}
+
+func (a AnyString) Match(v driver.Value) bool {
+	_, ok := v.(string)
+	return ok
+}
 func TestUser(t *testing.T) {
 
 	sdb, mock, _ := sqlmock.New()
@@ -33,7 +40,7 @@ func TestUser(t *testing.T) {
 
 		mock.ExpectQuery("^-- name: GetUser :one .*$").WillReturnRows(rows)
 
-		user, _ := services.UserService().CreateUser(db.CreateUserParams{
+		user, _ := services.UserService().CreateUser(user.CreateUserParams{
 			Email:    "email@email.de",
 			Password: "password",
 		})
@@ -76,7 +83,7 @@ func TestUser(t *testing.T) {
 		mock.ExpectQuery("-- name: CountByEmail").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 		rows := sqlmock.NewRows([]string{"id", "email", "password"}).
 			AddRow(1, "test@email.com", "password")
-		mock.ExpectQuery("-- name: CreateUser").WithArgs("test@email.com", "password").WillReturnRows(rows)
+		mock.ExpectQuery("-- name: CreateUser").WithArgs("test@email.com", AnyString{}).WillReturnRows(rows)
 
 		w := httptest.NewRecorder()
 

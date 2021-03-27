@@ -2,7 +2,6 @@ package user
 
 import (
 	"div-dash/internal/config"
-	"div-dash/internal/db"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -21,7 +20,7 @@ func TestCreateUser(t *testing.T) {
 	mock.ExpectQuery("^-- name: CreateUser :one .*$").WillReturnRows(rows)
 
 	userService := New()
-	createUser := db.CreateUserParams{
+	createUser := CreateUserParams{
 		Email:    "email@email.de",
 		Password: "password",
 	}
@@ -31,7 +30,7 @@ func TestCreateUser(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), user.ID)
 	assert.Equal(t, "email@email.de", user.Email)
-	assert.Equal(t, "password", user.Password)
+	assert.Equal(t, "password", user.PasswordHash)
 }
 
 func TestListUsers(t *testing.T) {

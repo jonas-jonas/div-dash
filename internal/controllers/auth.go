@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"div-dash/internal/services"
+	"div-dash/util/security"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -31,7 +32,7 @@ func PostLogin(c *gin.Context) {
 		return
 	}
 
-	if user.Password != loginRequest.Password {
+	if !security.VerifyHash(loginRequest.Password, user.PasswordHash) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "wrong credentials"})
 		return
 	}
