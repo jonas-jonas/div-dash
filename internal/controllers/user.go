@@ -1,9 +1,9 @@
 package controllers
 
 import (
+	"div-dash/internal/config"
 	"div-dash/internal/db"
-	"div-dash/internal/services"
-	"div-dash/internal/user"
+	"div-dash/util/security"
 	"net/http"
 	"strconv"
 
@@ -35,7 +35,7 @@ func PostUser(c *gin.Context) {
 		return
 	}
 
-	exists, err := services.UserService().ExistsByEmail(createUserRequest.Email)
+	exists, err := config.Queries().ExistsByEmail(c, createUserRequest.Email)
 
 	if err != nil {
 		c.Error(err)
@@ -47,7 +47,18 @@ func PostUser(c *gin.Context) {
 		return
 	}
 
-	user, err := services.UserService().CreateUser(user.CreateUserParams(createUserRequest))
+	passwordHash, err := security.HashPassword(createUserRequest.Password)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	user, err := config.Queries().CreateUser(c, db.CreateUserParams{
+		Email:        createUserRequest.Email,
+		PasswordHash: passwordHash,
+		Status:       db.UserStatusActivated,
+	})
 
 	if err != nil {
 		c.Error(err)
@@ -64,7 +75,7 @@ func GetUser(c *gin.Context) {
 		return
 	}
 
-	user, err := services.UserService().FindById(id)
+	user, err := config.Queries().GetUser(c, id)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			c.JSON(http.StatusNotFound, gin.H{"message": "User with id '" + idString + "' not found"})

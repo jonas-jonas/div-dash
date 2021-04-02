@@ -2,11 +2,29 @@ package token
 
 import (
 	"testing"
+	"time"
 
+	"github.com/o1egl/paseto"
 	"github.com/stretchr/testify/assert"
 )
 
 var key = []byte("YELLOW SUBMARINE, BLACK WIZARDRY")
+
+func createToken(userId string, now, exp, nbt time.Time) (string, error) {
+
+	jsonToken := paseto.JSONToken{
+		Audience:   "test",
+		Issuer:     "test",
+		Jti:        "123",          // TODO
+		Subject:    "test_subject", // TODO
+		IssuedAt:   now,
+		Expiration: exp,
+		NotBefore:  nbt,
+	}
+	jsonToken.Set("userId", userId)
+	footer := "some footer" // TODO
+	return paseto.NewV2().Encrypt(key, jsonToken, footer)
+}
 
 func TestGenerateToken(t *testing.T) {
 	tokenService := New("test_audience", "test_issuer", key)
@@ -31,8 +49,11 @@ func TestVerifyToken(t *testing.T) {
 
 func TestVerifyTokenWithExpiredToken(t *testing.T) {
 	tokenService := New("test_audience", "test_issuer", key)
+	now := time.Now().Add(-25 * time.Hour)
+	exp := now.Add(24 * time.Hour)
+	nbt := now
 
-	token := "v2.local.K5I8B91bBmF_2VBUVYTM-rxCunf5nJHB1Rc61n1LvuqiccstQYKZT7NB_TdbAT_28yGP7dTC4LxL8zCiv0y0-qu0rIPfxTGMV2rjj6MOy8EJWuTgbpSwgxRVSI-c2sCkJpMNUI-OfbZ61gcxpe_-HzL6rkLwunsdQoF5uj6XZ3d4ny0zC9oTTZ7EoJuSazn-nJFZviaIyDH3Z0b5RmPbzU0IYrpLmqVMTR1ZNB4fHAxFO60JJRip-Q3slqoL2EGA7AhfIq9H6IRYjAJDKBSdOufmdMICYUSZgIsDxkw.c29tZSBmb290ZXI"
+	token, _ := createToken("1", now, exp, nbt)
 
 	result, userId, err := tokenService.VerifyToken(token)
 
@@ -45,7 +66,10 @@ func TestVerifyTokenWithExpiredToken(t *testing.T) {
 func TestVerifyTokenWithStringAsUserId(t *testing.T) {
 	tokenService := New("test_audience", "test_issuer", key)
 
-	token := "v2.local.YlQGie-ce9Tv0XIJER2rDmPR8kezPOaNpcgrIoe4C_Vwa3RrDLhm3IlrelDbkDsJ3HAEbHAO6Tby-AvTfY1iItKEelZchLSmV5A-TiePC8HYiCjS1VtVwe4p-PGI2o0JXo10mzGdnY7jtPXW1UUgBT5e4oGWIefQr3sf-xZcDbJlUbIzyL1_ERoVsiPA58DMLiKUqkAgh-0BgW22hCTVr7iJ8wIs1C018SmTq9My1PerTCaL4TnZucpxvtlHLVK6CByjpj786mGXPptTFPmiOaQfpNCvLajFIVlyVzcBJtnBHpTKCfdQzw.c29tZSBmb290ZXI"
+	now := time.Now()
+	exp := now.Add(24 * time.Hour)
+	nbt := now
+	token, _ := createToken("userIdString", now, exp, nbt)
 
 	result, userId, err := tokenService.VerifyToken(token)
 

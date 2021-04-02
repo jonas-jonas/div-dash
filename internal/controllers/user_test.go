@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"database/sql/driver"
 	"div-dash/internal/config"
+	"div-dash/internal/db"
 	"div-dash/internal/services"
-	"div-dash/internal/user"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -35,18 +35,13 @@ func TestUser(t *testing.T) {
 	token, _ := services.TokenService().GenerateToken(0)
 
 	t.Run("GET /user with valid id", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "email", "password"}).
-			AddRow(1, "email@email.de", "password")
+		rows := sqlmock.NewRows([]string{"id", "email", "password", "status"}).
+			AddRow(1, "email@email.de", "password", db.UserStatusActivated)
 
 		mock.ExpectQuery("^-- name: GetUser :one .*$").WillReturnRows(rows)
 
-		user, _ := services.UserService().CreateUser(user.CreateUserParams{
-			Email:    "email@email.de",
-			Password: "password",
-		})
-
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/api/user/"+strconv.Itoa(int(user.ID)), nil)
+		req, _ := http.NewRequest("GET", "/api/user/"+strconv.Itoa(1), nil)
 		req.Header.Add("Authorization", token)
 
 		router.ServeHTTP(w, req)
@@ -80,10 +75,10 @@ func TestUser(t *testing.T) {
 	})
 
 	t.Run("POST /user", func(t *testing.T) {
-		mock.ExpectQuery("-- name: CountByEmail").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-		rows := sqlmock.NewRows([]string{"id", "email", "password"}).
-			AddRow(1, "test@email.com", "password")
-		mock.ExpectQuery("-- name: CreateUser").WithArgs("test@email.com", AnyString{}).WillReturnRows(rows)
+		mock.ExpectQuery("-- name: ExistsByEmail").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+		rows := sqlmock.NewRows([]string{"id", "email", "password", "status"}).
+			AddRow(1, "test@email.com", "password", db.UserStatusActivated)
+		mock.ExpectQuery("-- name: CreateUser").WithArgs("test@email.com", AnyString{}, db.UserStatusActivated).WillReturnRows(rows)
 
 		w := httptest.NewRecorder()
 
@@ -121,7 +116,7 @@ func TestUser(t *testing.T) {
 	})
 
 	t.Run("POST /user with existing email", func(t *testing.T) {
-		mock.ExpectQuery("-- name: CountByEmail").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+		mock.ExpectQuery("-- name: ExistsByEmail").WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow("true"))
 
 		w := httptest.NewRecorder()
 		createUserRequest := CreateUserRequest{

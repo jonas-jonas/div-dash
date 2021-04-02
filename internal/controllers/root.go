@@ -30,6 +30,7 @@ func RegisterRoutes(r *gin.Engine) {
 	api.Use(handleErrors)
 	api.GET("/ping", Ping)
 	api.POST("/login", PostLogin)
+	api.POST("/register", PostRegister)
 
 	authorized := api.Group("/")
 	authorized.Use(middleware.AuthRequired())

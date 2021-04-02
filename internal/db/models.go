@@ -2,10 +2,42 @@
 
 package db
 
-import ()
+import (
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type UserStatus string
+
+const (
+	UserStatusRegistered  UserStatus = "registered"
+	UserStatusActivated   UserStatus = "activated"
+	UserStatusDeactivated UserStatus = "deactivated"
+)
+
+func (e *UserStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserStatus(s)
+	case string:
+		*e = UserStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserStatus: %T", src)
+	}
+	return nil
+}
 
 type User struct {
-	ID           int64  `json:"id"`
-	Email        string `json:"email"`
-	PasswordHash string `json:"password_hash"`
+	ID           int64      `json:"id"`
+	Email        string     `json:"email"`
+	PasswordHash string     `json:"password_hash"`
+	Status       UserStatus `json:"status"`
+}
+
+type UserRegistration struct {
+	ID        uuid.UUID `json:"id"`
+	UserID    int64     `json:"user_id"`
+	Timestamp time.Time `json:"timestamp"`
 }

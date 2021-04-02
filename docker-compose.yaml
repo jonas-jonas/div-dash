@@ -18,3 +18,5 @@ services:
             - PGADMIN_DEFAULT_PASSWORD=pass
         ports:
             - 8002:80
+        links:
+            - "db:database"

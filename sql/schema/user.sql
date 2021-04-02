@@ -8,9 +8,9 @@ ORDER BY id;
 
 -- name: CreateUser :one
 INSERT INTO users (
-  email, password_hash
+  email, password_hash, status
 ) VALUES (
-  $1, $2
+  $1, $2, $3
 )
 RETURNING *;
 
@@ -25,3 +25,9 @@ WHERE email = $1 LIMIT 1;
 -- name: CountByEmail :one
 SELECT count(*) FROM users
 WHERE email = $1;
+
+-- name: ExistsByEmail :one
+SELECT EXISTS(
+  SELECT 1 FROM users
+  WHERE email = $1
+);
