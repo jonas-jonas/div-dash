@@ -7,6 +7,17 @@ import (
 	"context"
 )
 
+const activateUser = `-- name: ActivateUser :exec
+UPDATE users
+SET status = 'activated'
+WHERE id = $1
+`
+
+func (q *Queries) ActivateUser(ctx context.Context, id int64) error {
+	_, err := q.exec(ctx, q.activateUserStmt, activateUser, id)
+	return err
+}
+
 const countByEmail = `-- name: CountByEmail :one
 SELECT count(*) FROM users
 WHERE email = $1

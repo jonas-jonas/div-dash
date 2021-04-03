@@ -211,3 +211,68 @@ func TestPostRegisterWithExistingUserEmail(t *testing.T) {
 	assert.Equal(t, 409, w.Code)
 	assert.JSONEq(t, `{"message": "A user with email 'user@email.de' already exists"}`, w.Body.String())
 }
+
+func TestPostActivate(t *testing.T) {
+	mock, cleanup := setUpDb()
+	defer cleanup()
+	router := gin.Default()
+	RegisterRoutes(router)
+	w := httptest.NewRecorder()
+	rows := sqlmock.NewRows([]string{"id", "user_id", "timestamp"}).AddRow("5cf6a941-2517-4e2b-9905-97f507f928c4", 1, time.Now())
+	mock.ExpectQuery("^-- name: GetUserRegistration :one .*$").WithArgs("5cf6a941-2517-4e2b-9905-97f507f928c4").WillReturnRows(rows)
+
+	mock.ExpectExec("^-- name: ActivateUser :exec .*$").WithArgs(1).WillReturnResult(sqlmock.NewResult(-1, 1))
+
+	req, err := http.NewRequest("GET", "/api/activate?id=5cf6a941-2517-4e2b-9905-97f507f928c4", nil)
+	assert.Nil(t, err)
+	router.ServeHTTP(w, req)
+
+	assert.Empty(t, w.Body.String())
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestPostActivateInvalidIdReturnsError(t *testing.T) {
+	router := gin.Default()
+	RegisterRoutes(router)
+	w := httptest.NewRecorder()
+
+	req, err := http.NewRequest("GET", "/api/activate?id=asdsd", nil)
+	assert.Nil(t, err)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	assert.JSONEq(t, `{"message": "Invalid id format"}`, w.Body.String())
+}
+
+func TestPostActivateNonExistingIdReturnsError(t *testing.T) {
+	mock, cleanup := setUpDb()
+	defer cleanup()
+	router := gin.Default()
+	RegisterRoutes(router)
+	w := httptest.NewRecorder()
+	mock.ExpectQuery("^-- name: GetUserRegistration :one .*$").WithArgs("5cf6a941-2517-4e2b-9905-97f507f928c4").WillReturnRows(sqlmock.NewRows([]string{}))
+
+	req, err := http.NewRequest("GET", "/api/activate?id=5cf6a941-2517-4e2b-9905-97f507f928c4", nil)
+	assert.Nil(t, err)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	assert.JSONEq(t, `{"message": "Invalid id"}`, w.Body.String())
+}
+
+func TestPostActivateExpiredRegistration(t *testing.T) {
+	mock, cleanup := setUpDb()
+	defer cleanup()
+	router := gin.Default()
+	RegisterRoutes(router)
+	w := httptest.NewRecorder()
+	rows := sqlmock.NewRows([]string{"id", "user_id", "timestamp"}).AddRow("5cf6a941-2517-4e2b-9905-97f507f928c4", 1, time.Now().Add(-25*time.Hour))
+	mock.ExpectQuery("^-- name: GetUserRegistration :one .*$").WithArgs("5cf6a941-2517-4e2b-9905-97f507f928c4").WillReturnRows(rows)
+
+	req, err := http.NewRequest("GET", "/api/activate?id=5cf6a941-2517-4e2b-9905-97f507f928c4", nil)
+	assert.Nil(t, err)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 400, w.Code)
+	assert.JSONEq(t, `{"message": "Registration expired"}`, w.Body.String())
+}

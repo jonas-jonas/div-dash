@@ -11,12 +11,19 @@ services:
             - POSTGRES_PASSWORD=postgres
         ports:
             - 5432:5432
-    pgadmin:
-        image: dpage/pgadmin4:latest
-        environment:
-            - PGADMIN_DEFAULT_EMAIL=admin@admin.de
-            - PGADMIN_DEFAULT_PASSWORD=pass
+    # pgadmin:
+    #     image: dpage/pgadmin4:latest
+    #     environment:
+    #         - PGADMIN_DEFAULT_EMAIL=admin@admin.de
+    #         - PGADMIN_DEFAULT_PASSWORD=pass
+    #         - MASTER_PASSWORD_REQUIRED=False
+    #         - SERVER_MODE=False
+    #     ports:
+    #         - 8002:80
+    #     links:
+    #         - "db:database"
+    mailhog:
+        image: mailhog/mailhog
         ports:
-            - 8002:80
-        links:
-            - "db:database"
+            - 8025:8025
+            - 1025:1025

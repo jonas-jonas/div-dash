@@ -60,6 +60,7 @@ type RegisterRequest struct {
 }
 
 func PostRegister(c *gin.Context) {
+
 	var registerRequest RegisterRequest
 	if err := c.ShouldBindJSON(&registerRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -108,10 +109,50 @@ func PostRegister(c *gin.Context) {
 		Timestamp: time.Now(),
 	}
 
-	_, err = config.Queries().CreateUserRegistration(c, createRegistrationParams)
+	registration, err := config.Queries().CreateUserRegistration(c, createRegistrationParams)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	body := "Please activate your account at localhost:8080/activate?id=" + registration.ID.String()
+
+	err = services.MailService().SendMail(user.Email, "no-reply@div-dash.io", "Activate your account", body)
+
 	if err != nil {
 		c.Error(err)
 		return
 	}
 	c.Status(200)
+}
+
+func PostActivate(c *gin.Context) {
+	id := c.Query("id")
+	registerRequest, err := uuid.Parse(id)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid id format"})
+		return
+	}
+
+	userRegistration, err := config.Queries().GetUserRegistration(c, registerRequest)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid id"})
+		return
+	}
+
+	if userRegistration.Timestamp.Add(24 * time.Hour).Before(time.Now()) {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Registration expired"})
+		return
+	}
+
+	err = config.Queries().ActivateUser(c, userRegistration.UserID)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }

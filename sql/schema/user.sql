@@ -31,3 +31,8 @@ SELECT EXISTS(
   SELECT 1 FROM users
   WHERE email = $1
 );
+
+-- name: ActivateUser :exec
+UPDATE users
+SET status = 'activated'
+WHERE id = $1;
