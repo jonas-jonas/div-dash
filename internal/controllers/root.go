@@ -18,7 +18,7 @@ func handleErrors(c *gin.Context) {
 	// but you could iterate over all them since c.Errors is a slice!
 	errorToPrint := c.Errors.Last()
 	if errorToPrint != nil {
-		log.Printf("Caught error in middleware %s", errorToPrint.Error())
+		log.Printf("Caught error on %s: %s", c.Request.RequestURI, errorToPrint.Error())
 		c.JSON(500, gin.H{
 			"status":  500,
 			"message": errorToPrint.Error(),

@@ -1,21 +1,14 @@
 package controllers
 
 import (
-	"bytes"
 	"database/sql/driver"
-	"div-dash/internal/config"
 	"div-dash/internal/db"
-	"div-dash/internal/services"
-	"div-dash/util/testutil"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"strconv"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,27 +20,16 @@ func (a AnyString) Match(v driver.Value) bool {
 }
 func TestUser(t *testing.T) {
 
-	sdb, mock, _ := sqlmock.New()
-	config.SetDB(sdb)
-	defer sdb.Close()
+	mock, cleanup, router := NewApi()
 
-	testutil.SetupConfig()
-
-	router := gin.Default()
-	RegisterRoutes(router)
-	token, _ := services.TokenService().GenerateToken(0)
-
+	defer cleanup()
 	t.Run("GET /user with valid id", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "email", "password", "status"}).
 			AddRow(1, "email@email.de", "password", db.UserStatusActivated)
 
 		mock.ExpectQuery("^-- name: GetUser :one .*$").WillReturnRows(rows)
 
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/api/user/"+strconv.Itoa(1), nil)
-		req.Header.Add("Authorization", token)
-
-		router.ServeHTTP(w, req)
+		w := PerformAuthenticatedRequest(router, "GET", "/api/user/"+strconv.Itoa(1))
 
 		assert.Equal(t, 200, w.Code)
 		assert.JSONEq(t, `{"id":1,"email":"email@email.de"}`, w.Body.String())
@@ -56,22 +38,14 @@ func TestUser(t *testing.T) {
 	t.Run("GET /user with invalid id", func(t *testing.T) {
 		mock.ExpectQuery("^-- name: GetUser :one .*$").WillReturnError(fmt.Errorf("sql: no rows in result set"))
 
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/api/user/123", nil)
-		req.Header.Add("Authorization", token)
-
-		router.ServeHTTP(w, req)
+		w := PerformAuthenticatedRequest(router, "GET", "/api/user/123")
 
 		assert.Equal(t, 404, w.Code)
 		assert.JSONEq(t, `{"message": "User with id '123' not found"}`, w.Body.String())
 	})
 
 	t.Run("GET /user with string id", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/api/user/string", nil)
-		req.Header.Add("Authorization", token)
-
-		router.ServeHTTP(w, req)
+		w := PerformAuthenticatedRequest(router, "GET", "/api/user/string")
 
 		assert.Equal(t, 400, w.Code)
 		assert.JSONEq(t, `{"message": "Param 'id' must be int, got 'string'"}`, w.Body.String())
@@ -83,35 +57,25 @@ func TestUser(t *testing.T) {
 			AddRow(1, "test@email.com", "password", db.UserStatusActivated)
 		mock.ExpectQuery("-- name: CreateUser").WithArgs("test@email.com", AnyString{}, db.UserStatusActivated).WillReturnRows(rows)
 
-		w := httptest.NewRecorder()
-
 		createUserRequest := CreateUserRequest{
 			Email:    "test@email.com",
 			Password: "password",
 		}
 		body, _ := json.Marshal(createUserRequest)
 
-		req, _ := http.NewRequest("POST", "/api/user/", bytes.NewReader(body))
-		req.Header.Add("Authorization", token)
-
-		router.ServeHTTP(w, req)
+		w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/user/", string(body))
 
 		assert.Equal(t, 200, w.Code)
 		assert.JSONEq(t, `{"email":"test@email.com", "id":1}`, w.Body.String())
 	})
 
 	t.Run("POST /user with missing field", func(t *testing.T) {
-		w := httptest.NewRecorder()
-
 		createUserRequest := CreateUserRequest{
 			Email: "test@email.com",
 		}
 		body, _ := json.Marshal(createUserRequest)
 
-		req, _ := http.NewRequest("POST", "/api/user/", bytes.NewReader(body))
-		req.Header.Add("Authorization", token)
-
-		router.ServeHTTP(w, req)
+		w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/user/", string(body))
 
 		assert.Equal(t, 400, w.Code)
 		assert.JSONEq(t, `{"error":"Key: 'CreateUserRequest.Password' Error:Field validation for 'Password' failed on the 'required' tag"}`, w.Body.String())
@@ -121,17 +85,13 @@ func TestUser(t *testing.T) {
 	t.Run("POST /user with existing email", func(t *testing.T) {
 		mock.ExpectQuery("-- name: ExistsByEmail").WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow("true"))
 
-		w := httptest.NewRecorder()
 		createUserRequest := CreateUserRequest{
 			Email:    "email@email.de",
 			Password: "password",
 		}
 		body, _ := json.Marshal(createUserRequest)
 
-		req, _ := http.NewRequest("POST", "/api/user/", bytes.NewReader(body))
-		req.Header.Add("Authorization", token)
-
-		router.ServeHTTP(w, req)
+		w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/user/", string(body))
 
 		assert.Equal(t, 409, w.Code)
 		assert.JSONEq(t, `{"message": "A user with email 'email@email.de' already exists"}`, w.Body.String())
