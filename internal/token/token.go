@@ -1,8 +1,8 @@
 package token
 
 import (
+	"div-dash/internal/config"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -10,14 +10,16 @@ import (
 )
 
 type TokenService struct {
-	audience string
-	issuer   string
-	key      []byte
-	paseto   paseto.V2
+	audience   string
+	issuer     string
+	key        []byte
+	tokenValid int
+	paseto     paseto.V2
 }
 
-func New(audience, issuer string, key []byte) *TokenService {
-	return &TokenService{audience: audience, issuer: issuer, key: key, paseto: paseto.V2{}}
+func NewPasetoService(config config.PasetoConfiguration) *TokenService {
+	paseto := paseto.V2{}
+	return &TokenService{config.Audience, config.Issuer, []byte(config.Key), config.TokenValid, paseto}
 }
 
 func (t *TokenService) GenerateToken(userId int64) (string, error) {
@@ -25,19 +27,18 @@ func (t *TokenService) GenerateToken(userId int64) (string, error) {
 	userIdString := strconv.FormatInt(userId, 10)
 
 	now := time.Now()
-	exp := now.Add(24 * time.Hour)
+	exp := now.Add(time.Duration(t.tokenValid) * time.Hour)
 	nbt := now
 
 	jsonToken := paseto.JSONToken{
 		Audience:   t.audience,
 		Issuer:     t.issuer,
-		Jti:        "123",          // TODO
-		Subject:    "test_subject", // TODO
+		Jti:        "123", // TODO
+		Subject:    userIdString,
 		IssuedAt:   now,
 		Expiration: exp,
 		NotBefore:  nbt,
 	}
-	jsonToken.Set("userId", userIdString)
 	footer := "some footer" // TODO
 
 	return t.paseto.Encrypt(t.key, jsonToken, footer)
@@ -58,8 +59,7 @@ func (t *TokenService) VerifyToken(token string) (bool, int, error) {
 		return false, -1, errors.New("token expired")
 	}
 
-	userIdString := newJsonToken.Get("userId")
-	fmt.Printf("exp %v", newJsonToken.Expiration)
+	userIdString := newJsonToken.Subject
 
 	userId, err := strconv.Atoi(userIdString)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/services"
+	"div-dash/util/testutil"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -29,6 +30,8 @@ func TestUser(t *testing.T) {
 	sdb, mock, _ := sqlmock.New()
 	config.SetDB(sdb)
 	defer sdb.Close()
+
+	testutil.SetupConfig()
 
 	router := gin.Default()
 	RegisterRoutes(router)

@@ -1,9 +1,12 @@
 package services
 
 import (
+	"div-dash/internal/config"
 	"div-dash/internal/mail"
 	"div-dash/internal/token"
 	"sync"
+
+	"github.com/spf13/viper"
 )
 
 var services struct {
@@ -15,8 +18,7 @@ var onceTokenService sync.Once
 var onceMailService sync.Once
 
 func initTokenService() {
-	services.TokenService = token.New(
-		"audience", "issuer", []byte("YELLOW SUBMARINE, BLACK WIZARDRY"))
+	services.TokenService = token.NewPasetoService(config.Config().Paseto)
 }
 
 func TokenService() *token.TokenService {
@@ -26,7 +28,10 @@ func TokenService() *token.TokenService {
 }
 
 func initMailService() {
-	services.MailService = mail.NewMailService("smtpPass", "localhost", 1025)
+	password := viper.GetString("smtp.password")
+	port := viper.GetInt("smtp.port")
+	server := viper.GetString("smtp.server")
+	services.MailService = mail.NewMailService(password, server, port)
 }
 
 func MailService() *mail.MailService {

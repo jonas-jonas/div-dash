@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"div-dash/internal/services"
+	"div-dash/util/testutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,6 +13,7 @@ import (
 
 func TestAuthRequired(t *testing.T) {
 
+	testutil.SetupConfig()
 	authRequired := AuthRequired()
 
 	w := httptest.NewRecorder()
@@ -38,7 +40,7 @@ func TestAuthRequired(t *testing.T) {
 }
 
 func TestAuthRequiredWithInvalidToken(t *testing.T) {
-
+	testutil.SetupConfig()
 	authRequired := AuthRequired()
 
 	w := httptest.NewRecorder()
@@ -56,5 +58,5 @@ func TestAuthRequiredWithInvalidToken(t *testing.T) {
 	r.ServeHTTP(w, context.Request)
 
 	assert.Equal(t, 401, w.Code)
-	assert.JSONEq(t, `{"message": "Unauthorized"}`, w.Body.String())
+	assert.JSONEq(t, `{"error":"failed to decode token: incorrect token header", "message":"Unauthorized"}`, w.Body.String())
 }

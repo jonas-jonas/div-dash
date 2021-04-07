@@ -13,7 +13,7 @@ type MailService struct {
 }
 
 func NewMailService(smtpPassword, smtpServer string, smtpPort int) *MailService {
-	auth := smtp.PlainAuth("", "sender@div-dash.io", smtpPassword, smtpServer)
+	auth := smtp.PlainAuth("", "sender@div-dash.io", smtpPassword, smtpServer) //TODO
 	return &MailService{
 		smtpPassword,
 		smtpServer,

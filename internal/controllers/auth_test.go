@@ -18,6 +18,7 @@ import (
 )
 
 func TestLogin(t *testing.T) {
+	testutil.SetupConfig()
 	sdb, mock, _ := sqlmock.New()
 	config.SetDB(sdb)
 	defer sdb.Close()
@@ -137,6 +138,8 @@ func TestLoginWithNonActivatedUser(t *testing.T) {
 }
 
 func TestPostRegister(t *testing.T) {
+	testutil.SetupConfig()
+
 	mock, cleanup := setUpDb()
 	defer cleanup()
 	router := gin.Default()

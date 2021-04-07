@@ -1,6 +1,7 @@
 package token
 
 import (
+	"div-dash/internal/config"
 	"testing"
 	"time"
 
@@ -8,26 +9,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var key = []byte("YELLOW SUBMARINE, BLACK WIZARDRY")
+var key = "YELLOW SUBMARINE, BLACK WIZARDRY"
 
 func createToken(userId string, now, exp, nbt time.Time) (string, error) {
 
 	jsonToken := paseto.JSONToken{
 		Audience:   "test",
 		Issuer:     "test",
-		Jti:        "123",          // TODO
-		Subject:    "test_subject", // TODO
+		Jti:        "123", // TODO
+		Subject:    userId,
 		IssuedAt:   now,
 		Expiration: exp,
 		NotBefore:  nbt,
 	}
-	jsonToken.Set("userId", userId)
 	footer := "some footer" // TODO
-	return paseto.NewV2().Encrypt(key, jsonToken, footer)
+	return paseto.NewV2().Encrypt([]byte(key), jsonToken, footer)
 }
 
 func TestGenerateToken(t *testing.T) {
-	tokenService := New("test_audience", "test_issuer", key)
+	tokenService := NewPasetoService(config.PasetoConfiguration{
+		Audience: "test_audience", Issuer: "test_issuer", Key: key, TokenValid: 24,
+	})
 
 	token, err := tokenService.GenerateToken(0)
 
@@ -36,7 +38,9 @@ func TestGenerateToken(t *testing.T) {
 }
 
 func TestVerifyToken(t *testing.T) {
-	tokenService := New("test_audience", "test_issuer", key)
+	tokenService := NewPasetoService(config.PasetoConfiguration{
+		Audience: "test_audience", Issuer: "test_issuer", Key: key, TokenValid: 24,
+	})
 
 	token, _ := tokenService.GenerateToken(0)
 
@@ -48,7 +52,9 @@ func TestVerifyToken(t *testing.T) {
 }
 
 func TestVerifyTokenWithExpiredToken(t *testing.T) {
-	tokenService := New("test_audience", "test_issuer", key)
+	tokenService := NewPasetoService(config.PasetoConfiguration{
+		Audience: "test_audience", Issuer: "test_issuer", Key: key, TokenValid: 24,
+	})
 	now := time.Now().Add(-25 * time.Hour)
 	exp := now.Add(24 * time.Hour)
 	nbt := now
@@ -64,7 +70,9 @@ func TestVerifyTokenWithExpiredToken(t *testing.T) {
 }
 
 func TestVerifyTokenWithStringAsUserId(t *testing.T) {
-	tokenService := New("test_audience", "test_issuer", key)
+	tokenService := NewPasetoService(config.PasetoConfiguration{
+		Audience: "test_audience", Issuer: "test_issuer", Key: key, TokenValid: 24,
+	})
 
 	now := time.Now()
 	exp := now.Add(24 * time.Hour)
@@ -80,11 +88,15 @@ func TestVerifyTokenWithStringAsUserId(t *testing.T) {
 }
 
 func TestVerifyTokenWithDifferentKey(t *testing.T) {
-	tokenService := New("test_audience", "test_issuer", key)
+	tokenService := NewPasetoService(config.PasetoConfiguration{
+		Audience: "test_audience", Issuer: "test_issuer", Key: key, TokenValid: 24,
+	})
 
 	token, _ := tokenService.GenerateToken(0)
 
-	tokenService = New("test_audience", "test_issuer", []byte("111111 SUBMARINE, BLACK WIZARDRY"))
+	tokenService = NewPasetoService(config.PasetoConfiguration{
+		Audience: "test_audience", Issuer: "test_issuer", Key: "111111 SUBMARINE, BLACK WIZARDRY", TokenValid: 24,
+	})
 
 	result, userId, err := tokenService.VerifyToken(token)
 
