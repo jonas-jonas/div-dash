@@ -29,6 +29,12 @@ func (e *UserStatus) Scan(src interface{}) error {
 	return nil
 }
 
+type Portfolio struct {
+	PortfolioID int64  `json:"portfolio_id"`
+	Name        string `json:"name"`
+	UserID      int64  `json:"user_id"`
+}
+
 type User struct {
 	ID           int64      `json:"id"`
 	Email        string     `json:"email"`

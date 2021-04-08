@@ -28,11 +28,17 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countByEmailStmt, err = db.PrepareContext(ctx, countByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query CountByEmail: %w", err)
 	}
+	if q.createPortfolioStmt, err = db.PrepareContext(ctx, createPortfolio); err != nil {
+		return nil, fmt.Errorf("error preparing query CreatePortfolio: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
 	if q.createUserRegistrationStmt, err = db.PrepareContext(ctx, createUserRegistration); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUserRegistration: %w", err)
+	}
+	if q.deletePortfolioStmt, err = db.PrepareContext(ctx, deletePortfolio); err != nil {
+		return nil, fmt.Errorf("error preparing query DeletePortfolio: %w", err)
 	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
@@ -43,6 +49,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findByEmailStmt, err = db.PrepareContext(ctx, findByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query FindByEmail: %w", err)
 	}
+	if q.findByUserIdStmt, err = db.PrepareContext(ctx, findByUserId); err != nil {
+		return nil, fmt.Errorf("error preparing query FindByUserId: %w", err)
+	}
+	if q.getPortfolioStmt, err = db.PrepareContext(ctx, getPortfolio); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPortfolio: %w", err)
+	}
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
 	}
@@ -52,8 +64,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserRegistrationByUserIdStmt, err = db.PrepareContext(ctx, getUserRegistrationByUserId); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserRegistrationByUserId: %w", err)
 	}
+	if q.listPortfoliosStmt, err = db.PrepareContext(ctx, listPortfolios); err != nil {
+		return nil, fmt.Errorf("error preparing query ListPortfolios: %w", err)
+	}
 	if q.listUsersStmt, err = db.PrepareContext(ctx, listUsers); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUsers: %w", err)
+	}
+	if q.updatePortfolioStmt, err = db.PrepareContext(ctx, updatePortfolio); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdatePortfolio: %w", err)
 	}
 	return &q, nil
 }
@@ -70,6 +88,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing countByEmailStmt: %w", cerr)
 		}
 	}
+	if q.createPortfolioStmt != nil {
+		if cerr := q.createPortfolioStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createPortfolioStmt: %w", cerr)
+		}
+	}
 	if q.createUserStmt != nil {
 		if cerr := q.createUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
@@ -78,6 +101,11 @@ func (q *Queries) Close() error {
 	if q.createUserRegistrationStmt != nil {
 		if cerr := q.createUserRegistrationStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createUserRegistrationStmt: %w", cerr)
+		}
+	}
+	if q.deletePortfolioStmt != nil {
+		if cerr := q.deletePortfolioStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deletePortfolioStmt: %w", cerr)
 		}
 	}
 	if q.deleteUserStmt != nil {
@@ -95,6 +123,16 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findByEmailStmt: %w", cerr)
 		}
 	}
+	if q.findByUserIdStmt != nil {
+		if cerr := q.findByUserIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findByUserIdStmt: %w", cerr)
+		}
+	}
+	if q.getPortfolioStmt != nil {
+		if cerr := q.getPortfolioStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPortfolioStmt: %w", cerr)
+		}
+	}
 	if q.getUserStmt != nil {
 		if cerr := q.getUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
@@ -110,9 +148,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUserRegistrationByUserIdStmt: %w", cerr)
 		}
 	}
+	if q.listPortfoliosStmt != nil {
+		if cerr := q.listPortfoliosStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listPortfoliosStmt: %w", cerr)
+		}
+	}
 	if q.listUsersStmt != nil {
 		if cerr := q.listUsersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listUsersStmt: %w", cerr)
+		}
+	}
+	if q.updatePortfolioStmt != nil {
+		if cerr := q.updatePortfolioStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updatePortfolioStmt: %w", cerr)
 		}
 	}
 	return err
@@ -156,15 +204,21 @@ type Queries struct {
 	tx                              *sql.Tx
 	activateUserStmt                *sql.Stmt
 	countByEmailStmt                *sql.Stmt
+	createPortfolioStmt             *sql.Stmt
 	createUserStmt                  *sql.Stmt
 	createUserRegistrationStmt      *sql.Stmt
+	deletePortfolioStmt             *sql.Stmt
 	deleteUserStmt                  *sql.Stmt
 	existsByEmailStmt               *sql.Stmt
 	findByEmailStmt                 *sql.Stmt
+	findByUserIdStmt                *sql.Stmt
+	getPortfolioStmt                *sql.Stmt
 	getUserStmt                     *sql.Stmt
 	getUserRegistrationStmt         *sql.Stmt
 	getUserRegistrationByUserIdStmt *sql.Stmt
+	listPortfoliosStmt              *sql.Stmt
 	listUsersStmt                   *sql.Stmt
+	updatePortfolioStmt             *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -173,14 +227,20 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		tx:                              tx,
 		activateUserStmt:                q.activateUserStmt,
 		countByEmailStmt:                q.countByEmailStmt,
+		createPortfolioStmt:             q.createPortfolioStmt,
 		createUserStmt:                  q.createUserStmt,
 		createUserRegistrationStmt:      q.createUserRegistrationStmt,
+		deletePortfolioStmt:             q.deletePortfolioStmt,
 		deleteUserStmt:                  q.deleteUserStmt,
 		existsByEmailStmt:               q.existsByEmailStmt,
 		findByEmailStmt:                 q.findByEmailStmt,
+		findByUserIdStmt:                q.findByUserIdStmt,
+		getPortfolioStmt:                q.getPortfolioStmt,
 		getUserStmt:                     q.getUserStmt,
 		getUserRegistrationStmt:         q.getUserRegistrationStmt,
 		getUserRegistrationByUserIdStmt: q.getUserRegistrationByUserIdStmt,
+		listPortfoliosStmt:              q.listPortfoliosStmt,
 		listUsersStmt:                   q.listUsersStmt,
+		updatePortfolioStmt:             q.updatePortfolioStmt,
 	}
 }

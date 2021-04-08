@@ -48,6 +48,7 @@ func PerformRequestWithBody(router *gin.Engine, method, path, body string) *http
 	w := httptest.NewRecorder()
 
 	req, _ := http.NewRequest(method, path, strings.NewReader(body))
+	req.Header.Add("Content-Type", "application/json")
 
 	router.ServeHTTP(w, req)
 	return w
@@ -58,7 +59,7 @@ func PerformAuthenticatedRequest(router *gin.Engine, method, path string) *httpt
 	w := httptest.NewRecorder()
 
 	req, _ := http.NewRequest(method, path, nil)
-	token, _ := services.TokenService().GenerateToken(0)
+	token, _ := services.TokenService().GenerateToken(testutil.TestUserID)
 	req.Header.Add("Authorization", "Bearer "+token)
 
 	router.ServeHTTP(w, req)
@@ -69,8 +70,9 @@ func PerformAuthenticatedRequestWithBody(router *gin.Engine, method, path, body 
 	w := httptest.NewRecorder()
 
 	req, _ := http.NewRequest(method, path, strings.NewReader(body))
-	token, _ := services.TokenService().GenerateToken(0)
+	token, _ := services.TokenService().GenerateToken(testutil.TestUserID)
 	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Content-Type", "application/json")
 
 	router.ServeHTTP(w, req)
 	return w
