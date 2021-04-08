@@ -25,7 +25,7 @@ type DatabaseConfiguration struct {
 	Username string
 	Password string
 	Database string
-	SSLMode  bool
+	SSLMode  string
 }
 
 type SmtpConfiguration struct {

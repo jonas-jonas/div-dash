@@ -7,7 +7,7 @@ database:
   username: postgres
   password: postgres
   database: postgres
-  sslmode: true
+  sslmode: disable
 
 smtp:
   server: localhost
