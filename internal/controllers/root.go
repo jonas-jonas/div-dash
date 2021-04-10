@@ -3,9 +3,18 @@ package controllers
 import (
 	"div-dash/internal/middleware"
 	"log"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+type APIError struct {
+	Message   string    `json:"message"`
+	Status    int       `json:"status"`
+	Path      string    `json:"path"`
+	Timestamp time.Time `json:"timestamp"`
+}
 
 //
 // Middleware Error Handler in server package
@@ -19,10 +28,7 @@ func handleErrors(c *gin.Context) {
 	errorToPrint := c.Errors.Last()
 	if errorToPrint != nil {
 		log.Printf("Caught error on %s: %s", c.Request.RequestURI, errorToPrint.Error())
-		c.JSON(500, gin.H{
-			"status":  500,
-			"message": errorToPrint.Error(),
-		})
+		AbortServerError(c)
 	}
 }
 func RegisterRoutes(r *gin.Engine) {
@@ -37,7 +43,6 @@ func RegisterRoutes(r *gin.Engine) {
 	authorized.Use(middleware.AuthRequired())
 	{
 		authorized.GET("/user/:id", GetUser)
-		authorized.POST("/user/", PostUser)
 
 		authorized.POST("/portfolio", PostPortfolio)
 		authorized.GET("/portfolio", GetPortfolios)
@@ -49,4 +54,32 @@ func RegisterRoutes(r *gin.Engine) {
 
 func Ping(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "pong"})
+}
+
+func AbortBadRequest(c *gin.Context, message string) {
+	Abort(c, http.StatusBadRequest, message)
+}
+
+func AbortServerError(c *gin.Context) {
+	Abort(c, http.StatusInternalServerError, "An internal server error occured. Please try again later.")
+}
+
+func AbortUnauthorized(c *gin.Context) {
+	Abort(c, http.StatusUnauthorized, "Please log in and try again")
+}
+
+func AbortNotFound(c *gin.Context) {
+	Abort(c, http.StatusNotFound, "The requested resource could not be found")
+}
+
+func Abort(c *gin.Context, status int, message string) {
+	timestamp := time.Now()
+	path := c.Request.URL.Path
+
+	c.AbortWithStatusJSON(status, APIError{
+		Timestamp: timestamp,
+		Status:    status,
+		Message:   message,
+		Path:      path,
+	})
 }

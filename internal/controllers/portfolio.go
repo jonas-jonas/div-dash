@@ -13,17 +13,17 @@ func GetPortfolio(c *gin.Context) {
 	idString := c.Param("id")
 	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
-		c.Error(err)
+		AbortBadRequest(c, "Invalid portfolio id format")
 		return
 	}
 
 	portfolio, err := config.Queries().GetPortfolio(c, id)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			c.JSON(http.StatusNotFound, gin.H{"message": "Portfolio with id '" + idString + "' not found"})
-			return
+			AbortNotFound(c)
+		} else {
+			c.Error(err)
 		}
-		c.Error(err)
 		return
 	}
 
@@ -38,7 +38,7 @@ func PostPortfolio(c *gin.Context) {
 	var createPortfolioRequest createPortfolioRequest
 
 	if err := c.ShouldBindJSON(&createPortfolioRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		AbortBadRequest(c, err.Error())
 		return
 	}
 
@@ -63,13 +63,13 @@ func PutPortfolio(c *gin.Context) {
 	idString := c.Param("id")
 	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
-		c.Error(err)
+		AbortBadRequest(c, "Invalid portfolio id format")
 		return
 	}
 
 	var updatePortfolioRequest updatePortfolioRequest
 	if err := c.ShouldBindJSON(&updatePortfolioRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		AbortBadRequest(c, err.Error())
 		return
 	}
 
@@ -90,7 +90,7 @@ func DeletePortfolio(c *gin.Context) {
 	idString := c.Param("id")
 	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
-		c.Error(err)
+		AbortBadRequest(c, "Invalid portfolio id format")
 		return
 	}
 
@@ -113,5 +113,9 @@ func GetPortfolios(c *gin.Context) {
 		return
 	}
 
+	if portfolios == nil {
+		portfolios = []db.Portfolio{}
+	}
 	c.JSON(http.StatusOK, portfolios)
+
 }

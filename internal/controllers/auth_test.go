@@ -4,6 +4,7 @@ import (
 	"div-dash/internal/db"
 	"div-dash/util/testutil"
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 
@@ -52,7 +53,7 @@ func TestLogin(t *testing.T) {
 		w := PerformRequestWithBody(router, "POST", "/api/login", string(body))
 
 		assert.Equal(t, 401, w.Code)
-		assert.JSONEq(t, `{"message": "wrong credentials"}`, w.Body.String())
+		AssertErrorObject(t, "wrong credentials", 401, w.Body)
 	})
 
 	t.Run("POST /login with missing field", func(t *testing.T) {
@@ -63,7 +64,7 @@ func TestLogin(t *testing.T) {
 		w := PerformRequestWithBody(router, "POST", "/api/login", string(body))
 
 		assert.Equal(t, 400, w.Code)
-		assert.JSONEq(t, `{"error": "Key: 'LoginRequest.Password' Error:Field validation for 'Password' failed on the 'required' tag"}`, w.Body.String())
+		AssertErrorObject(t, "Key: 'LoginRequest.Password' Error:Field validation for 'Password' failed on the 'required' tag", 400, w.Body)
 	})
 
 	t.Run("POST /login for missing user", func(t *testing.T) {
@@ -77,8 +78,22 @@ func TestLogin(t *testing.T) {
 		w := PerformRequestWithBody(router, "POST", "/api/login", string(body))
 
 		assert.Equal(t, 401, w.Code)
-		assert.JSONEq(t, `{"message":"wrong credentials"}`, w.Body.String())
+		AssertErrorObject(t, "wrong credentials", 401, w.Body)
 	})
+}
+
+func TestPostLoginDbError(t *testing.T) {
+
+	mock, cleanup, router := NewApi()
+
+	defer cleanup()
+
+	mock.ExpectQuery("^-- name: FindByEmail :one .*$").WithArgs("user@example.de").WillReturnError(errors.New("test error"))
+
+	w := PerformRequestWithBody(router, "POST", "/api/login", `{"email": "user@example.de", "password": "pass"}`)
+
+	assert.Equal(t, 500, w.Code)
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
 }
 
 func TestLoginWithNonActivatedUser(t *testing.T) {
@@ -100,7 +115,7 @@ func TestLoginWithNonActivatedUser(t *testing.T) {
 	w := PerformRequestWithBody(router, "POST", "/api/login", string(body))
 
 	assert.Equal(t, 401, w.Code)
-	assert.JSONEq(t, `{"message": "User not activated"}`, w.Body.String())
+	AssertErrorObject(t, "User not activated", 401, w.Body)
 }
 
 func TestPostRegister(t *testing.T) {
@@ -147,7 +162,7 @@ func TestPostRegisterWithMissingField(t *testing.T) {
 	w := PerformRequestWithBody(router, "POST", "/api/register", string(body))
 
 	assert.Equal(t, 400, w.Code)
-	assert.JSONEq(t, `{"error": "Key: 'RegisterRequest.Password' Error:Field validation for 'Password' failed on the 'required' tag"}`, w.Body.String())
+	AssertErrorObject(t, "Key: 'RegisterRequest.Password' Error:Field validation for 'Password' failed on the 'required' tag", 400, w.Body)
 }
 
 func TestPostRegisterWithExistingUserEmail(t *testing.T) {
@@ -166,7 +181,7 @@ func TestPostRegisterWithExistingUserEmail(t *testing.T) {
 	w := PerformRequestWithBody(router, "POST", "/api/register", string(body))
 
 	assert.Equal(t, 409, w.Code)
-	assert.JSONEq(t, `{"message": "A user with email 'user@email.de' already exists"}`, w.Body.String())
+	AssertErrorObject(t, "A user with email 'user@email.de' already exists", 409, w.Body)
 }
 
 func TestPostActivate(t *testing.T) {
@@ -190,7 +205,7 @@ func TestPostActivateInvalidIdReturnsError(t *testing.T) {
 	w := PerformRequest(router, "GET", "/api/activate?id=asdsd")
 
 	assert.Equal(t, 400, w.Code)
-	assert.JSONEq(t, `{"message": "Invalid id format"}`, w.Body.String())
+	AssertErrorObject(t, "Activation id is in wrong format", 400, w.Body)
 }
 
 func TestPostActivateNonExistingIdReturnsError(t *testing.T) {
@@ -201,7 +216,7 @@ func TestPostActivateNonExistingIdReturnsError(t *testing.T) {
 	w := PerformRequest(router, "GET", "/api/activate?id=5cf6a941-2517-4e2b-9905-97f507f928c4")
 
 	assert.Equal(t, 400, w.Code)
-	assert.JSONEq(t, `{"message": "Invalid id"}`, w.Body.String())
+	AssertErrorObject(t, "Invalid id", 400, w.Body)
 }
 
 func TestPostActivateExpiredRegistration(t *testing.T) {
@@ -213,5 +228,69 @@ func TestPostActivateExpiredRegistration(t *testing.T) {
 	w := PerformRequest(router, "GET", "/api/activate?id=5cf6a941-2517-4e2b-9905-97f507f928c4")
 
 	assert.Equal(t, 400, w.Code)
-	assert.JSONEq(t, `{"message": "Registration expired"}`, w.Body.String())
+	AssertErrorObject(t, "Registration expired", 400, w.Body)
+}
+
+func TestPostRegisterDbErrorFindByEmail(t *testing.T) {
+
+	mock, cleanup, router := NewApi()
+
+	defer cleanup()
+
+	mock.ExpectQuery("^-- name: FindByEmail :one .*$").WithArgs("user@example.de").WillReturnError(errors.New("test error"))
+
+	w := PerformRequestWithBody(router, "POST", "/api/register", `{"email": "user@example.de", "password": "pass"}`)
+
+	assert.Equal(t, 500, w.Code)
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
+}
+
+func TestPostRegisterDbErrorCreateUser(t *testing.T) {
+
+	mock, cleanup, router := NewApi()
+
+	defer cleanup()
+	mock.ExpectQuery("^-- name: ExistsByEmail :one .*$").WithArgs("user@example.de").WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow("false"))
+
+	mock.ExpectQuery("^-- name: CreateUser :one .*$").WithArgs("user@example.de", AnyString{}, db.UserStatusRegistered).WillReturnError(errors.New("test error"))
+
+	w := PerformRequestWithBody(router, "POST", "/api/register", `{"email": "user@example.de", "password": "pass"}`)
+
+	assert.Equal(t, 500, w.Code)
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
+}
+
+func TestPostRegisterDbErrorCreateUserRegistration(t *testing.T) {
+
+	mock, cleanup, router := NewApi()
+
+	defer cleanup()
+	mock.ExpectQuery("^-- name: ExistsByEmail :one .*$").WithArgs("user@example.de").WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow("false"))
+
+	rows := sqlmock.NewRows([]string{"id", "email", "password", "status"}).
+		AddRow(1, "user@example.de", "password", db.UserStatusRegistered)
+	mock.ExpectQuery("^-- name: CreateUser :one .*$").WillReturnRows(rows)
+
+	mock.ExpectQuery("^-- name: CreateUserRegistration :one .*$").WillReturnError(errors.New("test error"))
+
+	w := PerformRequestWithBody(router, "POST", "/api/register", `{"email": "user@example.de", "password": "pass"}`)
+
+	assert.Equal(t, 500, w.Code)
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
+}
+
+func TestPostActivateDbError(t *testing.T) {
+
+	mock, cleanup, router := NewApi()
+
+	defer cleanup()
+	rows := sqlmock.NewRows([]string{"id", "user_id", "timestamp"}).AddRow("5cf6a941-2517-4e2b-9905-97f507f928c4", 1, time.Now())
+	mock.ExpectQuery("^-- name: GetUserRegistration :one .*$").WithArgs("5cf6a941-2517-4e2b-9905-97f507f928c4").WillReturnRows(rows)
+
+	mock.ExpectQuery("^-- name: GetUserRegistration :exec .*$").WithArgs(1).WillReturnError(errors.New("test error"))
+
+	w := PerformRequest(router, "GET", "/api/activate?id=5cf6a941-2517-4e2b-9905-97f507f928c4")
+
+	assert.Equal(t, 500, w.Code)
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
 }

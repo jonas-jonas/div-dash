@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"bytes"
 	"div-dash/internal/config"
 	"div-dash/internal/services"
 	"div-dash/util/testutil"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -87,4 +89,17 @@ func TestPing(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	assert.JSONEq(t, `{"message": "pong"}`, w.Body.String())
+}
+
+func AssertErrorObject(t *testing.T, message string, status int, body *bytes.Buffer) {
+	t.Helper()
+
+	var response APIError
+	err := json.Unmarshal(body.Bytes(), &response)
+	if err != nil {
+		t.Errorf("body was not json %s", err.Error())
+	}
+
+	assert.Equal(t, message, response.Message)
+	assert.Equal(t, status, response.Status)
 }

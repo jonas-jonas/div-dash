@@ -34,7 +34,7 @@ func TestGetPortfolioNoPortfolio(t *testing.T) {
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1")
 
 	assert.Equal(t, 404, w.Code)
-	assert.JSONEq(t, `{"message": "Portfolio with id '1' not found"}`, w.Body.String())
+	AssertErrorObject(t, "The requested resource could not be found", 404, w.Body)
 }
 
 func TestGetPortfolioStringAsId(t *testing.T) {
@@ -44,8 +44,8 @@ func TestGetPortfolioStringAsId(t *testing.T) {
 
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/astring")
 
-	assert.Equal(t, 500, w.Code)
-	assert.JSONEq(t, `{"message":"strconv.ParseInt: parsing \"astring\": invalid syntax", "status":500}`, w.Body.String())
+	assert.Equal(t, 400, w.Code)
+	AssertErrorObject(t, "Invalid portfolio id format", 400, w.Body)
 }
 
 func TestGetPortfolioDbError(t *testing.T) {
@@ -57,7 +57,7 @@ func TestGetPortfolioDbError(t *testing.T) {
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1")
 
 	assert.Equal(t, 500, w.Code)
-	assert.JSONEq(t, `{"message": "test error", "status": 500}`, w.Body.String())
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
 }
 
 func TestPostPortfolio(t *testing.T) {
@@ -86,7 +86,7 @@ func TestPostPortfolioDbError(t *testing.T) {
 	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio", `{"name": "Test Portfolio"}`)
 
 	assert.Equal(t, 500, w.Code)
-	assert.JSONEq(t, `{"message":"test error", "status":500}`, w.Body.String())
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
 }
 
 func TestPostPortfolioMissingField(t *testing.T) {
@@ -97,7 +97,7 @@ func TestPostPortfolioMissingField(t *testing.T) {
 	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio", `{}`)
 
 	assert.Equal(t, 400, w.Code)
-	assert.JSONEq(t, `{"error":"Key: 'createPortfolioRequest.Name' Error:Field validation for 'Name' failed on the 'required' tag"}`, w.Body.String())
+	AssertErrorObject(t, "Key: 'createPortfolioRequest.Name' Error:Field validation for 'Name' failed on the 'required' tag", 400, w.Body)
 }
 
 func TestPutPortfolio(t *testing.T) {
@@ -128,7 +128,7 @@ func TestPutPortfolioDbError(t *testing.T) {
 	w := PerformAuthenticatedRequestWithBody(router, "PUT", "/api/portfolio/1", `{"name": "New Test Portfolio"}`)
 
 	assert.Equal(t, 500, w.Code)
-	assert.JSONEq(t, `{"message":"test error", "status":500}`, w.Body.String())
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
 }
 
 func TestPutPortfolioStringId(t *testing.T) {
@@ -139,8 +139,8 @@ func TestPutPortfolioStringId(t *testing.T) {
 
 	w := PerformAuthenticatedRequestWithBody(router, "PUT", "/api/portfolio/asd", `{"name": "New Test Portfolio"}`)
 
-	assert.Equal(t, 500, w.Code)
-	assert.JSONEq(t, `{"message":"strconv.ParseInt: parsing \"asd\": invalid syntax", "status":500}`, w.Body.String())
+	assert.Equal(t, 400, w.Code)
+	AssertErrorObject(t, "Invalid portfolio id format", 400, w.Body)
 }
 
 func TestPutPortfolioMissingField(t *testing.T) {
@@ -152,7 +152,7 @@ func TestPutPortfolioMissingField(t *testing.T) {
 	w := PerformAuthenticatedRequestWithBody(router, "PUT", "/api/portfolio/1", `{}`)
 
 	assert.Equal(t, 400, w.Code)
-	assert.JSONEq(t, `{"error":"Key: 'updatePortfolioRequest.Name' Error:Field validation for 'Name' failed on the 'required' tag"}`, w.Body.String())
+	AssertErrorObject(t, "Key: 'updatePortfolioRequest.Name' Error:Field validation for 'Name' failed on the 'required' tag", 400, w.Body)
 }
 
 func TestDeletePortfolio(t *testing.T) {
@@ -178,7 +178,7 @@ func TestDeletePortfolioDbError(t *testing.T) {
 	w := PerformAuthenticatedRequest(router, "DELETE", "/api/portfolio/1")
 
 	assert.Equal(t, 500, w.Code)
-	assert.JSONEq(t, `{"message":"test error", "status":500}`, w.Body.String())
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
 }
 
 func TestDeletePortfolioStringId(t *testing.T) {
@@ -188,8 +188,8 @@ func TestDeletePortfolioStringId(t *testing.T) {
 
 	w := PerformAuthenticatedRequest(router, "DELETE", "/api/portfolio/asd")
 
-	assert.Equal(t, 500, w.Code)
-	assert.JSONEq(t, `{"message":"strconv.ParseInt: parsing \"asd\": invalid syntax", "status":500}`, w.Body.String())
+	assert.Equal(t, 400, w.Code)
+	AssertErrorObject(t, "Invalid portfolio id format", 400, w.Body)
 }
 
 func TestGetPortfolios(t *testing.T) {
@@ -222,5 +222,18 @@ func TestGetPortfoliosDbError(t *testing.T) {
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio")
 
 	assert.Equal(t, 500, w.Code)
-	assert.JSONEq(t, `{"message":"test error", "status":500}`, w.Body.String())
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
+}
+
+func TestGetPortfoliosNoResults(t *testing.T) {
+	mock, cleanup, router := NewApi()
+
+	defer cleanup()
+
+	mock.ExpectQuery("^-- name: ListPortfolios :many .*$").WithArgs(testutil.TestUserID).WillReturnRows(sqlmock.NewRows([]string{}))
+
+	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio")
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `[]`, w.Body.String())
 }

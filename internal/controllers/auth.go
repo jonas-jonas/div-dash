@@ -21,7 +21,7 @@ func PostLogin(c *gin.Context) {
 	var loginRequest LoginRequest
 
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		AbortBadRequest(c, err.Error())
 		return
 	}
 
@@ -29,7 +29,7 @@ func PostLogin(c *gin.Context) {
 
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "wrong credentials"})
+			Abort(c, http.StatusUnauthorized, "wrong credentials")
 			return
 		}
 		c.Error(err)
@@ -37,12 +37,12 @@ func PostLogin(c *gin.Context) {
 	}
 
 	if user.Status != db.UserStatusActivated {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "User not activated"})
+		Abort(c, http.StatusUnauthorized, "User not activated")
 		return
 	}
 
 	if !security.VerifyHash(loginRequest.Password, user.PasswordHash) {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "wrong credentials"})
+		Abort(c, http.StatusUnauthorized, "wrong credentials")
 		return
 	}
 
@@ -63,7 +63,7 @@ func PostRegister(c *gin.Context) {
 
 	var registerRequest RegisterRequest
 	if err := c.ShouldBindJSON(&registerRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		AbortBadRequest(c, err.Error())
 		return
 	}
 
@@ -75,7 +75,7 @@ func PostRegister(c *gin.Context) {
 	}
 
 	if exists {
-		c.AbortWithStatusJSON(http.StatusConflict, gin.H{"message": "A user with email '" + registerRequest.Email + "' already exists"})
+		Abort(c, http.StatusConflict, "A user with email '"+registerRequest.Email+"' already exists")
 		return
 	}
 
@@ -90,6 +90,7 @@ func PostRegister(c *gin.Context) {
 
 	if err != nil {
 		c.Error(err)
+		return
 	}
 
 	user, err := config.Queries().CreateUser(c, db.CreateUserParams{
@@ -131,19 +132,19 @@ func PostActivate(c *gin.Context) {
 	registerRequest, err := uuid.Parse(id)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid id format"})
+		AbortBadRequest(c, "Activation id is in wrong format")
 		return
 	}
 
 	userRegistration, err := config.Queries().GetUserRegistration(c, registerRequest)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid id"})
+		AbortBadRequest(c, "Invalid id")
 		return
 	}
 
 	if userRegistration.Timestamp.Add(24 * time.Hour).Before(time.Now()) {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Registration expired"})
+		AbortBadRequest(c, "Registration expired")
 		return
 	}
 

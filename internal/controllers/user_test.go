@@ -3,7 +3,7 @@ package controllers
 import (
 	"database/sql/driver"
 	"div-dash/internal/db"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -41,60 +41,28 @@ func TestUser(t *testing.T) {
 		w := PerformAuthenticatedRequest(router, "GET", "/api/user/123")
 
 		assert.Equal(t, 404, w.Code)
-		assert.JSONEq(t, `{"message": "User with id '123' not found"}`, w.Body.String())
+		AssertErrorObject(t, "The requested resource could not be found", 404, w.Body)
 	})
 
 	t.Run("GET /user with string id", func(t *testing.T) {
 		w := PerformAuthenticatedRequest(router, "GET", "/api/user/string")
 
 		assert.Equal(t, 400, w.Code)
-		assert.JSONEq(t, `{"message": "Param 'id' must be int, got 'string'"}`, w.Body.String())
+		AssertErrorObject(t, "User id is invalid", 400, w.Body)
 	})
 
-	t.Run("POST /user", func(t *testing.T) {
-		mock.ExpectQuery("-- name: ExistsByEmail").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-		rows := sqlmock.NewRows([]string{"id", "email", "password", "status"}).
-			AddRow(1, "test@email.com", "password", db.UserStatusActivated)
-		mock.ExpectQuery("-- name: CreateUser").WithArgs("test@email.com", AnyString{}, db.UserStatusActivated).WillReturnRows(rows)
+}
 
-		createUserRequest := CreateUserRequest{
-			Email:    "test@email.com",
-			Password: "password",
-		}
-		body, _ := json.Marshal(createUserRequest)
+func TestGetUserDbError(t *testing.T) {
 
-		w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/user/", string(body))
+	mock, cleanup, router := NewApi()
 
-		assert.Equal(t, 200, w.Code)
-		assert.JSONEq(t, `{"email":"test@email.com", "id":1}`, w.Body.String())
-	})
+	defer cleanup()
 
-	t.Run("POST /user with missing field", func(t *testing.T) {
-		createUserRequest := CreateUserRequest{
-			Email: "test@email.com",
-		}
-		body, _ := json.Marshal(createUserRequest)
+	mock.ExpectQuery("^-- name: GetUser :one .*$").WithArgs(1).WillReturnError(errors.New("test-error"))
 
-		w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/user/", string(body))
+	w := PerformAuthenticatedRequest(router, "GET", "/api/user/1")
 
-		assert.Equal(t, 400, w.Code)
-		assert.JSONEq(t, `{"error":"Key: 'CreateUserRequest.Password' Error:Field validation for 'Password' failed on the 'required' tag"}`, w.Body.String())
-
-	})
-
-	t.Run("POST /user with existing email", func(t *testing.T) {
-		mock.ExpectQuery("-- name: ExistsByEmail").WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow("true"))
-
-		createUserRequest := CreateUserRequest{
-			Email:    "email@email.de",
-			Password: "password",
-		}
-		body, _ := json.Marshal(createUserRequest)
-
-		w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/user/", string(body))
-
-		assert.Equal(t, 409, w.Code)
-		assert.JSONEq(t, `{"message": "A user with email 'email@email.de' already exists"}`, w.Body.String())
-
-	})
+	assert.Equal(t, 500, w.Code)
+	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
 }
