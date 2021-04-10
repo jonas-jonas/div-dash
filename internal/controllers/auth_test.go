@@ -252,7 +252,7 @@ func TestPostRegisterDbErrorCreateUser(t *testing.T) {
 	defer cleanup()
 	mock.ExpectQuery("^-- name: ExistsByEmail :one .*$").WithArgs("user@example.de").WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow("false"))
 
-	mock.ExpectQuery("^-- name: CreateUser :one .*$").WithArgs("user@example.de", AnyString{}, db.UserStatusRegistered).WillReturnError(errors.New("test error"))
+	mock.ExpectQuery("^-- name: CreateUser :one .*$").WithArgs("user@example.de", testutil.AnyString{}, db.UserStatusRegistered).WillReturnError(errors.New("test error"))
 
 	w := PerformRequestWithBody(router, "POST", "/api/register", `{"email": "user@example.de", "password": "pass"}`)
 

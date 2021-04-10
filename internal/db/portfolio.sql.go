@@ -38,34 +38,6 @@ func (q *Queries) DeletePortfolio(ctx context.Context, portfolioID int64) error 
 	return err
 }
 
-const findByUserId = `-- name: FindByUserId :many
-SELECT portfolio_id, name, user_id FROM portfolio
-WHERE user_id = $1
-`
-
-func (q *Queries) FindByUserId(ctx context.Context, userID int64) ([]Portfolio, error) {
-	rows, err := q.query(ctx, q.findByUserIdStmt, findByUserId, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Portfolio
-	for rows.Next() {
-		var i Portfolio
-		if err := rows.Scan(&i.PortfolioID, &i.Name, &i.UserID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getPortfolio = `-- name: GetPortfolio :one
 SELECT portfolio_id, name, user_id FROM portfolio
 WHERE portfolio_id = $1 LIMIT 1

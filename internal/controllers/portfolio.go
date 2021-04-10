@@ -10,7 +10,7 @@ import (
 )
 
 func GetPortfolio(c *gin.Context) {
-	idString := c.Param("id")
+	idString := c.Param("portfolioId")
 	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
 		AbortBadRequest(c, "Invalid portfolio id format")
@@ -60,7 +60,7 @@ type updatePortfolioRequest struct {
 }
 
 func PutPortfolio(c *gin.Context) {
-	idString := c.Param("id")
+	idString := c.Param("portfolioId")
 	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
 		AbortBadRequest(c, "Invalid portfolio id format")
@@ -87,7 +87,7 @@ func PutPortfolio(c *gin.Context) {
 }
 
 func DeletePortfolio(c *gin.Context) {
-	idString := c.Param("id")
+	idString := c.Param("portfolioId")
 	id, err := strconv.ParseInt(idString, 10, 64)
 	if err != nil {
 		AbortBadRequest(c, "Invalid portfolio id format")

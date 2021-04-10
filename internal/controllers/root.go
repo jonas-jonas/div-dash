@@ -46,9 +46,13 @@ func RegisterRoutes(r *gin.Engine) {
 
 		authorized.POST("/portfolio", PostPortfolio)
 		authorized.GET("/portfolio", GetPortfolios)
-		authorized.GET("/portfolio/:id", GetPortfolio)
-		authorized.PUT("/portfolio/:id", PutPortfolio)
-		authorized.DELETE("/portfolio/:id", DeletePortfolio)
+		authorized.GET("/portfolio/:portfolioId", GetPortfolio)
+		authorized.PUT("/portfolio/:portfolioId", PutPortfolio)
+		authorized.DELETE("/portfolio/:portfolioId", DeletePortfolio)
+
+		authorized.POST("/portfolio/:portfolioId/transaction", PostTransaction)
+		authorized.GET("/portfolio/:portfolioId/transaction", GetTransactions)
+		authorized.GET("/portfolio/:portfolioId/transaction/:transactionId", GetTransaction)
 	}
 }
 

@@ -26,6 +26,7 @@ func setUpDb() (sqlmock.Sqlmock, func()) {
 }
 
 func NewApi() (sqlmock.Sqlmock, func(), *gin.Engine) {
+	gin.SetMode(gin.TestMode)
 	mock, cleanup := setUpDb()
 
 	testutil.SetupConfig()

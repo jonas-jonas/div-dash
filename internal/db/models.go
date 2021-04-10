@@ -7,7 +7,63 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
+
+type TransactionProvider string
+
+const (
+	TransactionProviderBinance TransactionProvider = "binance"
+)
+
+func (e *TransactionProvider) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TransactionProvider(s)
+	case string:
+		*e = TransactionProvider(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TransactionProvider: %T", src)
+	}
+	return nil
+}
+
+type TransactionSide string
+
+const (
+	TransactionSideSell TransactionSide = "sell"
+	TransactionSideBuy  TransactionSide = "buy"
+)
+
+func (e *TransactionSide) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TransactionSide(s)
+	case string:
+		*e = TransactionSide(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TransactionSide: %T", src)
+	}
+	return nil
+}
+
+type TransactionType string
+
+const (
+	TransactionTypeCrypto TransactionType = "crypto"
+)
+
+func (e *TransactionType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TransactionType(s)
+	case string:
+		*e = TransactionType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TransactionType: %T", src)
+	}
+	return nil
+}
 
 type UserStatus string
 
@@ -33,6 +89,18 @@ type Portfolio struct {
 	PortfolioID int64  `json:"portfolio_id"`
 	Name        string `json:"name"`
 	UserID      int64  `json:"user_id"`
+}
+
+type Transaction struct {
+	TransactionID       int64               `json:"transaction_id"`
+	Symbol              string              `json:"symbol"`
+	Type                TransactionType     `json:"type"`
+	TransactionProvider TransactionProvider `json:"transaction_provider"`
+	BuyIn               int64               `json:"buy_in"`
+	BuyInDate           time.Time           `json:"buy_in_date"`
+	Amount              decimal.Decimal     `json:"amount"`
+	PortfolioID         int64               `json:"portfolio_id"`
+	Side                TransactionSide     `json:"side"`
 }
 
 type User struct {

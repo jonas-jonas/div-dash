@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql/driver"
 	"div-dash/internal/db"
 	"errors"
 	"fmt"
@@ -12,12 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type AnyString struct{}
-
-func (a AnyString) Match(v driver.Value) bool {
-	_, ok := v.(string)
-	return ok
-}
 func TestUser(t *testing.T) {
 
 	mock, cleanup, router := NewApi()
