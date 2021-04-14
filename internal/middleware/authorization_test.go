@@ -27,7 +27,7 @@ func TestAuthRequired(t *testing.T) {
 		if !exists {
 			t.Fail()
 		}
-		assert.Equal(t, 99, userId)
+		assert.Equal(t, int64(99), userId)
 		c.Status(200)
 	})
 

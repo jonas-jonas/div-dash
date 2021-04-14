@@ -47,7 +47,7 @@ func TestVerifyToken(t *testing.T) {
 	result, userId, err := tokenService.VerifyToken(token)
 
 	assert.True(t, result)
-	assert.Equal(t, 0, userId)
+	assert.Equal(t, int64(0), userId)
 	assert.Nil(t, err)
 }
 
@@ -64,7 +64,7 @@ func TestVerifyTokenWithExpiredToken(t *testing.T) {
 	result, userId, err := tokenService.VerifyToken(token)
 
 	assert.False(t, result)
-	assert.LessOrEqual(t, -1, userId)
+	assert.LessOrEqual(t, int64(-1), userId)
 	assert.NotNil(t, err)
 	assert.Equal(t, "token expired", err.Error())
 }
@@ -82,9 +82,9 @@ func TestVerifyTokenWithStringAsUserId(t *testing.T) {
 	result, userId, err := tokenService.VerifyToken(token)
 
 	assert.False(t, result)
-	assert.LessOrEqual(t, -1, userId)
+	assert.LessOrEqual(t, int64(-1), userId)
 	assert.NotNil(t, err)
-	assert.Equal(t, `strconv.Atoi: parsing "userIdString": invalid syntax`, err.Error())
+	assert.Equal(t, `strconv.ParseInt: parsing "userIdString": invalid syntax`, err.Error())
 }
 
 func TestVerifyTokenWithDifferentKey(t *testing.T) {
@@ -101,7 +101,7 @@ func TestVerifyTokenWithDifferentKey(t *testing.T) {
 	result, userId, err := tokenService.VerifyToken(token)
 
 	assert.False(t, result)
-	assert.LessOrEqual(t, -1, userId)
+	assert.LessOrEqual(t, int64(-1), userId)
 	assert.NotNil(t, err)
 	assert.Equal(t, `invalid token authentication`, err.Error())
 }
