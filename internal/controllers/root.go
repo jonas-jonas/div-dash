@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"div-dash/internal/config"
 	"div-dash/internal/middleware"
 	"log"
 	"net/http"
@@ -53,6 +54,8 @@ func RegisterRoutes(r *gin.Engine) {
 	authorized := api.Group("/")
 	authorized.Use(middleware.AuthRequired())
 	{
+		authorized.GET("/auth/identity", GetAuthIdentity)
+		authorized.GET("/auth/logout", GetLogout)
 		authorized.GET("/user/:id", GetUser)
 
 		authorized.POST("/portfolio", PostPortfolio)
@@ -97,4 +100,21 @@ func Abort(c *gin.Context, status int, message string) {
 		Message:   message,
 		Path:      path,
 	})
+}
+
+func GetAuthIdentity(c *gin.Context) {
+	userId := c.GetInt64("userId")
+
+	user, err := config.Queries().GetUser(c, userId)
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, userResponseFromUser(user))
+}
+
+func GetLogout(c *gin.Context) {
+	c.SetCookie("token", "", -1, "/", "localhost", true, true)
 }
