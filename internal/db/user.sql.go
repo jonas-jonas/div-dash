@@ -115,6 +115,21 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
 	return i, err
 }
 
+const isUserActivated = `-- name: IsUserActivated :one
+SELECT EXISTS (
+  SELECT status
+  FROM users
+  WHERE id = $1 AND status = 'activated'
+)
+`
+
+func (q *Queries) IsUserActivated(ctx context.Context, id int64) (bool, error) {
+	row := q.queryRow(ctx, q.isUserActivatedStmt, isUserActivated, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT id, email, password_hash, status FROM users
 ORDER BY id

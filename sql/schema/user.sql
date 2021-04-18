@@ -36,3 +36,10 @@ SELECT EXISTS(
 UPDATE users
 SET status = 'activated'
 WHERE id = $1;
+
+-- name: IsUserActivated :one
+SELECT EXISTS (
+  SELECT status
+  FROM users
+  WHERE id = $1 AND status = 'activated'
+);

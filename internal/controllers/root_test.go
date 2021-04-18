@@ -32,6 +32,7 @@ func NewApi() (sqlmock.Sqlmock, func(), *gin.Engine) {
 	testutil.SetupConfig()
 
 	router := gin.Default()
+	router.LoadHTMLGlob("../../web/templates/**/*")
 	RegisterRoutes(router)
 	return mock, cleanup, router
 }

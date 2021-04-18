@@ -70,6 +70,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserRegistrationByUserIdStmt, err = db.PrepareContext(ctx, getUserRegistrationByUserId); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserRegistrationByUserId: %w", err)
 	}
+	if q.isUserActivatedStmt, err = db.PrepareContext(ctx, isUserActivated); err != nil {
+		return nil, fmt.Errorf("error preparing query IsUserActivated: %w", err)
+	}
 	if q.listPortfoliosStmt, err = db.PrepareContext(ctx, listPortfolios); err != nil {
 		return nil, fmt.Errorf("error preparing query ListPortfolios: %w", err)
 	}
@@ -167,6 +170,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUserRegistrationByUserIdStmt: %w", cerr)
 		}
 	}
+	if q.isUserActivatedStmt != nil {
+		if cerr := q.isUserActivatedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing isUserActivatedStmt: %w", cerr)
+		}
+	}
 	if q.listPortfoliosStmt != nil {
 		if cerr := q.listPortfoliosStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listPortfoliosStmt: %w", cerr)
@@ -242,6 +250,7 @@ type Queries struct {
 	getUserStmt                     *sql.Stmt
 	getUserRegistrationStmt         *sql.Stmt
 	getUserRegistrationByUserIdStmt *sql.Stmt
+	isUserActivatedStmt             *sql.Stmt
 	listPortfoliosStmt              *sql.Stmt
 	listTransactionsStmt            *sql.Stmt
 	listUsersStmt                   *sql.Stmt
@@ -268,6 +277,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUserStmt:                     q.getUserStmt,
 		getUserRegistrationStmt:         q.getUserRegistrationStmt,
 		getUserRegistrationByUserIdStmt: q.getUserRegistrationByUserIdStmt,
+		isUserActivatedStmt:             q.isUserActivatedStmt,
 		listPortfoliosStmt:              q.listPortfoliosStmt,
 		listTransactionsStmt:            q.listTransactionsStmt,
 		listUsersStmt:                   q.listUsersStmt,
