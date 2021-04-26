@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -32,7 +33,16 @@ func TestAuthRequired(t *testing.T) {
 	})
 
 	context.Request, _ = http.NewRequest("GET", "/test", nil)
-	context.Request.Header.Add("Authorization", "Bearer "+token)
+	authCookie := http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		MaxAge:   0,
+		Secure:   true,
+		HttpOnly: true,
+	}
+	context.Request.AddCookie(&authCookie)
 
 	r.ServeHTTP(w, context.Request)
 
@@ -53,7 +63,16 @@ func TestAuthRequiredWithInvalidToken(t *testing.T) {
 	})
 
 	context.Request, _ = http.NewRequest("GET", "/test", nil)
-	context.Request.Header.Add("Authorization", "invalid-token")
+	authCookie := http.Cookie{
+		Name:     "token",
+		Value:    "invalid-token",
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		MaxAge:   0,
+		Secure:   true,
+		HttpOnly: true,
+	}
+	context.Request.AddCookie(&authCookie)
 
 	r.ServeHTTP(w, context.Request)
 
