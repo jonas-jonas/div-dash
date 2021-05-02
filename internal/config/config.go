@@ -20,12 +20,9 @@ type ServerConfiguration struct {
 }
 
 type DatabaseConfiguration struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-	Database string
-	SSLMode  string
+	File  string
+	Cache string
+	Mode  string
 }
 
 type SmtpConfiguration struct {
@@ -42,6 +39,7 @@ type PasetoConfiguration struct {
 }
 
 var configuration Configuration
+
 var configOnce sync.Once
 
 func ReadConfig() {

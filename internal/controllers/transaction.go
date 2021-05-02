@@ -13,15 +13,15 @@ import (
 )
 
 type transactionResponse struct {
-	TransactionID       int64              `json:"transactionId"`
-	Symbol              string             `json:"symbol"`
-	Type                string             `json:"type"`
-	TransactionProvider string             `json:"transactionProvider"`
-	BuyIn               float64            `json:"buyIn"`
-	BuyInDate           time.Time          `json:"buyInDate"`
-	Amount              decimal.Decimal    `json:"amount"`
-	PortfolioId         int64              `json:"portfolioId"`
-	Side                db.TransactionSide `json:"side"`
+	TransactionID       int64           `json:"transactionId"`
+	Symbol              string          `json:"symbol"`
+	Type                string          `json:"type"`
+	TransactionProvider string          `json:"transactionProvider"`
+	BuyIn               float64         `json:"buyIn"`
+	BuyInDate           time.Time       `json:"buyInDate"`
+	Amount              decimal.Decimal `json:"amount"`
+	PortfolioId         int64           `json:"portfolioId"`
+	Side                string          `json:"side"`
 }
 
 func marshalTransactionResponse(transaction db.Transaction) transactionResponse {
@@ -61,13 +61,13 @@ func GetTransaction(c *gin.Context) {
 }
 
 type createTransactionRequest struct {
-	Symbol              string                 `json:"symbol" binding:"required"`
-	Type                db.TransactionType     `json:"type" binding:"required"`
-	TransactionProvider db.TransactionProvider `json:"transactionProvider" binding:"required"`
-	BuyIn               float64                `json:"buyIn" binding:"required"`
-	BuyInDate           time.Time              `json:"buyInDate" binding:"required"`
-	Amount              float64                `json:"amount" binding:"required"`
-	Side                db.TransactionSide     `json:"side" binding:"required"`
+	Symbol              string    `json:"symbol" binding:"required"`
+	Type                string    `json:"type" binding:"required"`
+	TransactionProvider string    `json:"transactionProvider" binding:"required"`
+	BuyIn               float64   `json:"buyIn" binding:"required"`
+	BuyInDate           time.Time `json:"buyInDate" binding:"required"`
+	Amount              float64   `json:"amount" binding:"required"`
+	Side                string    `json:"side" binding:"required"`
 }
 
 func PostTransaction(c *gin.Context) {

@@ -3,87 +3,11 @@
 package db
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
-
-type TransactionProvider string
-
-const (
-	TransactionProviderBinance TransactionProvider = "binance"
-)
-
-func (e *TransactionProvider) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = TransactionProvider(s)
-	case string:
-		*e = TransactionProvider(s)
-	default:
-		return fmt.Errorf("unsupported scan type for TransactionProvider: %T", src)
-	}
-	return nil
-}
-
-type TransactionSide string
-
-const (
-	TransactionSideSell TransactionSide = "sell"
-	TransactionSideBuy  TransactionSide = "buy"
-)
-
-func (e *TransactionSide) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = TransactionSide(s)
-	case string:
-		*e = TransactionSide(s)
-	default:
-		return fmt.Errorf("unsupported scan type for TransactionSide: %T", src)
-	}
-	return nil
-}
-
-type TransactionType string
-
-const (
-	TransactionTypeCrypto TransactionType = "crypto"
-)
-
-func (e *TransactionType) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = TransactionType(s)
-	case string:
-		*e = TransactionType(s)
-	default:
-		return fmt.Errorf("unsupported scan type for TransactionType: %T", src)
-	}
-	return nil
-}
-
-type UserStatus string
-
-const (
-	UserStatusRegistered  UserStatus = "registered"
-	UserStatusActivated   UserStatus = "activated"
-	UserStatusDeactivated UserStatus = "deactivated"
-)
-
-func (e *UserStatus) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = UserStatus(s)
-	case string:
-		*e = UserStatus(s)
-	default:
-		return fmt.Errorf("unsupported scan type for UserStatus: %T", src)
-	}
-	return nil
-}
 
 type Portfolio struct {
 	PortfolioID int64  `json:"portfolio_id"`
@@ -92,22 +16,22 @@ type Portfolio struct {
 }
 
 type Transaction struct {
-	TransactionID       int64               `json:"transaction_id"`
-	Symbol              string              `json:"symbol"`
-	Type                TransactionType     `json:"type"`
-	TransactionProvider TransactionProvider `json:"transaction_provider"`
-	BuyIn               int64               `json:"buy_in"`
-	BuyInDate           time.Time           `json:"buy_in_date"`
-	Amount              decimal.Decimal     `json:"amount"`
-	PortfolioID         int64               `json:"portfolio_id"`
-	Side                TransactionSide     `json:"side"`
+	TransactionID       int64           `json:"transaction_id"`
+	Symbol              string          `json:"symbol"`
+	Type                string          `json:"type"`
+	TransactionProvider string          `json:"transaction_provider"`
+	BuyIn               int64           `json:"buy_in"`
+	BuyInDate           time.Time       `json:"buy_in_date"`
+	Amount              decimal.Decimal `json:"amount"`
+	PortfolioID         int64           `json:"portfolio_id"`
+	Side                string          `json:"side"`
 }
 
 type User struct {
-	ID           int64      `json:"id"`
-	Email        string     `json:"email"`
-	PasswordHash string     `json:"password_hash"`
-	Status       UserStatus `json:"status"`
+	ID           int64  `json:"id"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash"`
+	Status       string `json:"status"`
 }
 
 type UserRegistration struct {

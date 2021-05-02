@@ -20,14 +20,14 @@ RETURNING transaction_id, symbol, type, transaction_provider, buy_in, buy_in_dat
 `
 
 type CreateTransactionParams struct {
-	Symbol              string              `json:"symbol"`
-	Type                TransactionType     `json:"type"`
-	TransactionProvider TransactionProvider `json:"transaction_provider"`
-	BuyIn               int64               `json:"buy_in"`
-	BuyInDate           time.Time           `json:"buy_in_date"`
-	Amount              decimal.Decimal     `json:"amount"`
-	PortfolioID         int64               `json:"portfolio_id"`
-	Side                TransactionSide     `json:"side"`
+	Symbol              string          `json:"symbol"`
+	Type                string          `json:"type"`
+	TransactionProvider string          `json:"transaction_provider"`
+	BuyIn               int64           `json:"buy_in"`
+	BuyInDate           time.Time       `json:"buy_in_date"`
+	Amount              decimal.Decimal `json:"amount"`
+	PortfolioID         int64           `json:"portfolio_id"`
+	Side                string          `json:"side"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error) {

@@ -55,6 +55,7 @@ func PostAuthForm(c *gin.Context) {
 			AbortForm(c, "Password", "Invalid password", authForm)
 			return
 		}
+		config.Logger().Printf("Failed to fetch user account: %s", err.Error())
 		AbortForm(c, "Email", "Internal Server Error.", authForm)
 		return
 	}

@@ -40,9 +40,9 @@ RETURNING id, email, password_hash, status
 `
 
 type CreateUserParams struct {
-	Email        string     `json:"email"`
-	PasswordHash string     `json:"password_hash"`
-	Status       UserStatus `json:"status"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash"`
+	Status       string `json:"status"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
