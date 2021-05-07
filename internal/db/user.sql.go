@@ -13,7 +13,7 @@ SET status = 'activated'
 WHERE id = $1
 `
 
-func (q *Queries) ActivateUser(ctx context.Context, id int64) error {
+func (q *Queries) ActivateUser(ctx context.Context, id string) error {
 	_, err := q.exec(ctx, q.activateUserStmt, activateUser, id)
 	return err
 }
@@ -32,21 +32,27 @@ func (q *Queries) CountByEmail(ctx context.Context, email string) (int64, error)
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-  email, password_hash, status
+  id, email, password_hash, status
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 )
 RETURNING id, email, password_hash, status
 `
 
 type CreateUserParams struct {
+	ID           string `json:"id"`
 	Email        string `json:"email"`
 	PasswordHash string `json:"password_hash"`
 	Status       string `json:"status"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.queryRow(ctx, q.createUserStmt, createUser, arg.Email, arg.PasswordHash, arg.Status)
+	row := q.queryRow(ctx, q.createUserStmt, createUser,
+		arg.ID,
+		arg.Email,
+		arg.PasswordHash,
+		arg.Status,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -62,7 +68,7 @@ DELETE FROM users
 WHERE id = $1
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
+func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 	_, err := q.exec(ctx, q.deleteUserStmt, deleteUser, id)
 	return err
 }
@@ -103,7 +109,7 @@ SELECT id, email, password_hash, status FROM users
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id int64) (User, error) {
+func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 	row := q.queryRow(ctx, q.getUserStmt, getUser, id)
 	var i User
 	err := row.Scan(
@@ -123,7 +129,7 @@ SELECT EXISTS (
 )
 `
 
-func (q *Queries) IsUserActivated(ctx context.Context, id int64) (bool, error) {
+func (q *Queries) IsUserActivated(ctx context.Context, id string) (bool, error) {
 	row := q.queryRow(ctx, q.isUserActivatedStmt, isUserActivated, id)
 	var exists bool
 	err := row.Scan(&exists)

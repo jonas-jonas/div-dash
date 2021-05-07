@@ -3,8 +3,8 @@
 SELECT 'up SQL query';
 CREATE TABLE IF NOT EXISTS user_registrations(
     id          UUID PRIMARY KEY NOT NULL,
-    user_id     BIGSERIAL NOT NULL,
-    timestamp   TIMESTAMP NOT NULL,
+    user_id     text NOT NULL,
+    timestamp   datetime NOT NULL,
     CONSTRAINT fk_user_userId
       FOREIGN KEY(user_id)
         REFERENCES users(id)

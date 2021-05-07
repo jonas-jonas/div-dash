@@ -20,7 +20,7 @@ func TestAuthRequired(t *testing.T) {
 	w := httptest.NewRecorder()
 	gin.SetMode(gin.TestMode)
 	context, r := gin.CreateTestContext(w)
-	token, _ := services.TokenService().GenerateToken(99)
+	token, _ := services.TokenService().GenerateToken(testutil.TestUserID)
 
 	r.Use(authRequired)
 	r.GET("/test", func(c *gin.Context) {
@@ -28,7 +28,7 @@ func TestAuthRequired(t *testing.T) {
 		if !exists {
 			t.Fail()
 		}
-		assert.Equal(t, int64(99), userId)
+		assert.Equal(t, testutil.TestUserID, userId)
 		c.Status(200)
 	})
 

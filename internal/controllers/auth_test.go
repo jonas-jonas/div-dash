@@ -242,12 +242,12 @@ func TestPostRegisterWithExistingUserEmail(t *testing.T) {
 func TestPostActivate(t *testing.T) {
 	mock, cleanup, router := NewApi()
 	defer cleanup()
-	rows := sqlmock.NewRows([]string{"id", "user_id", "timestamp"}).AddRow("5cf6a941-2517-4e2b-9905-97f507f928c4", 1, time.Now())
+	rows := sqlmock.NewRows([]string{"id", "user_id", "timestamp"}).AddRow("5cf6a941-2517-4e2b-9905-97f507f928c4", testutil.TestUserID, time.Now())
 	mock.ExpectQuery("^-- name: GetUserRegistration :one .*$").WithArgs("5cf6a941-2517-4e2b-9905-97f507f928c4").WillReturnRows(rows)
 
-	mock.ExpectQuery("^-- name: IsUserActivated :one .*$").WithArgs(1).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow("false"))
+	mock.ExpectQuery("^-- name: IsUserActivated :one .*$").WithArgs(testutil.TestUserID).WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow("false"))
 
-	mock.ExpectExec("^-- name: ActivateUser :exec .*$").WithArgs(1).WillReturnResult(sqlmock.NewResult(-1, 1))
+	mock.ExpectExec("^-- name: ActivateUser :exec .*$").WithArgs(testutil.TestUserID).WillReturnResult(sqlmock.NewResult(-1, 1))
 
 	w := PerformRequest(router, "GET", "/activate?id=5cf6a941-2517-4e2b-9905-97f507f928c4")
 

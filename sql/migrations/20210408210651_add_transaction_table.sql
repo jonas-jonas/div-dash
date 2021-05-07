@@ -18,5 +18,5 @@ CREATE TABLE "transaction"(
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE transaction;
+DROP TABLE "transaction";
 -- +goose StatementEnd

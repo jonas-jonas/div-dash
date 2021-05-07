@@ -14,14 +14,14 @@ func TestGetPortfolio(t *testing.T) {
 
 	defer cleanup()
 	rows := sqlmock.NewRows([]string{"portfolio_id", "name", "user_id"}).
-		AddRow(1, "Test Portfolio", 1)
+		AddRow(1, "Test Portfolio", testutil.TestUserID)
 
 	mock.ExpectQuery("^-- name: GetPortfolio :one .*$").WillReturnRows(rows)
 
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1")
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `{"portfolio_id": 1, "name": "Test Portfolio", "user_id": 1}`, w.Body.String())
+	assert.JSONEq(t, `{"portfolio_id": 1, "name": "Test Portfolio", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
 }
 
 func TestGetPortfolioNoPortfolio(t *testing.T) {
@@ -66,14 +66,14 @@ func TestPostPortfolio(t *testing.T) {
 	defer cleanup()
 
 	rows := sqlmock.NewRows([]string{"portfolio_id", "name", "user_id"}).
-		AddRow(1, "Test Portfolio", 1)
+		AddRow(1, "Test Portfolio", testutil.TestUserID)
 
-	mock.ExpectQuery("^-- name: CreatePortfolio :one .*$").WithArgs("Test Portfolio", 1).WillReturnRows(rows)
+	mock.ExpectQuery("^-- name: CreatePortfolio :one .*$").WithArgs("Test Portfolio", testutil.TestUserID).WillReturnRows(rows)
 
 	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio", `{"name": "Test Portfolio"}`)
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `{"portfolio_id": 1, "name": "Test Portfolio", "user_id": 1}`, w.Body.String())
+	assert.JSONEq(t, `{"portfolio_id": 1, "name": "Test Portfolio", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
 }
 
 func TestPostPortfolioDbError(t *testing.T) {
@@ -107,14 +107,14 @@ func TestPutPortfolio(t *testing.T) {
 	defer cleanup()
 
 	rows := sqlmock.NewRows([]string{"portfolio_id", "name", "user_id"}).
-		AddRow(1, "New Test Portfolio", 1)
+		AddRow(1, "New Test Portfolio", testutil.TestUserID)
 
 	mock.ExpectQuery("^-- name: UpdatePortfolio :one .*$").WithArgs(1, "New Test Portfolio").WillReturnRows(rows)
 
 	w := PerformAuthenticatedRequestWithBody(router, "PUT", "/api/portfolio/1", `{"name": "New Test Portfolio"}`)
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `{"portfolio_id": 1, "name": "New Test Portfolio", "user_id": 1}`, w.Body.String())
+	assert.JSONEq(t, `{"portfolio_id": 1, "name": "New Test Portfolio", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
 }
 
 func TestPutPortfolioDbError(t *testing.T) {
@@ -208,7 +208,7 @@ func TestGetPortfolios(t *testing.T) {
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio")
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `[{"portfolio_id":1,"name":"Test Portfolio 1","user_id":1},{"portfolio_id":2,"name":"Test Portfolio 2","user_id":1},{"portfolio_id":3,"name":"Test Portfolio 3","user_id":1}]`, w.Body.String())
+	assert.JSONEq(t, `[{"portfolio_id":1,"name":"Test Portfolio 1","user_id":"`+testutil.TestUserID+`"},{"portfolio_id":2,"name":"Test Portfolio 2","user_id":"`+testutil.TestUserID+`"},{"portfolio_id":3,"name":"Test Portfolio 3","user_id":"`+testutil.TestUserID+`"}]`, w.Body.String())
 }
 
 func TestGetPortfoliosDbError(t *testing.T) {

@@ -140,6 +140,7 @@ func PostRegisterForm(c *gin.Context) {
 	exists, err := config.Queries().ExistsByEmail(c, registerFormRequest.Email)
 
 	if err != nil {
+		config.Logger().Printf("Error checking if user exists: %s", err.Error())
 		c.HTML(http.StatusOK, "register.html", gin.H{
 			"errors": gin.H{
 				"AcceptTOS": "Internal Server Error",
@@ -162,6 +163,7 @@ func PostRegisterForm(c *gin.Context) {
 	passwordHash, err := security.HashPassword(registerFormRequest.Password)
 
 	if err != nil {
+		config.Logger().Printf("Error hashing password: %s", err.Error())
 		c.HTML(http.StatusOK, "register.html", gin.H{
 			"errors": gin.H{
 				"AcceptTOS": "Internal Server Error",
@@ -184,12 +186,14 @@ func PostRegisterForm(c *gin.Context) {
 	}
 
 	user, err := config.Queries().CreateUser(c, db.CreateUserParams{
+		ID:           services.NewId(),
 		Email:        registerFormRequest.Email,
 		PasswordHash: passwordHash,
 		Status:       db.UserStatusRegistered,
 	})
 
 	if err != nil {
+		config.Logger().Printf("Error creating user: %s", err.Error())
 		c.HTML(http.StatusOK, "register.html", gin.H{
 			"errors": gin.H{
 				"AcceptTOS": "Internal Server Error",
@@ -207,6 +211,7 @@ func PostRegisterForm(c *gin.Context) {
 
 	registration, err := config.Queries().CreateUserRegistration(c, createRegistrationParams)
 	if err != nil {
+		config.Logger().Printf("Error creating user registration: %s", err.Error())
 		c.HTML(http.StatusOK, "register.html", gin.H{
 			"errors": gin.H{
 				"AcceptTOS": "Internal Server Error",
