@@ -12,7 +12,7 @@ import (
 type Portfolio struct {
 	PortfolioID int64  `json:"portfolio_id"`
 	Name        string `json:"name"`
-	UserID      int64  `json:"user_id"`
+	UserID      string `json:"user_id"`
 }
 
 type Transaction struct {
@@ -28,7 +28,7 @@ type Transaction struct {
 }
 
 type User struct {
-	ID           int64  `json:"id"`
+	ID           string `json:"id"`
 	Email        string `json:"email"`
 	PasswordHash string `json:"password_hash"`
 	Status       string `json:"status"`
@@ -36,6 +36,6 @@ type User struct {
 
 type UserRegistration struct {
 	ID        uuid.UUID `json:"id"`
-	UserID    int64     `json:"user_id"`
+	UserID    string    `json:"user_id"`
 	Timestamp time.Time `json:"timestamp"`
 }

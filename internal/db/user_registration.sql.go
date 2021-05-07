@@ -21,7 +21,7 @@ RETURNING id, user_id, timestamp
 
 type CreateUserRegistrationParams struct {
 	ID        uuid.UUID `json:"id"`
-	UserID    int64     `json:"user_id"`
+	UserID    string    `json:"user_id"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
@@ -49,7 +49,7 @@ SELECT id, user_id, timestamp FROM user_registrations
 WHERE user_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserRegistrationByUserId(ctx context.Context, userID int64) (UserRegistration, error) {
+func (q *Queries) GetUserRegistrationByUserId(ctx context.Context, userID string) (UserRegistration, error) {
 	row := q.queryRow(ctx, q.getUserRegistrationByUserIdStmt, getUserRegistrationByUserId, userID)
 	var i UserRegistration
 	err := row.Scan(&i.ID, &i.UserID, &i.Timestamp)

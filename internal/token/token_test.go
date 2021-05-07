@@ -2,6 +2,7 @@ package token
 
 import (
 	"div-dash/internal/config"
+	"div-dash/util/testutil"
 	"testing"
 	"time"
 
@@ -31,7 +32,7 @@ func TestGenerateToken(t *testing.T) {
 		Audience: "test_audience", Issuer: "test_issuer", Key: key, TokenValid: 24,
 	})
 
-	token, err := tokenService.GenerateToken(0)
+	token, err := tokenService.GenerateToken(testutil.TestUserID)
 
 	assert.Nil(t, err)
 	assert.Regexp(t, `v2\.local\..*`, token)
@@ -42,12 +43,12 @@ func TestVerifyToken(t *testing.T) {
 		Audience: "test_audience", Issuer: "test_issuer", Key: key, TokenValid: 24,
 	})
 
-	token, _ := tokenService.GenerateToken(0)
+	token, _ := tokenService.GenerateToken(testutil.TestUserID)
 
 	result, userId, err := tokenService.VerifyToken(token)
 
 	assert.True(t, result)
-	assert.Equal(t, int64(0), userId)
+	assert.Equal(t, testutil.TestUserID, userId)
 	assert.Nil(t, err)
 }
 
@@ -64,27 +65,9 @@ func TestVerifyTokenWithExpiredToken(t *testing.T) {
 	result, userId, err := tokenService.VerifyToken(token)
 
 	assert.False(t, result)
-	assert.LessOrEqual(t, int64(-1), userId)
+	assert.Empty(t, userId)
 	assert.NotNil(t, err)
 	assert.Equal(t, "token expired", err.Error())
-}
-
-func TestVerifyTokenWithStringAsUserId(t *testing.T) {
-	tokenService := NewPasetoService(config.PasetoConfiguration{
-		Audience: "test_audience", Issuer: "test_issuer", Key: key, TokenValid: 24,
-	})
-
-	now := time.Now()
-	exp := now.Add(24 * time.Hour)
-	nbt := now
-	token, _ := createToken("userIdString", now, exp, nbt)
-
-	result, userId, err := tokenService.VerifyToken(token)
-
-	assert.False(t, result)
-	assert.LessOrEqual(t, int64(-1), userId)
-	assert.NotNil(t, err)
-	assert.Equal(t, `strconv.ParseInt: parsing "userIdString": invalid syntax`, err.Error())
 }
 
 func TestVerifyTokenWithDifferentKey(t *testing.T) {
@@ -92,7 +75,7 @@ func TestVerifyTokenWithDifferentKey(t *testing.T) {
 		Audience: "test_audience", Issuer: "test_issuer", Key: key, TokenValid: 24,
 	})
 
-	token, _ := tokenService.GenerateToken(0)
+	token, _ := tokenService.GenerateToken(testutil.TestUserID)
 
 	tokenService = NewPasetoService(config.PasetoConfiguration{
 		Audience: "test_audience", Issuer: "test_issuer", Key: "111111 SUBMARINE, BLACK WIZARDRY", TokenValid: 24,
@@ -101,7 +84,7 @@ func TestVerifyTokenWithDifferentKey(t *testing.T) {
 	result, userId, err := tokenService.VerifyToken(token)
 
 	assert.False(t, result)
-	assert.LessOrEqual(t, int64(-1), userId)
+	assert.Empty(t, userId)
 	assert.NotNil(t, err)
 	assert.Equal(t, `invalid token authentication`, err.Error())
 }

@@ -18,7 +18,7 @@ RETURNING portfolio_id, name, user_id
 
 type CreatePortfolioParams struct {
 	Name   string `json:"name"`
-	UserID int64  `json:"user_id"`
+	UserID string `json:"user_id"`
 }
 
 func (q *Queries) CreatePortfolio(ctx context.Context, arg CreatePortfolioParams) (Portfolio, error) {
@@ -56,7 +56,7 @@ WHERE user_id = $1
 ORDER BY portfolio_id
 `
 
-func (q *Queries) ListPortfolios(ctx context.Context, userID int64) ([]Portfolio, error) {
+func (q *Queries) ListPortfolios(ctx context.Context, userID string) ([]Portfolio, error) {
 	rows, err := q.query(ctx, q.listPortfoliosStmt, listPortfolios, userID)
 	if err != nil {
 		return nil, err

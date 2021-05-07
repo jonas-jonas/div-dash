@@ -99,7 +99,7 @@ func Abort(c *gin.Context, status int, message string) {
 }
 
 func GetAuthIdentity(c *gin.Context) {
-	userId := c.GetInt64("userId")
+	userId := c.GetString("userId")
 
 	user, err := config.Queries().GetUser(c, userId)
 

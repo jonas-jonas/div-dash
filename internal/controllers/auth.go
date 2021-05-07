@@ -94,6 +94,7 @@ func PostRegister(c *gin.Context) {
 	}
 
 	user, err := config.Queries().CreateUser(c, db.CreateUserParams{
+		ID:           services.NewId(),
 		Email:        registerRequest.Email,
 		PasswordHash: passwordHash,
 		Status:       db.UserStatusRegistered,

@@ -44,7 +44,7 @@ func PostPortfolio(c *gin.Context) {
 
 	portfolio, err := config.Queries().CreatePortfolio(c, db.CreatePortfolioParams{
 		Name:   createPortfolioRequest.Name,
-		UserID: c.GetInt64("userId"),
+		UserID: c.GetString("userId"),
 	})
 
 	if err != nil {
@@ -104,7 +104,7 @@ func DeletePortfolio(c *gin.Context) {
 }
 
 func GetPortfolios(c *gin.Context) {
-	userId := c.GetInt64("userId")
+	userId := c.GetString("userId")
 
 	portfolios, err := config.Queries().ListPortfolios(c, userId)
 

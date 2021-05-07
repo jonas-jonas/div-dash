@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE users (
-  id            BIGSERIAL PRIMARY KEY,
+  id            text      PRIMARY KEY,
   email         text      NOT NULL,
   password_hash text      NOT NULL,
   status        text      NOT NULL

@@ -4,7 +4,6 @@ import (
 	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +14,7 @@ type CreateUserRequest struct {
 }
 
 type UserResponse struct {
-	ID    int64  `json:"id"`
+	ID    string `json:"id"`
 	Email string `json:"email"`
 }
 
@@ -27,12 +26,7 @@ func userResponseFromUser(user db.User) UserResponse {
 }
 
 func GetUser(c *gin.Context) {
-	idString := c.Param("id")
-	id, err := strconv.ParseInt(idString, 10, 64)
-	if err != nil {
-		AbortBadRequest(c, "User id is invalid")
-		return
-	}
+	id := c.Param("id")
 
 	user, err := config.Queries().GetUser(c, id)
 	if err != nil {
