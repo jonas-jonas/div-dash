@@ -34,23 +34,19 @@ func handleErrors(c *gin.Context) {
 	}
 }
 func RegisterRoutes(r *gin.Engine) {
-	authForm := r.Group("/")
 
 	r.Use(static.Serve("/", static.LocalFile("web/build", true)))
 	r.NoRoute(func(c *gin.Context) {
 		c.File("web/build/index.html")
 	})
 
-	authForm.GET("/login", GetAuthForm)
-	authForm.POST("/login", PostAuthForm)
-	authForm.GET("/register", GetRegisterForm)
-	authForm.POST("/register", PostRegisterForm)
-	authForm.GET("/activate", GetActivateForm)
-
 	api := r.Group("/api")
 	api.Use(handleErrors)
 	api.GET("/ping", Ping)
 
+	api.POST("/login", PostLogin)
+	api.POST("/register", PostRegister)
+	api.GET("/activate", PostActivate)
 	authorized := api.Group("/")
 	authorized.Use(middleware.AuthRequired())
 	{

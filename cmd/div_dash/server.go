@@ -13,7 +13,6 @@ func main() {
 	config.InitDB()
 	r := gin.Default()
 	r.Use(gin.Recovery())
-	r.LoadHTMLGlob("./web/templates/**/*")
 	controllers.RegisterRoutes(r)
 	port := viper.GetString("server.port")
 	r.Run(":" + port)
