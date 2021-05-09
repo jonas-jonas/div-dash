@@ -1,14 +1,14 @@
-import ky from "ky";
 import { Link } from "react-router-dom";
-import { useRecoilState } from "recoil";
-import { userState } from "../state/authState";
+import { useRecoilState, useResetRecoilState } from "recoil";
+import { tokenState, userState } from "../state/authState";
 
 export function Navigation() {
   const [user, setUser] = useRecoilState(userState);
+  const resetToken = useResetRecoilState(tokenState);
 
   const handleLogout = async () => {
     setUser(null);
-    await ky.get("/api/auth/logout");
+    resetToken();
   };
   return (
     <nav
