@@ -5,6 +5,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { Navigation } from "./components/Navigation";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
+import { Portfolios } from "./pages/Portfolios";
 import { loggedInState, tokenState, userState } from "./state/authState";
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
         <Switch>
           <Route
             path="/login"
+            exact
             render={(props) =>
               isLoggedIn ? (
                 <Redirect
@@ -52,10 +54,13 @@ function App() {
               )
             }
           />
+          <Route path="/portfolios" exact>
+            <Portfolios></Portfolios>
+          </Route>
+          <Route path="/" exact>
+            <Home></Home>
+          </Route>
         </Switch>
-        <Route path="/">
-          <Home></Home>
-        </Route>
       </div>
     );
   }
