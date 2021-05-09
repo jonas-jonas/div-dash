@@ -108,16 +108,16 @@ func PostRegister(c *gin.Context) {
 	createRegistrationParams := db.CreateUserRegistrationParams{
 		ID:        registerRequestId,
 		UserID:    user.ID,
-		Timestamp: time.Now(),
+		Timestamp: time.Now().UTC(),
 	}
 
-	registration, err := config.Queries().CreateUserRegistration(c, createRegistrationParams)
+	registrationId, err := config.Queries().CreateUserRegistration(c, createRegistrationParams)
 	if err != nil {
 		c.Error(err)
 		return
 	}
 
-	body := "Please activate your account at localhost:8080/activate?id=" + registration.ID.String()
+	body := "Please activate your account at localhost:8080/activate?id=" + registrationId.String()
 
 	err = services.MailService().SendMail(user.Email, "no-reply@div-dash.io", "Activate your account", body)
 

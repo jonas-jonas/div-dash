@@ -16,7 +16,7 @@ INSERT INTO user_registration (
 ) VALUES (
   $1, $2, $3
 )
-RETURNING id, user_id, timestamp
+RETURNING id
 `
 
 type CreateUserRegistrationParams struct {
@@ -25,11 +25,11 @@ type CreateUserRegistrationParams struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func (q *Queries) CreateUserRegistration(ctx context.Context, arg CreateUserRegistrationParams) (UserRegistration, error) {
+func (q *Queries) CreateUserRegistration(ctx context.Context, arg CreateUserRegistrationParams) (uuid.UUID, error) {
 	row := q.queryRow(ctx, q.createUserRegistrationStmt, createUserRegistration, arg.ID, arg.UserID, arg.Timestamp)
-	var i UserRegistration
-	err := row.Scan(&i.ID, &i.UserID, &i.Timestamp)
-	return i, err
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getUserRegistration = `-- name: GetUserRegistration :one

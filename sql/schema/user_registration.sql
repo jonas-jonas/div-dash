@@ -12,4 +12,4 @@ INSERT INTO user_registration (
 ) VALUES (
   $1, $2, $3
 )
-RETURNING *;
+RETURNING id;

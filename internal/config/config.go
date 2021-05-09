@@ -23,6 +23,7 @@ type DatabaseConfiguration struct {
 	File  string
 	Cache string
 	Mode  string
+	Loc   string
 }
 
 type SmtpConfiguration struct {

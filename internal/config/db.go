@@ -15,8 +15,9 @@ func InitDB() {
 	file := Config().Database.File
 	cache := Config().Database.Cache
 	mode := Config().Database.Mode
+	loc := Config().Database.Loc
 
-	source := fmt.Sprintf("file:%s?cache=%s&mode=%s", file, cache, mode)
+	source := fmt.Sprintf("file:%s?cache=%s&mode=%s&_loc=%s&parseTime=true", file, cache, mode, loc)
 	Logger().Printf("connecting with string: %s", source)
 	sdb, err := sql.Open("sqlite3", source)
 	if err != nil {

@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS user_registration (
     id          UUID PRIMARY KEY NOT NULL,
     user_id     TEXT NOT NULL,
-    timestamp   TIMESTAMP NOT NULL,
+    timestamp   timestamp NOT NULL DEFAULT (datetime('now')),
     CONSTRAINT fk_user_registration_user
       FOREIGN KEY(user_id)
         REFERENCES "user"(id)

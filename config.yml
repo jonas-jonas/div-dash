@@ -5,6 +5,7 @@ database:
   file: div-dash.db
   cache: shared
   mode: rw
+  loc: UTC
 
 smtp:
   server: localhost
