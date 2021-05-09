@@ -3,6 +3,8 @@ package id
 import (
 	"math/rand"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type IdService struct {
@@ -28,4 +30,8 @@ func (i *IdService) NewId(length int) string {
 
 	res := i.randSeq(length)
 	return res
+}
+
+func (i *IdService) NewUUID() (uuid.UUID, error) {
+	return uuid.NewRandom()
 }

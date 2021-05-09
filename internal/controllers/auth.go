@@ -86,7 +86,7 @@ func PostRegister(c *gin.Context) {
 		return
 	}
 
-	registerRequestId, err := uuid.NewRandom()
+	registerRequestId, err := services.IdService().NewUUID()
 
 	if err != nil {
 		c.Error(err)
