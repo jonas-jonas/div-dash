@@ -110,7 +110,7 @@ func GetTransactions(c *gin.Context) {
 		return
 	}
 
-	var result []transactionResponse
+	result := []transactionResponse{}
 
 	for _, transaction := range transactions {
 		result = append(result, marshalTransactionResponse(transaction))
