@@ -12,11 +12,11 @@ import (
 
 const createTransaction = `-- name: CreateTransaction :one
 INSERT INTO "transaction" (
-  id, symbol, type, "transaction_provider", buy_in, buy_in_date, amount, portfolio_id, side
+  id, symbol, type, "transaction_provider", price, "date", amount, portfolio_id, side
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
-RETURNING id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side
+RETURNING id
 `
 
 type CreateTransactionParams struct {
@@ -24,38 +24,28 @@ type CreateTransactionParams struct {
 	Symbol              string          `json:"symbol"`
 	Type                string          `json:"type"`
 	TransactionProvider string          `json:"transaction_provider"`
-	BuyIn               int64           `json:"buy_in"`
-	BuyInDate           time.Time       `json:"buy_in_date"`
+	Price               int64           `json:"price"`
+	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
 	PortfolioID         string          `json:"portfolio_id"`
 	Side                string          `json:"side"`
 }
 
-func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error) {
+func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (string, error) {
 	row := q.queryRow(ctx, q.createTransactionStmt, createTransaction,
 		arg.ID,
 		arg.Symbol,
 		arg.Type,
 		arg.TransactionProvider,
-		arg.BuyIn,
-		arg.BuyInDate,
+		arg.Price,
+		arg.Date,
 		arg.Amount,
 		arg.PortfolioID,
 		arg.Side,
 	)
-	var i Transaction
-	err := row.Scan(
-		&i.ID,
-		&i.Symbol,
-		&i.Type,
-		&i.TransactionProvider,
-		&i.BuyIn,
-		&i.BuyInDate,
-		&i.Amount,
-		&i.PortfolioID,
-		&i.Side,
-	)
-	return i, err
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }
 
 const deleteTransaction = `-- name: DeleteTransaction :exec
@@ -69,7 +59,7 @@ func (q *Queries) DeleteTransaction(ctx context.Context, id string) error {
 }
 
 const getTransaction = `-- name: GetTransaction :one
-SELECT id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side FROM "transaction"
+SELECT id, symbol, type, transaction_provider, price, date, amount, portfolio_id, side FROM "transaction"
 WHERE id = $1 LIMIT 1
 `
 
@@ -81,8 +71,8 @@ func (q *Queries) GetTransaction(ctx context.Context, id string) (Transaction, e
 		&i.Symbol,
 		&i.Type,
 		&i.TransactionProvider,
-		&i.BuyIn,
-		&i.BuyInDate,
+		&i.Price,
+		&i.Date,
 		&i.Amount,
 		&i.PortfolioID,
 		&i.Side,
@@ -91,9 +81,9 @@ func (q *Queries) GetTransaction(ctx context.Context, id string) (Transaction, e
 }
 
 const listTransactions = `-- name: ListTransactions :many
-SELECT id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side FROM "transaction"
+SELECT id, symbol, type, transaction_provider, price, date, amount, portfolio_id, side FROM "transaction"
 WHERE portfolio_id = $1
-ORDER BY buy_in_date DESC
+ORDER BY date DESC
 `
 
 func (q *Queries) ListTransactions(ctx context.Context, portfolioID string) ([]Transaction, error) {
@@ -110,8 +100,8 @@ func (q *Queries) ListTransactions(ctx context.Context, portfolioID string) ([]T
 			&i.Symbol,
 			&i.Type,
 			&i.TransactionProvider,
-			&i.BuyIn,
-			&i.BuyInDate,
+			&i.Price,
+			&i.Date,
 			&i.Amount,
 			&i.PortfolioID,
 			&i.Side,

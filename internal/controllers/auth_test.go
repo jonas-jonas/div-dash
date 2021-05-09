@@ -130,8 +130,8 @@ func TestPostRegister(t *testing.T) {
 	mock.ExpectQuery("^-- name: CreateUser :one .*$").WillReturnRows(rows)
 
 	registerUuid, _ := uuid.NewRandom()
-	rows = sqlmock.NewRows([]string{"id", "user_id", "timestamp"}).
-		AddRow(registerUuid, 1, time.Now())
+	rows = sqlmock.NewRows([]string{"id"}).
+		AddRow(registerUuid)
 	mock.ExpectQuery("^-- name: CreateUserRegistration :one .*$").WillReturnRows(rows)
 
 	registerRequest := RegisterRequest{

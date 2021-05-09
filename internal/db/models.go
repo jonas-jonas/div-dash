@@ -20,8 +20,8 @@ type Transaction struct {
 	Symbol              string          `json:"symbol"`
 	Type                string          `json:"type"`
 	TransactionProvider string          `json:"transaction_provider"`
-	BuyIn               int64           `json:"buy_in"`
-	BuyInDate           time.Time       `json:"buy_in_date"`
+	Price               int64           `json:"price"`
+	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
 	PortfolioID         string          `json:"portfolio_id"`
 	Side                string          `json:"side"`

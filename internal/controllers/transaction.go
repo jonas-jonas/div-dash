@@ -17,8 +17,8 @@ type transactionResponse struct {
 	Symbol              string          `json:"symbol"`
 	Type                string          `json:"type"`
 	TransactionProvider string          `json:"transactionProvider"`
-	BuyIn               float64         `json:"buyIn"`
-	BuyInDate           time.Time       `json:"buyInDate"`
+	Price               float64         `json:"price"`
+	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
 	PortfolioId         string          `json:"portfolioId"`
 	Side                string          `json:"side"`
@@ -30,8 +30,8 @@ func marshalTransactionResponse(transaction db.Transaction) transactionResponse 
 		Symbol:              transaction.Symbol,
 		Type:                string(transaction.Type),
 		TransactionProvider: string(transaction.TransactionProvider),
-		BuyIn:               money.New(transaction.BuyIn, "EUR").AsMajorUnits(),
-		BuyInDate:           transaction.BuyInDate,
+		Price:               money.New(transaction.Price, "EUR").AsMajorUnits(),
+		Date:                transaction.Date,
 		Amount:              transaction.Amount,
 		PortfolioId:         transaction.PortfolioID,
 		Side:                transaction.Side,
@@ -58,8 +58,8 @@ type createTransactionRequest struct {
 	Symbol              string    `json:"symbol" binding:"required"`
 	Type                string    `json:"type" binding:"required"`
 	TransactionProvider string    `json:"transactionProvider" binding:"required"`
-	BuyIn               float64   `json:"buyIn" binding:"required"`
-	BuyInDate           time.Time `json:"buyInDate" binding:"required"`
+	Price               float64   `json:"price" binding:"required"`
+	Date                time.Time `json:"date" binding:"required"`
 	Amount              float64   `json:"amount" binding:"required"`
 	Side                string    `json:"side" binding:"required"`
 }
@@ -80,14 +80,20 @@ func PostTransaction(c *gin.Context) {
 		Symbol:              createTransactionRequest.Symbol,
 		Type:                createTransactionRequest.Type,
 		TransactionProvider: createTransactionRequest.TransactionProvider,
-		BuyIn:               int64(createTransactionRequest.BuyIn * 100),
-		BuyInDate:           createTransactionRequest.BuyInDate,
+		Price:               int64(createTransactionRequest.Price * 100),
+		Date:                createTransactionRequest.Date,
 		Amount:              decimal.NewFromFloat(createTransactionRequest.Amount),
 		PortfolioID:         portfolioId,
 		Side:                createTransactionRequest.Side,
 	}
 
-	transaction, err := config.Queries().CreateTransaction(c, params)
+	transactionId, err := config.Queries().CreateTransaction(c, params)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	transaction, err := config.Queries().GetTransaction(c, transactionId)
 	if err != nil {
 		c.Error(err)
 		return

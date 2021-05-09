@@ -10,7 +10,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
@@ -64,16 +63,8 @@ func PerformAuthenticatedRequest(router *gin.Engine, method, path string) *httpt
 
 	req, _ := http.NewRequest(method, path, nil)
 	token, _ := services.TokenService().GenerateToken(testutil.TestUserID)
-	authCookie := http.Cookie{
-		Name:     "token",
-		Value:    token,
-		Path:     "/",
-		Expires:  time.Now().Add(24 * time.Hour),
-		MaxAge:   0,
-		Secure:   true,
-		HttpOnly: true,
-	}
-	req.AddCookie(&authCookie)
+
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	router.ServeHTTP(w, req)
 	return w
@@ -84,16 +75,8 @@ func PerformAuthenticatedRequestWithBody(router *gin.Engine, method, path, body 
 
 	req, _ := http.NewRequest(method, path, strings.NewReader(body))
 	token, _ := services.TokenService().GenerateToken(testutil.TestUserID)
-	authCookie := http.Cookie{
-		Name:     "token",
-		Value:    token,
-		Path:     "/",
-		Expires:  time.Now().Add(24 * time.Hour),
-		MaxAge:   0,
-		Secure:   true,
-		HttpOnly: true,
-	}
-	req.AddCookie(&authCookie)
+
+	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Content-Type", "application/json")
 
 	router.ServeHTTP(w, req)
