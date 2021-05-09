@@ -10,11 +10,7 @@ import (
 
 func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader, err := c.Cookie("token")
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized", "error": err.Error()})
-			return
-		}
+		authHeader := c.Request.Header.Get("Authorization")
 
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 
