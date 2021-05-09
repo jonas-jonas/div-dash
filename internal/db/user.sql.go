@@ -8,7 +8,7 @@ import (
 )
 
 const activateUser = `-- name: ActivateUser :exec
-UPDATE users
+UPDATE "user"
 SET status = 'activated'
 WHERE id = $1
 `
@@ -19,7 +19,7 @@ func (q *Queries) ActivateUser(ctx context.Context, id string) error {
 }
 
 const countByEmail = `-- name: CountByEmail :one
-SELECT count(*) FROM users
+SELECT count(*) FROM "user"
 WHERE email = $1
 `
 
@@ -31,7 +31,7 @@ func (q *Queries) CountByEmail(ctx context.Context, email string) (int64, error)
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (
+INSERT INTO "user" (
   id, email, password_hash, status
 ) VALUES (
   $1, $2, $3, $4
@@ -64,7 +64,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const deleteUser = `-- name: DeleteUser :exec
-DELETE FROM users
+DELETE FROM "user"
 WHERE id = $1
 `
 
@@ -75,7 +75,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 
 const existsByEmail = `-- name: ExistsByEmail :one
 SELECT EXISTS(
-  SELECT 1 FROM users
+  SELECT 1 FROM "user"
   WHERE email = $1
 )
 `
@@ -88,7 +88,7 @@ func (q *Queries) ExistsByEmail(ctx context.Context, email string) (bool, error)
 }
 
 const findByEmail = `-- name: FindByEmail :one
-SELECT id, email, password_hash, status FROM users
+SELECT id, email, password_hash, status FROM "user"
 WHERE email = $1 LIMIT 1
 `
 
@@ -105,7 +105,7 @@ func (q *Queries) FindByEmail(ctx context.Context, email string) (User, error) {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, password_hash, status FROM users
+SELECT id, email, password_hash, status FROM "user"
 WHERE id = $1 LIMIT 1
 `
 
@@ -124,7 +124,7 @@ func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 const isUserActivated = `-- name: IsUserActivated :one
 SELECT EXISTS (
   SELECT status
-  FROM users
+  FROM "user"
   WHERE id = $1 AND status = 'activated'
 )
 `
@@ -137,7 +137,7 @@ func (q *Queries) IsUserActivated(ctx context.Context, id string) (bool, error) 
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, password_hash, status FROM users
+SELECT id, email, password_hash, status FROM "user"
 ORDER BY id
 `
 

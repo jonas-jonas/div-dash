@@ -3,10 +3,12 @@ package controllers
 import (
 	"div-dash/util/testutil"
 	"errors"
+	"strconv"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestGetPortfolio(t *testing.T) {
@@ -14,14 +16,14 @@ func TestGetPortfolio(t *testing.T) {
 
 	defer cleanup()
 	rows := sqlmock.NewRows([]string{"portfolio_id", "name", "user_id"}).
-		AddRow(1, "Test Portfolio", testutil.TestUserID)
+		AddRow("1", "Test Portfolio", testutil.TestUserID)
 
 	mock.ExpectQuery("^-- name: GetPortfolio :one .*$").WillReturnRows(rows)
 
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1")
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `{"portfolio_id": 1, "name": "Test Portfolio", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
+	assert.JSONEq(t, `{"id": "1", "name": "Test Portfolio", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
 }
 
 func TestGetPortfolioNoPortfolio(t *testing.T) {
@@ -35,17 +37,6 @@ func TestGetPortfolioNoPortfolio(t *testing.T) {
 
 	assert.Equal(t, 404, w.Code)
 	AssertErrorObject(t, "The requested resource could not be found", 404, w.Body)
-}
-
-func TestGetPortfolioStringAsId(t *testing.T) {
-	_, cleanup, router := NewApi()
-
-	defer cleanup()
-
-	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/astring")
-
-	assert.Equal(t, 400, w.Code)
-	AssertErrorObject(t, "Invalid portfolio id format", 400, w.Body)
 }
 
 func TestGetPortfolioDbError(t *testing.T) {
@@ -68,12 +59,12 @@ func TestPostPortfolio(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"portfolio_id", "name", "user_id"}).
 		AddRow(1, "Test Portfolio", testutil.TestUserID)
 
-	mock.ExpectQuery("^-- name: CreatePortfolio :one .*$").WithArgs("Test Portfolio", testutil.TestUserID).WillReturnRows(rows)
+	mock.ExpectQuery("^-- name: CreatePortfolio :one .*$").WithArgs(testutil.AnyPortfolioId{}, "Test Portfolio", testutil.TestUserID).WillReturnRows(rows)
 
 	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio", `{"name": "Test Portfolio"}`)
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `{"portfolio_id": 1, "name": "Test Portfolio", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
+	assert.JSONEq(t, `{"id": "1", "name": "Test Portfolio", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
 }
 
 func TestPostPortfolioDbError(t *testing.T) {
@@ -109,12 +100,12 @@ func TestPutPortfolio(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"portfolio_id", "name", "user_id"}).
 		AddRow(1, "New Test Portfolio", testutil.TestUserID)
 
-	mock.ExpectQuery("^-- name: UpdatePortfolio :one .*$").WithArgs(1, "New Test Portfolio").WillReturnRows(rows)
+	mock.ExpectQuery("^-- name: UpdatePortfolio :one .*$").WithArgs("1", "New Test Portfolio").WillReturnRows(rows)
 
 	w := PerformAuthenticatedRequestWithBody(router, "PUT", "/api/portfolio/1", `{"name": "New Test Portfolio"}`)
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `{"portfolio_id": 1, "name": "New Test Portfolio", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
+	assert.JSONEq(t, `{"id": "1", "name": "New Test Portfolio", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
 }
 
 func TestPutPortfolioDbError(t *testing.T) {
@@ -129,18 +120,6 @@ func TestPutPortfolioDbError(t *testing.T) {
 
 	assert.Equal(t, 500, w.Code)
 	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
-}
-
-func TestPutPortfolioStringId(t *testing.T) {
-
-	_, cleanup, router := NewApi()
-
-	defer cleanup()
-
-	w := PerformAuthenticatedRequestWithBody(router, "PUT", "/api/portfolio/asd", `{"name": "New Test Portfolio"}`)
-
-	assert.Equal(t, 400, w.Code)
-	AssertErrorObject(t, "Invalid portfolio id format", 400, w.Body)
 }
 
 func TestPutPortfolioMissingField(t *testing.T) {
@@ -160,7 +139,7 @@ func TestDeletePortfolio(t *testing.T) {
 
 	defer cleanup()
 
-	mock.ExpectExec("^-- name: DeletePortfolio :exec .*$").WithArgs(1).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec("^-- name: DeletePortfolio :exec .*$").WithArgs("1").WillReturnResult(sqlmock.NewResult(0, 1))
 
 	w := PerformAuthenticatedRequest(router, "DELETE", "/api/portfolio/1")
 
@@ -181,17 +160,6 @@ func TestDeletePortfolioDbError(t *testing.T) {
 	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
 }
 
-func TestDeletePortfolioStringId(t *testing.T) {
-	_, cleanup, router := NewApi()
-
-	defer cleanup()
-
-	w := PerformAuthenticatedRequest(router, "DELETE", "/api/portfolio/asd")
-
-	assert.Equal(t, 400, w.Code)
-	AssertErrorObject(t, "Invalid portfolio id format", 400, w.Body)
-}
-
 func TestGetPortfolios(t *testing.T) {
 
 	mock, cleanup, router := NewApi()
@@ -199,16 +167,23 @@ func TestGetPortfolios(t *testing.T) {
 	defer cleanup()
 
 	rows := sqlmock.NewRows([]string{"portfolio_id", "name", "user_id"}).
-		AddRow(1, "Test Portfolio 1", testutil.TestUserID).
-		AddRow(2, "Test Portfolio 2", testutil.TestUserID).
-		AddRow(3, "Test Portfolio 3", testutil.TestUserID)
+		AddRow("1", "Test Portfolio 1", testutil.TestUserID).
+		AddRow("2", "Test Portfolio 2", testutil.TestUserID).
+		AddRow("3", "Test Portfolio 3", testutil.TestUserID)
 
 	mock.ExpectQuery("^-- name: ListPortfolios :many .*$").WithArgs(testutil.TestUserID).WillReturnRows(rows)
 
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio")
 
+	portfolioCount := gjson.Get(w.Body.String(), "#")
+
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `[{"portfolio_id":1,"name":"Test Portfolio 1","user_id":"`+testutil.TestUserID+`"},{"portfolio_id":2,"name":"Test Portfolio 2","user_id":"`+testutil.TestUserID+`"},{"portfolio_id":3,"name":"Test Portfolio 3","user_id":"`+testutil.TestUserID+`"}]`, w.Body.String())
+	assert.Equal(t, int64(3), portfolioCount.Int())
+	for i := 0; i < 3; i++ {
+		portfolio := gjson.Get(w.Body.String(), strconv.Itoa(i)+".name")
+		assert.Equal(t, "Test Portfolio "+strconv.Itoa(i+1), portfolio.String())
+
+	}
 }
 
 func TestGetPortfoliosDbError(t *testing.T) {

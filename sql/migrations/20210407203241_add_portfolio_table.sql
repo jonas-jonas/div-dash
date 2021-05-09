@@ -1,12 +1,12 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE portfolio(
-    portfolio_id    BIGSERIAL PRIMARY KEY,
+CREATE TABLE portfolio (
+    id              text PRIMARY KEY,
     name            text NOT NULL,
     user_id         text NOT NULL,
-    CONSTRAINT fk_portfolio_user_id_user_id
+    CONSTRAINT fk_portfolio_user
       FOREIGN KEY(user_id)
-        REFERENCES users(id)
+        REFERENCES "user"(id)
 )
 -- +goose StatementEnd
 

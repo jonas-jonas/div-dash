@@ -2,6 +2,7 @@ package services
 
 import (
 	"div-dash/internal/config"
+	"div-dash/internal/id"
 	"div-dash/internal/mail"
 	"div-dash/internal/token"
 	"sync"
@@ -12,10 +13,12 @@ import (
 var services struct {
 	TokenService *token.TokenService
 	MailService  *mail.MailService
+	IdService    *id.IdService
 }
 
 var onceTokenService sync.Once
 var onceMailService sync.Once
+var onceIdService sync.Once
 
 func initTokenService() {
 	services.TokenService = token.NewPasetoService(config.Config().Paseto)
@@ -37,4 +40,13 @@ func initMailService() {
 func MailService() *mail.MailService {
 	onceMailService.Do(initMailService)
 	return services.MailService
+}
+
+func initIdService() {
+	services.IdService = id.New()
+}
+
+func IdService() *id.IdService {
+	onceIdService.Do(initIdService)
+	return services.IdService
 }

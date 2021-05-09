@@ -94,7 +94,7 @@ func PostRegister(c *gin.Context) {
 	}
 
 	user, err := config.Queries().CreateUser(c, db.CreateUserParams{
-		ID:           services.NewId(),
+		ID:           services.IdService().NewId(16),
 		Email:        registerRequest.Email,
 		PasswordHash: passwordHash,
 		Status:       db.UserStatusRegistered,
@@ -147,6 +147,15 @@ func PostActivate(c *gin.Context) {
 	if userRegistration.Timestamp.Add(24 * time.Hour).Before(time.Now()) {
 		AbortBadRequest(c, "Registration expired")
 		return
+	}
+
+	activated, err := config.Queries().IsUserActivated(c, userRegistration.UserID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	if activated {
+		AbortBadRequest(c, "User already activated")
 	}
 
 	err = config.Queries().ActivateUser(c, userRegistration.UserID)

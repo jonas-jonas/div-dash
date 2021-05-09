@@ -9,51 +9,52 @@ import (
 
 const createPortfolio = `-- name: CreatePortfolio :one
 INSERT INTO portfolio (
-  name, user_id
+  id, name, user_id
 ) VALUES (
-  $1, $2
+  $1, $2, $3
 )
-RETURNING portfolio_id, name, user_id
+RETURNING id, name, user_id
 `
 
 type CreatePortfolioParams struct {
+	ID     string `json:"id"`
 	Name   string `json:"name"`
 	UserID string `json:"user_id"`
 }
 
 func (q *Queries) CreatePortfolio(ctx context.Context, arg CreatePortfolioParams) (Portfolio, error) {
-	row := q.queryRow(ctx, q.createPortfolioStmt, createPortfolio, arg.Name, arg.UserID)
+	row := q.queryRow(ctx, q.createPortfolioStmt, createPortfolio, arg.ID, arg.Name, arg.UserID)
 	var i Portfolio
-	err := row.Scan(&i.PortfolioID, &i.Name, &i.UserID)
+	err := row.Scan(&i.ID, &i.Name, &i.UserID)
 	return i, err
 }
 
 const deletePortfolio = `-- name: DeletePortfolio :exec
 DELETE FROM portfolio
-WHERE portfolio_id = $1
+WHERE id = $1
 `
 
-func (q *Queries) DeletePortfolio(ctx context.Context, portfolioID int64) error {
-	_, err := q.exec(ctx, q.deletePortfolioStmt, deletePortfolio, portfolioID)
+func (q *Queries) DeletePortfolio(ctx context.Context, id string) error {
+	_, err := q.exec(ctx, q.deletePortfolioStmt, deletePortfolio, id)
 	return err
 }
 
 const getPortfolio = `-- name: GetPortfolio :one
-SELECT portfolio_id, name, user_id FROM portfolio
-WHERE portfolio_id = $1 LIMIT 1
+SELECT id, name, user_id FROM portfolio
+WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetPortfolio(ctx context.Context, portfolioID int64) (Portfolio, error) {
-	row := q.queryRow(ctx, q.getPortfolioStmt, getPortfolio, portfolioID)
+func (q *Queries) GetPortfolio(ctx context.Context, id string) (Portfolio, error) {
+	row := q.queryRow(ctx, q.getPortfolioStmt, getPortfolio, id)
 	var i Portfolio
-	err := row.Scan(&i.PortfolioID, &i.Name, &i.UserID)
+	err := row.Scan(&i.ID, &i.Name, &i.UserID)
 	return i, err
 }
 
 const listPortfolios = `-- name: ListPortfolios :many
-SELECT portfolio_id, name, user_id FROM portfolio
+SELECT id, name, user_id FROM portfolio
 WHERE user_id = $1
-ORDER BY portfolio_id
+ORDER BY id
 `
 
 func (q *Queries) ListPortfolios(ctx context.Context, userID string) ([]Portfolio, error) {
@@ -65,7 +66,7 @@ func (q *Queries) ListPortfolios(ctx context.Context, userID string) ([]Portfoli
 	var items []Portfolio
 	for rows.Next() {
 		var i Portfolio
-		if err := rows.Scan(&i.PortfolioID, &i.Name, &i.UserID); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.UserID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -82,18 +83,18 @@ func (q *Queries) ListPortfolios(ctx context.Context, userID string) ([]Portfoli
 const updatePortfolio = `-- name: UpdatePortfolio :one
 UPDATE portfolio
 SET name = $2
-WHERE portfolio_id = $1
-RETURNING portfolio_id, name, user_id
+WHERE id = $1
+RETURNING id, name, user_id
 `
 
 type UpdatePortfolioParams struct {
-	PortfolioID int64  `json:"portfolio_id"`
-	Name        string `json:"name"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func (q *Queries) UpdatePortfolio(ctx context.Context, arg UpdatePortfolioParams) (Portfolio, error) {
-	row := q.queryRow(ctx, q.updatePortfolioStmt, updatePortfolio, arg.PortfolioID, arg.Name)
+	row := q.queryRow(ctx, q.updatePortfolioStmt, updatePortfolio, arg.ID, arg.Name)
 	var i Portfolio
-	err := row.Scan(&i.PortfolioID, &i.Name, &i.UserID)
+	err := row.Scan(&i.ID, &i.Name, &i.UserID)
 	return i, err
 }

@@ -17,15 +17,15 @@ func TestGetTransaction(t *testing.T) {
 
 	defer cleanup()
 	rows := sqlmock.NewRows([]string{"transaction_id", "symbol", "type", "transaction_provider", "buy_in", "buy_in_date", "amount", "portfolio_id", "side"}).
-		AddRow(1, "BTC", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy)
+		AddRow("1", "BTC", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, "1", db.TransactionSideBuy)
 
-	mock.ExpectQuery("^-- name: GetTransaction :one .*$").WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery("^-- name: GetTransaction :one .*$").WithArgs("1").WillReturnRows(rows)
 
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1/transaction/1")
 
 	assert.Equal(t, 200, w.Code)
 	assert.JSONEq(t, `{
-		"transactionId":1,
+		"transactionId":"1",
 		"symbol":"BTC",
 		"type":"crypto",
 		"transactionProvider":"binance",
@@ -33,20 +33,9 @@ func TestGetTransaction(t *testing.T) {
 		"buyInDate":
 		"2021-04-09T10:00:00+02:00",
 		"amount":"0.00034",
-		"portfolioId":1,
+		"portfolioId":"1",
 		"side": "buy"
 	}`, w.Body.String())
-}
-
-func TestGetTransactionStringId(t *testing.T) {
-	_, cleanup, router := NewApi()
-
-	defer cleanup()
-
-	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1/transaction/astring")
-
-	assert.Equal(t, 400, w.Code)
-	AssertErrorObject(t, "Invalid transaction id", 400, w.Body)
 }
 
 func TestGetTransactionDbError(t *testing.T) {
@@ -69,9 +58,9 @@ func TestPostTransaction(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"transaction_id", "symbol", "type", "transaction_provider", "buy_in", "buy_in_date", "amount", "portfolio_id", "side"}).
 		AddRow(1, "BTC", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy)
 
-	mock.ExpectQuery("^-- name: CreateTransaction :one .*$").WithArgs("BTC", "crypto", "binance", 3497223, testutil.AnyTime{}, "0.00032", 1, "buy").WillReturnRows(rows)
+	mock.ExpectQuery("^-- name: CreateTransaction :one .*$").WithArgs(testutil.AnyTransactionId{}, "BTC", "crypto", "binance", 3497223, testutil.AnyTime{}, "0.00032", "portfolio1", "buy").WillReturnRows(rows)
 
-	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio/1/transaction", `{
+	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio/portfolio1/transaction", `{
 		"symbol": "BTC",
 		"type": "crypto",
 		"transactionProvider": "binance",
@@ -86,8 +75,8 @@ func TestPostTransaction(t *testing.T) {
 		"amount":"0.00034",
 		"buyIn":34972.23,
 		"buyInDate":"2021-04-09T10:00:00+02:00",
-		"portfolioId":1,
-		"transactionId":1,
+		"portfolioId":"1",
+		"transactionId":"1",
 		"transactionProvider":"binance",
 		"symbol":"BTC",
 		"type":"crypto",
@@ -110,24 +99,6 @@ func TestPostTransactionMissingField(t *testing.T) {
 
 	assert.Equal(t, 400, w.Code)
 	AssertErrorObject(t, "Key: 'createTransactionRequest.Amount' Error:Field validation for 'Amount' failed on the 'required' tag\nKey: 'createTransactionRequest.Side' Error:Field validation for 'Side' failed on the 'required' tag", 400, w.Body)
-}
-
-func TestPostTransactionStringPortfolioId(t *testing.T) {
-	_, cleanup, router := NewApi()
-
-	defer cleanup()
-
-	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio/a-string/transaction", `{
-		"symbol": "BTC",
-		"type": "crypto",
-		"transactionProvider": "binance",
-		"buyIn": 34972.23,
-		"buyInDate": "2021-04-09T18:24:12+00:00",
-		"amount": 0.00032
-	}`)
-
-	assert.Equal(t, 400, w.Code)
-	AssertErrorObject(t, "Invalid portfolio id", 400, w.Body)
 }
 
 func TestPostTransactionDbError(t *testing.T) {
@@ -155,10 +126,10 @@ func TestGetTransactions(t *testing.T) {
 
 	defer cleanup()
 	rows := sqlmock.NewRows([]string{"transaction_id", "symbol", "type", "transaction_provider", "buy_in", "buy_in_date", "amount", "portfolio_id", "side"}).
-		AddRow(1, "BTC", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy).
-		AddRow(2, "ETH", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy).
-		AddRow(3, "DOT", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy)
-	mock.ExpectQuery("^-- name: ListTransactions :many .*$").WithArgs(1).WillReturnRows(rows)
+		AddRow("1", "BTC", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy).
+		AddRow("2", "ETH", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy).
+		AddRow("3", "DOT", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy)
+	mock.ExpectQuery("^-- name: ListTransactions :many .*$").WithArgs("1").WillReturnRows(rows)
 
 	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1/transaction")
 
@@ -171,18 +142,6 @@ func TestGetTransactions(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, 3, len(r))
-}
-
-func TestGetTransactionsStringPortfolioId(t *testing.T) {
-	_, cleanup, router := NewApi()
-
-	defer cleanup()
-
-	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/a-string/transaction")
-
-	assert.Equal(t, 400, w.Code)
-
-	AssertErrorObject(t, "Invalid portfolio id", 400, w.Body)
 }
 
 func TestGetTransactionsDbError(t *testing.T) {

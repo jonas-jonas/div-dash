@@ -18,3 +18,19 @@ func (a AnyTime) Match(v driver.Value) bool {
 	_, ok := v.(time.Time)
 	return ok
 }
+
+type AnyTransactionId struct{}
+
+func (a AnyTransactionId) Match(v driver.Value) bool {
+	_, ok := v.(string)
+	//TODO
+	return ok
+}
+
+type AnyPortfolioId struct{}
+
+func (a AnyPortfolioId) Match(v driver.Value) bool {
+	_, ok := v.(string)
+	//TODO
+	return ok
+}

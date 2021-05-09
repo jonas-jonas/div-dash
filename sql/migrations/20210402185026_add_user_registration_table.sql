@@ -1,18 +1,16 @@
 -- +goose Up
 -- +goose StatementBegin
-SELECT 'up SQL query';
-CREATE TABLE IF NOT EXISTS user_registrations(
+CREATE TABLE IF NOT EXISTS user_registration (
     id          UUID PRIMARY KEY NOT NULL,
-    user_id     text NOT NULL,
-    timestamp   datetime NOT NULL,
-    CONSTRAINT fk_user_userId
+    user_id     TEXT NOT NULL,
+    timestamp   TIMESTAMP NOT NULL,
+    CONSTRAINT fk_user_registration_user
       FOREIGN KEY(user_id)
-        REFERENCES users(id)
+        REFERENCES "user"(id)
     );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
-DROP TABLE user_registrations;
+DROP TABLE user_registration;
 -- +goose StatementEnd

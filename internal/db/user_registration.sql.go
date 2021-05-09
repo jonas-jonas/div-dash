@@ -11,7 +11,7 @@ import (
 )
 
 const createUserRegistration = `-- name: CreateUserRegistration :one
-INSERT INTO user_registrations (
+INSERT INTO user_registration (
   id, user_id, timestamp
 ) VALUES (
   $1, $2, $3
@@ -33,7 +33,7 @@ func (q *Queries) CreateUserRegistration(ctx context.Context, arg CreateUserRegi
 }
 
 const getUserRegistration = `-- name: GetUserRegistration :one
-SELECT id, user_id, timestamp FROM user_registrations
+SELECT id, user_id, timestamp FROM user_registration
 WHERE id = $1 LIMIT 1
 `
 
@@ -45,7 +45,7 @@ func (q *Queries) GetUserRegistration(ctx context.Context, id uuid.UUID) (UserRe
 }
 
 const getUserRegistrationByUserId = `-- name: GetUserRegistrationByUserId :one
-SELECT id, user_id, timestamp FROM user_registrations
+SELECT id, user_id, timestamp FROM user_registration
 WHERE user_id = $1 LIMIT 1
 `
 

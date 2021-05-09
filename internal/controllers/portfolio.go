@@ -4,18 +4,12 @@ import (
 	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetPortfolio(c *gin.Context) {
-	idString := c.Param("portfolioId")
-	id, err := strconv.ParseInt(idString, 10, 64)
-	if err != nil {
-		AbortBadRequest(c, "Invalid portfolio id format")
-		return
-	}
+	id := c.Param("portfolioId")
 
 	portfolio, err := config.Queries().GetPortfolio(c, id)
 	if err != nil {
@@ -60,12 +54,7 @@ type updatePortfolioRequest struct {
 }
 
 func PutPortfolio(c *gin.Context) {
-	idString := c.Param("portfolioId")
-	id, err := strconv.ParseInt(idString, 10, 64)
-	if err != nil {
-		AbortBadRequest(c, "Invalid portfolio id format")
-		return
-	}
+	id := c.Param("portfolioId")
 
 	var updatePortfolioRequest updatePortfolioRequest
 	if err := c.ShouldBindJSON(&updatePortfolioRequest); err != nil {
@@ -74,8 +63,8 @@ func PutPortfolio(c *gin.Context) {
 	}
 
 	portfolio, err := config.Queries().UpdatePortfolio(c, db.UpdatePortfolioParams{
-		PortfolioID: id,
-		Name:        updatePortfolioRequest.Name,
+		ID:   id,
+		Name: updatePortfolioRequest.Name,
 	})
 
 	if err != nil {
@@ -87,14 +76,9 @@ func PutPortfolio(c *gin.Context) {
 }
 
 func DeletePortfolio(c *gin.Context) {
-	idString := c.Param("portfolioId")
-	id, err := strconv.ParseInt(idString, 10, 64)
-	if err != nil {
-		AbortBadRequest(c, "Invalid portfolio id format")
-		return
-	}
+	id := c.Param("portfolioId")
 
-	err = config.Queries().DeletePortfolio(c, id)
+	err := config.Queries().DeletePortfolio(c, id)
 	if err != nil {
 		c.Error(err)
 		return

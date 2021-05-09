@@ -10,20 +10,20 @@ import (
 )
 
 type Portfolio struct {
-	PortfolioID int64  `json:"portfolio_id"`
-	Name        string `json:"name"`
-	UserID      string `json:"user_id"`
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	UserID string `json:"user_id"`
 }
 
 type Transaction struct {
-	TransactionID       int64           `json:"transaction_id"`
+	ID                  string          `json:"id"`
 	Symbol              string          `json:"symbol"`
 	Type                string          `json:"type"`
 	TransactionProvider string          `json:"transaction_provider"`
 	BuyIn               int64           `json:"buy_in"`
 	BuyInDate           time.Time       `json:"buy_in_date"`
 	Amount              decimal.Decimal `json:"amount"`
-	PortfolioID         int64           `json:"portfolio_id"`
+	PortfolioID         string          `json:"portfolio_id"`
 	Side                string          `json:"side"`
 }
 

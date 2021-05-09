@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE users (
+CREATE TABLE "user" (
   id            text      PRIMARY KEY,
   email         text      NOT NULL,
   password_hash text      NOT NULL,
@@ -11,5 +11,5 @@ CREATE TABLE users (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS "user";
 -- +goose StatementEnd

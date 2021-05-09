@@ -12,26 +12,28 @@ import (
 
 const createTransaction = `-- name: CreateTransaction :one
 INSERT INTO transaction (
-  symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side
+  id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8
+  $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
-RETURNING transaction_id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side
+RETURNING id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side
 `
 
 type CreateTransactionParams struct {
+	ID                  string          `json:"id"`
 	Symbol              string          `json:"symbol"`
 	Type                string          `json:"type"`
 	TransactionProvider string          `json:"transaction_provider"`
 	BuyIn               int64           `json:"buy_in"`
 	BuyInDate           time.Time       `json:"buy_in_date"`
 	Amount              decimal.Decimal `json:"amount"`
-	PortfolioID         int64           `json:"portfolio_id"`
+	PortfolioID         string          `json:"portfolio_id"`
 	Side                string          `json:"side"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error) {
 	row := q.queryRow(ctx, q.createTransactionStmt, createTransaction,
+		arg.ID,
 		arg.Symbol,
 		arg.Type,
 		arg.TransactionProvider,
@@ -43,7 +45,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	)
 	var i Transaction
 	err := row.Scan(
-		&i.TransactionID,
+		&i.ID,
 		&i.Symbol,
 		&i.Type,
 		&i.TransactionProvider,
@@ -58,24 +60,24 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 
 const deleteTransaction = `-- name: DeleteTransaction :exec
 DELETE FROM transaction
-WHERE transaction_id = $1
+WHERE id = $1
 `
 
-func (q *Queries) DeleteTransaction(ctx context.Context, transactionID int64) error {
-	_, err := q.exec(ctx, q.deleteTransactionStmt, deleteTransaction, transactionID)
+func (q *Queries) DeleteTransaction(ctx context.Context, id string) error {
+	_, err := q.exec(ctx, q.deleteTransactionStmt, deleteTransaction, id)
 	return err
 }
 
 const getTransaction = `-- name: GetTransaction :one
-SELECT transaction_id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side FROM transaction
-WHERE transaction_id = $1 LIMIT 1
+SELECT id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side FROM transaction
+WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetTransaction(ctx context.Context, transactionID int64) (Transaction, error) {
-	row := q.queryRow(ctx, q.getTransactionStmt, getTransaction, transactionID)
+func (q *Queries) GetTransaction(ctx context.Context, id string) (Transaction, error) {
+	row := q.queryRow(ctx, q.getTransactionStmt, getTransaction, id)
 	var i Transaction
 	err := row.Scan(
-		&i.TransactionID,
+		&i.ID,
 		&i.Symbol,
 		&i.Type,
 		&i.TransactionProvider,
@@ -89,12 +91,12 @@ func (q *Queries) GetTransaction(ctx context.Context, transactionID int64) (Tran
 }
 
 const listTransactions = `-- name: ListTransactions :many
-SELECT transaction_id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side FROM transaction
+SELECT id, symbol, type, transaction_provider, buy_in, buy_in_date, amount, portfolio_id, side FROM transaction
 WHERE portfolio_id = $1
 ORDER BY buy_in_date DESC
 `
 
-func (q *Queries) ListTransactions(ctx context.Context, portfolioID int64) ([]Transaction, error) {
+func (q *Queries) ListTransactions(ctx context.Context, portfolioID string) ([]Transaction, error) {
 	rows, err := q.query(ctx, q.listTransactionsStmt, listTransactions, portfolioID)
 	if err != nil {
 		return nil, err
@@ -104,7 +106,7 @@ func (q *Queries) ListTransactions(ctx context.Context, portfolioID int64) ([]Tr
 	for rows.Next() {
 		var i Transaction
 		if err := rows.Scan(
-			&i.TransactionID,
+			&i.ID,
 			&i.Symbol,
 			&i.Type,
 			&i.TransactionProvider,

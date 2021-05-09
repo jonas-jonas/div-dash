@@ -3,8 +3,8 @@ package controllers
 import (
 	"div-dash/internal/config"
 	"div-dash/internal/db"
+	"div-dash/internal/services"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/Rhymond/go-money"
@@ -13,20 +13,20 @@ import (
 )
 
 type transactionResponse struct {
-	TransactionID       int64           `json:"transactionId"`
+	ID                  string          `json:"transactionId"`
 	Symbol              string          `json:"symbol"`
 	Type                string          `json:"type"`
 	TransactionProvider string          `json:"transactionProvider"`
 	BuyIn               float64         `json:"buyIn"`
 	BuyInDate           time.Time       `json:"buyInDate"`
 	Amount              decimal.Decimal `json:"amount"`
-	PortfolioId         int64           `json:"portfolioId"`
+	PortfolioId         string          `json:"portfolioId"`
 	Side                string          `json:"side"`
 }
 
 func marshalTransactionResponse(transaction db.Transaction) transactionResponse {
 	return transactionResponse{
-		TransactionID:       transaction.TransactionID,
+		ID:                  transaction.ID,
 		Symbol:              transaction.Symbol,
 		Type:                string(transaction.Type),
 		TransactionProvider: string(transaction.TransactionProvider),
@@ -40,13 +40,7 @@ func marshalTransactionResponse(transaction db.Transaction) transactionResponse 
 
 func GetTransaction(c *gin.Context) {
 	// TODO: Check permissions
-	idString := c.Param("transactionId")
-	transactionId, err := strconv.ParseInt(idString, 10, 64)
-
-	if err != nil {
-		AbortBadRequest(c, "Invalid transaction id")
-		return
-	}
+	transactionId := c.Param("transactionId")
 
 	transaction, err := config.Queries().GetTransaction(c, transactionId)
 
@@ -73,13 +67,8 @@ type createTransactionRequest struct {
 func PostTransaction(c *gin.Context) {
 	// TODO: Check permissions
 
-	idString := c.Param("portfolioId")
-	portfolioId, err := strconv.ParseInt(idString, 10, 64)
+	portfolioId := c.Param("portfolioId")
 
-	if err != nil {
-		AbortBadRequest(c, "Invalid portfolio id")
-		return
-	}
 	var createTransactionRequest createTransactionRequest
 	if err := c.ShouldBindJSON(&createTransactionRequest); err != nil {
 		AbortBadRequest(c, err.Error())
@@ -87,6 +76,7 @@ func PostTransaction(c *gin.Context) {
 	}
 
 	params := db.CreateTransactionParams{
+		ID:                  "T" + services.IdService().NewId(5),
 		Symbol:              createTransactionRequest.Symbol,
 		Type:                createTransactionRequest.Type,
 		TransactionProvider: createTransactionRequest.TransactionProvider,
@@ -111,13 +101,7 @@ func PostTransaction(c *gin.Context) {
 func GetTransactions(c *gin.Context) {
 	// TODO: Check permissions
 
-	idString := c.Param("portfolioId")
-	portfolioId, err := strconv.ParseInt(idString, 10, 64)
-
-	if err != nil {
-		AbortBadRequest(c, "Invalid portfolio id")
-		return
-	}
+	portfolioId := c.Param("portfolioId")
 
 	transactions, err := config.Queries().ListTransactions(c, portfolioId)
 
