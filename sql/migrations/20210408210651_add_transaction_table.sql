@@ -10,6 +10,8 @@ CREATE TABLE "transaction" (
     amount                NUMERIC(20,10) NOT NULL,
     portfolio_id          text NOT NULL,
     side                  text NOT NULL,
+    CONSTRAINT uq_id_portfolio_id
+      UNIQUE(id, portfolio_id),
     CONSTRAINT fk_transaction_portfolio
       FOREIGN KEY(portfolio_id)
         REFERENCES portfolio(id)

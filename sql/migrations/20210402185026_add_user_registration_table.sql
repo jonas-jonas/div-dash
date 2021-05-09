@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS user_registration (
     CONSTRAINT fk_user_registration_user
       FOREIGN KEY(user_id)
         REFERENCES "user"(id)
-    );
+);
 -- +goose StatementEnd
 
 -- +goose Down
