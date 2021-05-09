@@ -2,7 +2,6 @@ import ky from "ky";
 import React, { useEffect, useState } from "react";
 import { Link, Route, Switch } from "react-router-dom";
 import { useRecoilState } from "recoil";
-import "./App.scss";
 import { Home } from "./pages/Home";
 import { userState } from "./state/authState";
 
@@ -36,61 +35,26 @@ function App() {
     return (
       <div>
         <nav
-          className="navbar container"
+          className="bg-gray-900 w-100 h-16 shadow-md flex items-center text-white"
           role="navigation"
           aria-label="main navigation"
         >
-          <div className="navbar-brand">
-            <Link className="navbar-item" to="/">
-              <img
-                src="/assets/logo.svg"
-                alt="Bulma: Free, open source, and modern CSS framework based on Flexbox"
-                width="112"
-                height="28"
-              />
-            </Link>
-
-            <button
-              className="navbar-burger"
-              aria-label="menu"
-              aria-expanded="false"
-            >
-              <span aria-hidden="true"></span>
-              <span aria-hidden="true"></span>
-              <span aria-hidden="true"></span>
-            </button>
-          </div>
-
-          <div id="navbarBasicExample" className="navbar-menu">
-            <div className="navbar-start">
-              <a className="navbar-item" href="/">
+          <div className="container mx-auto flex justify-between items-center">
+            <div className="flex items-center">
+              <Link className="navbar-item" to="/">
+                <img
+                  src="/assets/logo.svg"
+                  alt="Logo"
+                  width="112"
+                  height="28"
+                />
+              </Link>
+              <a className="ml-6" href="/">
                 Documentation
               </a>
-
-              <div className="navbar-item has-dropdown is-hoverable">
-                <a className="navbar-link" href="/">
-                  More
-                </a>
-
-                <div className="navbar-dropdown">
-                  <a className="navbar-item" href="/">
-                    About
-                  </a>
-                  <a className="navbar-item" href="/">
-                    Jobs
-                  </a>
-                  <a className="navbar-item" href="/">
-                    Contact
-                  </a>
-                  <hr className="navbar-divider" />
-                  <a className="navbar-item" href="/">
-                    Report an issue
-                  </a>
-                </div>
-              </div>
             </div>
 
-            <div className="navbar-end">
+            <div className="">
               {user && (
                 <div className="navbar-item">
                   <p className="mr-2">{user.email}</p>
@@ -105,16 +69,17 @@ function App() {
                 </div>
               )}
               {!user && (
-                <div className="navbar-item">
-                  <div className="buttons">
-                    <a className="button is-primary" href="/register">
-                      <strong>Sign up</strong>
-                    </a>
-                    <a className="button is-light" href="/login">
-                      Log in
-                    </a>
-                  </div>
-                </div>
+                <>
+                  <Link className="mr-6" to="/login">
+                    Log in
+                  </Link>
+                  <Link
+                    className="px-4 py-2 bg-white shadow rounded text-gray-900"
+                    to="/register"
+                  >
+                    <strong>Sign up</strong>
+                  </Link>
+                </>
               )}
             </div>
           </div>
