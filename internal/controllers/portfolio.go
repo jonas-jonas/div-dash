@@ -3,6 +3,7 @@ package controllers
 import (
 	"div-dash/internal/config"
 	"div-dash/internal/db"
+	"div-dash/internal/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,7 @@ func PostPortfolio(c *gin.Context) {
 	}
 
 	portfolio, err := config.Queries().CreatePortfolio(c, db.CreatePortfolioParams{
+		ID:     "P" + services.IdService().NewId(4),
 		Name:   createPortfolioRequest.Name,
 		UserID: c.GetString("userId"),
 	})
