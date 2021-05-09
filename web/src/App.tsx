@@ -63,7 +63,6 @@ function App() {
 
           <div id="navbarBasicExample" className="navbar-menu">
             <div className="navbar-start">
-
               <a className="navbar-item" href="/">
                 Documentation
               </a>
@@ -108,20 +107,10 @@ function App() {
               {!user && (
                 <div className="navbar-item">
                   <div className="buttons">
-                    <a
-                      className="button is-primary"
-                      href={
-                        (process.env.REACT_APP_AUTH_SERVICE || "") + "/register"
-                      }
-                    >
+                    <a className="button is-primary" href="/register">
                       <strong>Sign up</strong>
                     </a>
-                    <a
-                      className="button is-light"
-                      href={
-                        (process.env.REACT_APP_AUTH_SERVICE || "") + "/login"
-                      }
-                    >
+                    <a className="button is-light" href="/login">
                       Log in
                     </a>
                   </div>
