@@ -1,7 +1,15 @@
-import { useRecoilValue } from "recoil";
-import { userState } from "../state/authState";
+import { PortfolioGraph } from "../components/PortfolioGraph";
 
 export function Home() {
-  const user = useRecoilValue(userState);
-  return <div className="container">Hi {user?.email || "Not logged in"}</div>;
+  return (
+    <div className="container mb-24 mx-auto">
+      <div className="grid grid-cols-3 gap-4 p-8">
+        <PortfolioGraph />
+
+        <div>
+          <div></div>
+        </div>
+      </div>
+    </div>
+  );
 }
