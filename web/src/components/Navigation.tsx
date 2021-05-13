@@ -34,8 +34,8 @@ export function Navigation() {
           <Link className="navbar-item" to="/">
             <img src="/assets/logo.svg" alt="Logo" width="112" height="28" />
           </Link>
-          <Link className={navItemClasses("/portfolios")} to="/portfolios">
-            Portfolios
+          <Link className={navItemClasses("/accounts")} to="/accounts">
+            Accounts
           </Link>
         </div>
 

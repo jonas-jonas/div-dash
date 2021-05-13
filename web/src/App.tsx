@@ -5,7 +5,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { Navigation } from "./components/Navigation";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
-import { Portfolios } from "./pages/Portfolios";
+import { Accounts } from "./pages/Accounts";
 import { loggedInState, tokenState, userState } from "./state/authState";
 
 function App() {
@@ -54,8 +54,8 @@ function App() {
               )
             }
           />
-          <Route path="/portfolios" exact>
-            <Portfolios></Portfolios>
+          <Route path="/accounts" exact>
+            <Accounts></Accounts>
           </Route>
           <Route path="/" exact>
             <Home></Home>
