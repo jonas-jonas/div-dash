@@ -28,8 +28,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.countByEmailStmt, err = db.PrepareContext(ctx, countByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query CountByEmail: %w", err)
 	}
-	if q.createPortfolioStmt, err = db.PrepareContext(ctx, createPortfolio); err != nil {
-		return nil, fmt.Errorf("error preparing query CreatePortfolio: %w", err)
+	if q.createAccountStmt, err = db.PrepareContext(ctx, createAccount); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateAccount: %w", err)
 	}
 	if q.createTransactionStmt, err = db.PrepareContext(ctx, createTransaction); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateTransaction: %w", err)
@@ -40,8 +40,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createUserRegistrationStmt, err = db.PrepareContext(ctx, createUserRegistration); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUserRegistration: %w", err)
 	}
-	if q.deletePortfolioStmt, err = db.PrepareContext(ctx, deletePortfolio); err != nil {
-		return nil, fmt.Errorf("error preparing query DeletePortfolio: %w", err)
+	if q.deleteAccountStmt, err = db.PrepareContext(ctx, deleteAccount); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteAccount: %w", err)
 	}
 	if q.deleteTransactionStmt, err = db.PrepareContext(ctx, deleteTransaction); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteTransaction: %w", err)
@@ -55,8 +55,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findByEmailStmt, err = db.PrepareContext(ctx, findByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query FindByEmail: %w", err)
 	}
-	if q.getPortfolioStmt, err = db.PrepareContext(ctx, getPortfolio); err != nil {
-		return nil, fmt.Errorf("error preparing query GetPortfolio: %w", err)
+	if q.getAccountStmt, err = db.PrepareContext(ctx, getAccount); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAccount: %w", err)
 	}
 	if q.getTransactionStmt, err = db.PrepareContext(ctx, getTransaction); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTransaction: %w", err)
@@ -73,8 +73,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.isUserActivatedStmt, err = db.PrepareContext(ctx, isUserActivated); err != nil {
 		return nil, fmt.Errorf("error preparing query IsUserActivated: %w", err)
 	}
-	if q.listPortfoliosStmt, err = db.PrepareContext(ctx, listPortfolios); err != nil {
-		return nil, fmt.Errorf("error preparing query ListPortfolios: %w", err)
+	if q.listAccountsStmt, err = db.PrepareContext(ctx, listAccounts); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAccounts: %w", err)
 	}
 	if q.listTransactionsStmt, err = db.PrepareContext(ctx, listTransactions); err != nil {
 		return nil, fmt.Errorf("error preparing query ListTransactions: %w", err)
@@ -82,8 +82,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listUsersStmt, err = db.PrepareContext(ctx, listUsers); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUsers: %w", err)
 	}
-	if q.updatePortfolioStmt, err = db.PrepareContext(ctx, updatePortfolio); err != nil {
-		return nil, fmt.Errorf("error preparing query UpdatePortfolio: %w", err)
+	if q.updateAccountStmt, err = db.PrepareContext(ctx, updateAccount); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateAccount: %w", err)
 	}
 	return &q, nil
 }
@@ -100,9 +100,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing countByEmailStmt: %w", cerr)
 		}
 	}
-	if q.createPortfolioStmt != nil {
-		if cerr := q.createPortfolioStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing createPortfolioStmt: %w", cerr)
+	if q.createAccountStmt != nil {
+		if cerr := q.createAccountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createAccountStmt: %w", cerr)
 		}
 	}
 	if q.createTransactionStmt != nil {
@@ -120,9 +120,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createUserRegistrationStmt: %w", cerr)
 		}
 	}
-	if q.deletePortfolioStmt != nil {
-		if cerr := q.deletePortfolioStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing deletePortfolioStmt: %w", cerr)
+	if q.deleteAccountStmt != nil {
+		if cerr := q.deleteAccountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteAccountStmt: %w", cerr)
 		}
 	}
 	if q.deleteTransactionStmt != nil {
@@ -145,9 +145,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findByEmailStmt: %w", cerr)
 		}
 	}
-	if q.getPortfolioStmt != nil {
-		if cerr := q.getPortfolioStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getPortfolioStmt: %w", cerr)
+	if q.getAccountStmt != nil {
+		if cerr := q.getAccountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAccountStmt: %w", cerr)
 		}
 	}
 	if q.getTransactionStmt != nil {
@@ -175,9 +175,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing isUserActivatedStmt: %w", cerr)
 		}
 	}
-	if q.listPortfoliosStmt != nil {
-		if cerr := q.listPortfoliosStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing listPortfoliosStmt: %w", cerr)
+	if q.listAccountsStmt != nil {
+		if cerr := q.listAccountsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAccountsStmt: %w", cerr)
 		}
 	}
 	if q.listTransactionsStmt != nil {
@@ -190,9 +190,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listUsersStmt: %w", cerr)
 		}
 	}
-	if q.updatePortfolioStmt != nil {
-		if cerr := q.updatePortfolioStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing updatePortfolioStmt: %w", cerr)
+	if q.updateAccountStmt != nil {
+		if cerr := q.updateAccountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateAccountStmt: %w", cerr)
 		}
 	}
 	return err
@@ -236,25 +236,25 @@ type Queries struct {
 	tx                              *sql.Tx
 	activateUserStmt                *sql.Stmt
 	countByEmailStmt                *sql.Stmt
-	createPortfolioStmt             *sql.Stmt
+	createAccountStmt               *sql.Stmt
 	createTransactionStmt           *sql.Stmt
 	createUserStmt                  *sql.Stmt
 	createUserRegistrationStmt      *sql.Stmt
-	deletePortfolioStmt             *sql.Stmt
+	deleteAccountStmt               *sql.Stmt
 	deleteTransactionStmt           *sql.Stmt
 	deleteUserStmt                  *sql.Stmt
 	existsByEmailStmt               *sql.Stmt
 	findByEmailStmt                 *sql.Stmt
-	getPortfolioStmt                *sql.Stmt
+	getAccountStmt                  *sql.Stmt
 	getTransactionStmt              *sql.Stmt
 	getUserStmt                     *sql.Stmt
 	getUserRegistrationStmt         *sql.Stmt
 	getUserRegistrationByUserIdStmt *sql.Stmt
 	isUserActivatedStmt             *sql.Stmt
-	listPortfoliosStmt              *sql.Stmt
+	listAccountsStmt                *sql.Stmt
 	listTransactionsStmt            *sql.Stmt
 	listUsersStmt                   *sql.Stmt
-	updatePortfolioStmt             *sql.Stmt
+	updateAccountStmt               *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -263,24 +263,24 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		tx:                              tx,
 		activateUserStmt:                q.activateUserStmt,
 		countByEmailStmt:                q.countByEmailStmt,
-		createPortfolioStmt:             q.createPortfolioStmt,
+		createAccountStmt:               q.createAccountStmt,
 		createTransactionStmt:           q.createTransactionStmt,
 		createUserStmt:                  q.createUserStmt,
 		createUserRegistrationStmt:      q.createUserRegistrationStmt,
-		deletePortfolioStmt:             q.deletePortfolioStmt,
+		deleteAccountStmt:               q.deleteAccountStmt,
 		deleteTransactionStmt:           q.deleteTransactionStmt,
 		deleteUserStmt:                  q.deleteUserStmt,
 		existsByEmailStmt:               q.existsByEmailStmt,
 		findByEmailStmt:                 q.findByEmailStmt,
-		getPortfolioStmt:                q.getPortfolioStmt,
+		getAccountStmt:                  q.getAccountStmt,
 		getTransactionStmt:              q.getTransactionStmt,
 		getUserStmt:                     q.getUserStmt,
 		getUserRegistrationStmt:         q.getUserRegistrationStmt,
 		getUserRegistrationByUserIdStmt: q.getUserRegistrationByUserIdStmt,
 		isUserActivatedStmt:             q.isUserActivatedStmt,
-		listPortfoliosStmt:              q.listPortfoliosStmt,
+		listAccountsStmt:                q.listAccountsStmt,
 		listTransactionsStmt:            q.listTransactionsStmt,
 		listUsersStmt:                   q.listUsersStmt,
-		updatePortfolioStmt:             q.updatePortfolioStmt,
+		updateAccountStmt:               q.updateAccountStmt,
 	}
 }

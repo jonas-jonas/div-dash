@@ -20,7 +20,7 @@ type transactionResponse struct {
 	Price               float64         `json:"price"`
 	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
-	PortfolioId         string          `json:"portfolioId"`
+	AccountId           string          `json:"accountId"`
 	Side                string          `json:"side"`
 }
 
@@ -33,7 +33,7 @@ func marshalTransactionResponse(transaction db.Transaction) transactionResponse 
 		Price:               money.New(transaction.Price, "EUR").AsMajorUnits(),
 		Date:                transaction.Date,
 		Amount:              transaction.Amount,
-		PortfolioId:         transaction.PortfolioID,
+		AccountId:           transaction.AccountID,
 		Side:                transaction.Side,
 	}
 }
@@ -67,7 +67,7 @@ type createTransactionRequest struct {
 func PostTransaction(c *gin.Context) {
 	// TODO: Check permissions
 
-	portfolioId := c.Param("portfolioId")
+	accountId := c.Param("accountId")
 
 	var createTransactionRequest createTransactionRequest
 	if err := c.ShouldBindJSON(&createTransactionRequest); err != nil {
@@ -83,7 +83,7 @@ func PostTransaction(c *gin.Context) {
 		Price:               int64(createTransactionRequest.Price * 100),
 		Date:                createTransactionRequest.Date,
 		Amount:              decimal.NewFromFloat(createTransactionRequest.Amount),
-		PortfolioID:         portfolioId,
+		AccountID:           accountId,
 		Side:                createTransactionRequest.Side,
 	}
 
@@ -107,9 +107,9 @@ func PostTransaction(c *gin.Context) {
 func GetTransactions(c *gin.Context) {
 	// TODO: Check permissions
 
-	portfolioId := c.Param("portfolioId")
+	accountId := c.Param("accountId")
 
-	transactions, err := config.Queries().ListTransactions(c, portfolioId)
+	transactions, err := config.Queries().ListTransactions(c, accountId)
 
 	if err != nil {
 		c.Error(err)

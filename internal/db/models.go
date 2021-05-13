@@ -9,7 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type Portfolio struct {
+type Account struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
 	UserID string `json:"user_id"`
@@ -23,7 +23,7 @@ type Transaction struct {
 	Price               int64           `json:"price"`
 	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
-	PortfolioID         string          `json:"portfolio_id"`
+	AccountID           string          `json:"account_id"`
 	Side                string          `json:"side"`
 }
 

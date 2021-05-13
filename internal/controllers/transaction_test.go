@@ -16,12 +16,12 @@ func TestGetTransaction(t *testing.T) {
 	mock, cleanup, router := NewApi()
 
 	defer cleanup()
-	rows := sqlmock.NewRows([]string{"transaction_id", "symbol", "type", "transaction_provider", "price", "date", "amount", "portfolio_id", "side"}).
+	rows := sqlmock.NewRows([]string{"transaction_id", "symbol", "type", "transaction_provider", "price", "date", "amount", "account_id", "side"}).
 		AddRow("1", "BTC", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, "1", db.TransactionSideBuy)
 
 	mock.ExpectQuery("^-- name: GetTransaction :one .*$").WithArgs("1").WillReturnRows(rows)
 
-	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1/transaction/1")
+	w := PerformAuthenticatedRequest(router, "GET", "/api/account/1/transaction/1")
 
 	assert.Equal(t, 200, w.Code)
 	assert.JSONEq(t, `{
@@ -33,7 +33,7 @@ func TestGetTransaction(t *testing.T) {
 		"date":
 		"2021-04-09T10:00:00+02:00",
 		"amount":"0.00034",
-		"portfolioId":"1",
+		"accountId":"1",
 		"side": "buy"
 	}`, w.Body.String())
 }
@@ -45,7 +45,7 @@ func TestGetTransactionDbError(t *testing.T) {
 
 	mock.ExpectQuery("^-- name: GetTransaction :one .*$").WithArgs(1).WillReturnError(errors.New("test-error"))
 
-	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1/transaction/1")
+	w := PerformAuthenticatedRequest(router, "GET", "/api/account/1/transaction/1")
 
 	assert.Equal(t, 500, w.Code)
 	AssertErrorObject(t, "An internal server error occured. Please try again later.", 500, w.Body)
@@ -56,14 +56,14 @@ func TestPostTransaction(t *testing.T) {
 
 	defer cleanup()
 	rows := sqlmock.NewRows([]string{"transaction_id"}).AddRow("T123AB")
-	mock.ExpectQuery("^-- name: CreateTransaction :one .*$").WithArgs(testutil.AnyTransactionId{}, "BTC", "crypto", "binance", 3497223, testutil.AnyTime{}, "0.00032", "portfolio1", "buy").WillReturnRows(rows)
+	mock.ExpectQuery("^-- name: CreateTransaction :one .*$").WithArgs(testutil.AnyTransactionId{}, "BTC", "crypto", "binance", 3497223, testutil.AnyTime{}, "0.00032", "account1", "buy").WillReturnRows(rows)
 
-	rows = sqlmock.NewRows([]string{"transaction_id", "symbol", "type", "transaction_provider", "price", "date", "amount", "portfolio_id", "side"}).
+	rows = sqlmock.NewRows([]string{"transaction_id", "symbol", "type", "transaction_provider", "price", "date", "amount", "account_id", "side"}).
 		AddRow(1, "BTC", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy)
 
 	mock.ExpectQuery("^-- name: GetTransaction :one .*$").WithArgs("T123AB").WillReturnRows(rows)
 
-	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio/portfolio1/transaction", `{
+	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/account/account1/transaction", `{
 		"symbol": "BTC",
 		"type": "crypto",
 		"transactionProvider": "binance",
@@ -78,7 +78,7 @@ func TestPostTransaction(t *testing.T) {
 		"amount":"0.00034",
 		"price":34972.23,
 		"date":"2021-04-09T10:00:00+02:00",
-		"portfolioId":"1",
+		"accountId":"1",
 		"transactionId":"1",
 		"transactionProvider":"binance",
 		"symbol":"BTC",
@@ -92,7 +92,7 @@ func TestPostTransactionMissingField(t *testing.T) {
 
 	defer cleanup()
 
-	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio/1/transaction", `{
+	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/account/1/transaction", `{
 		"symbol": "BTC",
 		"type": "crypto",
 		"transactionProvider": "binance",
@@ -110,7 +110,7 @@ func TestPostTransactionDbError(t *testing.T) {
 	defer cleanup()
 	mock.ExpectQuery("^-- name: CreateTransaction :one .*$").WillReturnError(errors.New("test-error"))
 
-	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/portfolio/1/transaction", `{
+	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/account/1/transaction", `{
 		"symbol": "BTC",
 		"type": "crypto",
 		"transactionProvider": "binance",
@@ -128,13 +128,13 @@ func TestGetTransactions(t *testing.T) {
 	mock, cleanup, router := NewApi()
 
 	defer cleanup()
-	rows := sqlmock.NewRows([]string{"transaction_id", "symbol", "type", "transaction_provider", "price", "date", "amount", "portfolio_id", "side"}).
+	rows := sqlmock.NewRows([]string{"transaction_id", "symbol", "type", "transaction_provider", "price", "date", "amount", "account_id", "side"}).
 		AddRow("1", "BTC", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy).
 		AddRow("2", "ETH", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy).
 		AddRow("3", "DOT", db.TransactionTypeCrypto, db.TransactionProviderBinance, 3497223, time.Date(2021, 4, 9, 10, 0, 0, 0, time.Now().Location()), 0.00034, 1, db.TransactionSideBuy)
 	mock.ExpectQuery("^-- name: ListTransactions :many .*$").WithArgs("1").WillReturnRows(rows)
 
-	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1/transaction")
+	w := PerformAuthenticatedRequest(router, "GET", "/api/account/1/transaction")
 
 	assert.Equal(t, 200, w.Code)
 
@@ -153,7 +153,7 @@ func TestGetTransactionsDbError(t *testing.T) {
 	defer cleanup()
 	mock.ExpectQuery("^-- name: ListTransactions :many .*$").WithArgs(1).WillReturnError(errors.New("test error"))
 
-	w := PerformAuthenticatedRequest(router, "GET", "/api/portfolio/1/transaction")
+	w := PerformAuthenticatedRequest(router, "GET", "/api/account/1/transaction")
 
 	assert.Equal(t, 500, w.Code)
 

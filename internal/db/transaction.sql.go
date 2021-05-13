@@ -12,7 +12,7 @@ import (
 
 const createTransaction = `-- name: CreateTransaction :one
 INSERT INTO "transaction" (
-  id, symbol, type, "transaction_provider", price, "date", amount, portfolio_id, side
+  id, symbol, type, "transaction_provider", price, "date", amount, account_id, side
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
@@ -27,7 +27,7 @@ type CreateTransactionParams struct {
 	Price               int64           `json:"price"`
 	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
-	PortfolioID         string          `json:"portfolio_id"`
+	AccountID           string          `json:"account_id"`
 	Side                string          `json:"side"`
 }
 
@@ -40,7 +40,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 		arg.Price,
 		arg.Date,
 		arg.Amount,
-		arg.PortfolioID,
+		arg.AccountID,
 		arg.Side,
 	)
 	var id string
@@ -59,7 +59,7 @@ func (q *Queries) DeleteTransaction(ctx context.Context, id string) error {
 }
 
 const getTransaction = `-- name: GetTransaction :one
-SELECT id, symbol, type, transaction_provider, price, date, amount, portfolio_id, side FROM "transaction"
+SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, side FROM "transaction"
 WHERE id = $1 LIMIT 1
 `
 
@@ -74,20 +74,20 @@ func (q *Queries) GetTransaction(ctx context.Context, id string) (Transaction, e
 		&i.Price,
 		&i.Date,
 		&i.Amount,
-		&i.PortfolioID,
+		&i.AccountID,
 		&i.Side,
 	)
 	return i, err
 }
 
 const listTransactions = `-- name: ListTransactions :many
-SELECT id, symbol, type, transaction_provider, price, date, amount, portfolio_id, side FROM "transaction"
-WHERE portfolio_id = $1
+SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, side FROM "transaction"
+WHERE account_id = $1
 ORDER BY date DESC
 `
 
-func (q *Queries) ListTransactions(ctx context.Context, portfolioID string) ([]Transaction, error) {
-	rows, err := q.query(ctx, q.listTransactionsStmt, listTransactions, portfolioID)
+func (q *Queries) ListTransactions(ctx context.Context, accountID string) ([]Transaction, error) {
+	rows, err := q.query(ctx, q.listTransactionsStmt, listTransactions, accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (q *Queries) ListTransactions(ctx context.Context, portfolioID string) ([]T
 			&i.Price,
 			&i.Date,
 			&i.Amount,
-			&i.PortfolioID,
+			&i.AccountID,
 			&i.Side,
 		); err != nil {
 			return nil, err

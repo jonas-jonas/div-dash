@@ -7,8 +7,8 @@ import (
 	"context"
 )
 
-const createPortfolio = `-- name: CreatePortfolio :one
-INSERT INTO portfolio (
+const createAccount = `-- name: CreateAccount :one
+INSERT INTO account (
   id, name, user_id
 ) VALUES (
   $1, $2, $3
@@ -16,56 +16,56 @@ INSERT INTO portfolio (
 RETURNING id, name, user_id
 `
 
-type CreatePortfolioParams struct {
+type CreateAccountParams struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
 	UserID string `json:"user_id"`
 }
 
-func (q *Queries) CreatePortfolio(ctx context.Context, arg CreatePortfolioParams) (Portfolio, error) {
-	row := q.queryRow(ctx, q.createPortfolioStmt, createPortfolio, arg.ID, arg.Name, arg.UserID)
-	var i Portfolio
+func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
+	row := q.queryRow(ctx, q.createAccountStmt, createAccount, arg.ID, arg.Name, arg.UserID)
+	var i Account
 	err := row.Scan(&i.ID, &i.Name, &i.UserID)
 	return i, err
 }
 
-const deletePortfolio = `-- name: DeletePortfolio :exec
-DELETE FROM portfolio
+const deleteAccount = `-- name: DeleteAccount :exec
+DELETE FROM account
 WHERE id = $1
 `
 
-func (q *Queries) DeletePortfolio(ctx context.Context, id string) error {
-	_, err := q.exec(ctx, q.deletePortfolioStmt, deletePortfolio, id)
+func (q *Queries) DeleteAccount(ctx context.Context, id string) error {
+	_, err := q.exec(ctx, q.deleteAccountStmt, deleteAccount, id)
 	return err
 }
 
-const getPortfolio = `-- name: GetPortfolio :one
-SELECT id, name, user_id FROM portfolio
+const getAccount = `-- name: GetAccount :one
+SELECT id, name, user_id FROM account
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetPortfolio(ctx context.Context, id string) (Portfolio, error) {
-	row := q.queryRow(ctx, q.getPortfolioStmt, getPortfolio, id)
-	var i Portfolio
+func (q *Queries) GetAccount(ctx context.Context, id string) (Account, error) {
+	row := q.queryRow(ctx, q.getAccountStmt, getAccount, id)
+	var i Account
 	err := row.Scan(&i.ID, &i.Name, &i.UserID)
 	return i, err
 }
 
-const listPortfolios = `-- name: ListPortfolios :many
-SELECT id, name, user_id FROM portfolio
+const listAccounts = `-- name: ListAccounts :many
+SELECT id, name, user_id FROM account
 WHERE user_id = $1
 ORDER BY id
 `
 
-func (q *Queries) ListPortfolios(ctx context.Context, userID string) ([]Portfolio, error) {
-	rows, err := q.query(ctx, q.listPortfoliosStmt, listPortfolios, userID)
+func (q *Queries) ListAccounts(ctx context.Context, userID string) ([]Account, error) {
+	rows, err := q.query(ctx, q.listAccountsStmt, listAccounts, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Portfolio
+	var items []Account
 	for rows.Next() {
-		var i Portfolio
+		var i Account
 		if err := rows.Scan(&i.ID, &i.Name, &i.UserID); err != nil {
 			return nil, err
 		}
@@ -80,21 +80,21 @@ func (q *Queries) ListPortfolios(ctx context.Context, userID string) ([]Portfoli
 	return items, nil
 }
 
-const updatePortfolio = `-- name: UpdatePortfolio :one
-UPDATE portfolio
+const updateAccount = `-- name: UpdateAccount :one
+UPDATE account
 SET name = $2
 WHERE id = $1
 RETURNING id, name, user_id
 `
 
-type UpdatePortfolioParams struct {
+type UpdateAccountParams struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-func (q *Queries) UpdatePortfolio(ctx context.Context, arg UpdatePortfolioParams) (Portfolio, error) {
-	row := q.queryRow(ctx, q.updatePortfolioStmt, updatePortfolio, arg.ID, arg.Name)
-	var i Portfolio
+func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {
+	row := q.queryRow(ctx, q.updateAccountStmt, updateAccount, arg.ID, arg.Name)
+	var i Account
 	err := row.Scan(&i.ID, &i.Name, &i.UserID)
 	return i, err
 }

@@ -27,9 +27,9 @@ func (a AnyTransactionId) Match(v driver.Value) bool {
 	return ok
 }
 
-type AnyPortfolioId struct{}
+type AnyAccountId struct{}
 
-func (a AnyPortfolioId) Match(v driver.Value) bool {
+func (a AnyAccountId) Match(v driver.Value) bool {
 	_, ok := v.(string)
 	//TODO
 	return ok

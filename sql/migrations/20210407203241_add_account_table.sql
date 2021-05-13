@@ -1,12 +1,12 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE portfolio (
+CREATE TABLE account (
     id              text PRIMARY KEY,
     name            text NOT NULL,
     user_id         text NOT NULL,
     CONSTRAINT uq_id_user_id
       UNIQUE(id, user_id),
-    CONSTRAINT fk_portfolio_user
+    CONSTRAINT fk_account_user
       FOREIGN KEY(user_id)
         REFERENCES "user"(id)
     
@@ -16,5 +16,5 @@ CREATE TABLE portfolio (
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';
-DROP TABLE portfolio;
+DROP TABLE account;
 -- +goose StatementEnd
