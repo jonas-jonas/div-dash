@@ -24,7 +24,7 @@ export function Accounts() {
   useEffect(() => {
     const loadAccounts = async () => {
       try {
-        const response = await ky.get("/api/portfolio", {
+        const response = await ky.get("/api/account", {
           headers: {
             Authorization: "Bearer " + token,
           },
@@ -100,7 +100,7 @@ function CreateAccountModal({ close }: CreateAccountModalProps) {
 
   const onSubmit = async (values: CreateAccountForm) => {
     try {
-      const response = await ky.post("/api/portfolio", {
+      const response = await ky.post("/api/account", {
         json: values,
         headers: {
           Authorization: "Bearer " + token,

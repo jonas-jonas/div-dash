@@ -38,7 +38,7 @@ func PostAccount(c *gin.Context) {
 	}
 
 	account, err := config.Queries().CreateAccount(c, db.CreateAccountParams{
-		ID:     "P" + services.IdService().NewId(4),
+		ID:     "A" + services.IdService().NewId(4),
 		Name:   createAccountRequest.Name,
 		UserID: c.GetString("userId"),
 	})
