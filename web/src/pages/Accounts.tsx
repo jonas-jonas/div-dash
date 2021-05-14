@@ -1,5 +1,7 @@
 import {
+  faArrowRight,
   faChartLine,
+  faEllipsisH,
   faPlus,
   faSpinner,
   faTimes,
@@ -53,17 +55,32 @@ export function Accounts() {
         {!loading &&
           accounts.map((account) => (
             <Link
-              className="bg-white rounded-lg shadow p-6 border border-gray-200 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-lg shadow px-6 py-4 transition-shadow group"
               to={"/account/" + account.id}
               key={account.id}
             >
-              <div className="flex justify-between mb-4">
-                <FontAwesomeIcon icon={faChartLine} size="lg" />
-                <span className="bg-gray-300 uppercase font-bold text-xs rounded p-1">
-                  Default
-                </span>
+              <div className="flex mb-4 items-center w-full justify-between">
+                <div className="flex items-center">
+                  <FontAwesomeIcon icon={faChartLine} size="lg" />
+                  <div className="flex flex-col ml-4 items-start">
+                    <h2 className="text-lg font-semibold capitalize">
+                      {account.name}
+                    </h2>
+                    <h3 className="text-gray-700 bg-gray-300 rounded-full px-2 text-sm">
+                      Crypto
+                    </h3>
+                  </div>
+                </div>
+                <button>
+                  <FontAwesomeIcon icon={faEllipsisH} />
+                </button>
               </div>
-              <h2 className="text-lg font-bold">{account.name}</h2>
+              <div className="flex justify-end">
+                <button className="text-blue-700">
+                  <span className="mr-2 group-hover:underline">Details</span>
+                  <FontAwesomeIcon icon={faArrowRight} size="sm" />
+                </button>
+              </div>
             </Link>
           ))}
         {!loading && (
