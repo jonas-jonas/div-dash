@@ -50,27 +50,38 @@ export function Accounts() {
         </button>
       </div>
       <div className="grid grid-cols-4 gap-8">
-        {accounts.map((account) => (
-          <Link
-            className="bg-white rounded-lg shadow p-6 border border-gray-200 hover:shadow-lg transition-shadow"
-            to={"/account/" + account.id}
-            key={account.id}
+        {!loading &&
+          accounts.map((account) => (
+            <Link
+              className="bg-white rounded-lg shadow p-6 border border-gray-200 hover:shadow-lg transition-shadow"
+              to={"/account/" + account.id}
+              key={account.id}
+            >
+              <div className="flex justify-between mb-4">
+                <FontAwesomeIcon icon={faChartLine} size="lg" />
+                <span className="bg-gray-300 uppercase font-bold text-xs rounded p-1">
+                  Default
+                </span>
+              </div>
+              <h2 className="text-lg font-bold">{account.name}</h2>
+            </Link>
+          ))}
+        {!loading && (
+          <button
+            className="rounded-lg shadow p-6 border border-gray-200 flex items-center justify-center text-gray-400"
+            onClick={() => setCreating(true)}
           >
-            <div className="flex justify-between mb-4">
-              <FontAwesomeIcon icon={faChartLine} size="lg" />
-              <span className="bg-gray-300 uppercase font-bold text-xs rounded p-1">
-                Default
-              </span>
-            </div>
-            <h2 className="text-lg font-bold">{account.name}</h2>
-          </Link>
-        ))}
-        <button
-          className="rounded-lg shadow p-6 border border-gray-200 flex items-center justify-center text-gray-400"
-          onClick={() => setCreating(true)}
-        >
-          <FontAwesomeIcon icon={faPlus} size="2x" />
-        </button>
+            <FontAwesomeIcon icon={faPlus} size="2x" />
+          </button>
+        )}
+        {loading && (
+          <>
+            <AccountCardLoadingIndicator />
+            <AccountCardLoadingIndicator />
+            <AccountCardLoadingIndicator />
+            <AccountCardLoadingIndicator />
+          </>
+        )}
       </div>
 
       {creating &&
@@ -80,6 +91,18 @@ export function Accounts() {
           ></CreateAccountModal>,
           document.body
         )}
+    </div>
+  );
+}
+
+function AccountCardLoadingIndicator() {
+  return (
+    <div className="bg-white rounded-lg shadow p-6 border border-gray-200 hover:shadow-lg transition-shadow animate-pulse">
+      <div className="flex justify-between mb-4 items-center">
+        <span className="bg-blue-100 uppercase font-bold text-xs rounded w-8 h-6"></span>
+        <span className="bg-blue-100 uppercase font-bold text-xs rounded h-4 w-16"></span>
+      </div>
+      <div className="h-6 bg-blue-100"></div>
     </div>
   );
 }
