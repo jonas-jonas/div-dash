@@ -12,9 +12,9 @@ import (
 
 const createTransaction = `-- name: CreateTransaction :one
 INSERT INTO "transaction" (
-  id, symbol, type, "transaction_provider", price, "date", amount, account_id, side
+  id, symbol, type, "transaction_provider", price, "date", amount, account_id, user_id, side
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 )
 RETURNING id
 `
@@ -28,6 +28,7 @@ type CreateTransactionParams struct {
 	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
 	AccountID           string          `json:"account_id"`
+	UserID              string          `json:"user_id"`
 	Side                string          `json:"side"`
 }
 
@@ -41,6 +42,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 		arg.Date,
 		arg.Amount,
 		arg.AccountID,
+		arg.UserID,
 		arg.Side,
 	)
 	var id string
@@ -50,21 +52,34 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 
 const deleteTransaction = `-- name: DeleteTransaction :exec
 DELETE FROM "transaction"
-WHERE id = $1
+WHERE id = $1 AND account_id = $2 AND user_id = $3
 `
 
-func (q *Queries) DeleteTransaction(ctx context.Context, id string) error {
-	_, err := q.exec(ctx, q.deleteTransactionStmt, deleteTransaction, id)
+type DeleteTransactionParams struct {
+	ID        string `json:"id"`
+	AccountID string `json:"account_id"`
+	UserID    string `json:"user_id"`
+}
+
+func (q *Queries) DeleteTransaction(ctx context.Context, arg DeleteTransactionParams) error {
+	_, err := q.exec(ctx, q.deleteTransactionStmt, deleteTransaction, arg.ID, arg.AccountID, arg.UserID)
 	return err
 }
 
 const getTransaction = `-- name: GetTransaction :one
-SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, side FROM "transaction"
-WHERE id = $1 LIMIT 1
+SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, user_id, side FROM "transaction"
+WHERE id = $1 AND account_id = $2 AND user_id = $3
+LIMIT 1
 `
 
-func (q *Queries) GetTransaction(ctx context.Context, id string) (Transaction, error) {
-	row := q.queryRow(ctx, q.getTransactionStmt, getTransaction, id)
+type GetTransactionParams struct {
+	ID        string `json:"id"`
+	AccountID string `json:"account_id"`
+	UserID    string `json:"user_id"`
+}
+
+func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) (Transaction, error) {
+	row := q.queryRow(ctx, q.getTransactionStmt, getTransaction, arg.ID, arg.AccountID, arg.UserID)
 	var i Transaction
 	err := row.Scan(
 		&i.ID,
@@ -75,19 +90,25 @@ func (q *Queries) GetTransaction(ctx context.Context, id string) (Transaction, e
 		&i.Date,
 		&i.Amount,
 		&i.AccountID,
+		&i.UserID,
 		&i.Side,
 	)
 	return i, err
 }
 
 const listTransactions = `-- name: ListTransactions :many
-SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, side FROM "transaction"
-WHERE account_id = $1
+SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, user_id, side FROM "transaction"
+WHERE account_id = $1 AND user_id = $2
 ORDER BY date DESC
 `
 
-func (q *Queries) ListTransactions(ctx context.Context, accountID string) ([]Transaction, error) {
-	rows, err := q.query(ctx, q.listTransactionsStmt, listTransactions, accountID)
+type ListTransactionsParams struct {
+	AccountID string `json:"account_id"`
+	UserID    string `json:"user_id"`
+}
+
+func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsParams) ([]Transaction, error) {
+	rows, err := q.query(ctx, q.listTransactionsStmt, listTransactions, arg.AccountID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -104,6 +125,7 @@ func (q *Queries) ListTransactions(ctx context.Context, accountID string) ([]Tra
 			&i.Date,
 			&i.Amount,
 			&i.AccountID,
+			&i.UserID,
 			&i.Side,
 		); err != nil {
 			return nil, err

@@ -41,8 +41,14 @@ func marshalTransactionResponse(transaction db.Transaction) transactionResponse 
 func GetTransaction(c *gin.Context) {
 	// TODO: Check permissions
 	transactionId := c.Param("transactionId")
+	accountId := c.Param("accountId")
+	userId := c.GetString("userId")
 
-	transaction, err := config.Queries().GetTransaction(c, transactionId)
+	transaction, err := config.Queries().GetTransaction(c, db.GetTransactionParams{
+		ID:        transactionId,
+		AccountID: accountId,
+		UserID:    userId,
+	})
 
 	if err != nil {
 		c.Error(err)
@@ -68,6 +74,7 @@ func PostTransaction(c *gin.Context) {
 	// TODO: Check permissions
 
 	accountId := c.Param("accountId")
+	userId := c.GetString("userId")
 
 	var createTransactionRequest createTransactionRequest
 	if err := c.ShouldBindJSON(&createTransactionRequest); err != nil {
@@ -84,6 +91,7 @@ func PostTransaction(c *gin.Context) {
 		Date:                createTransactionRequest.Date,
 		Amount:              decimal.NewFromFloat(createTransactionRequest.Amount),
 		AccountID:           accountId,
+		UserID:              userId,
 		Side:                createTransactionRequest.Side,
 	}
 
@@ -93,7 +101,11 @@ func PostTransaction(c *gin.Context) {
 		return
 	}
 
-	transaction, err := config.Queries().GetTransaction(c, transactionId)
+	transaction, err := config.Queries().GetTransaction(c, db.GetTransactionParams{
+		ID:        transactionId,
+		AccountID: accountId,
+		UserID:    userId,
+	})
 	if err != nil {
 		c.Error(err)
 		return
@@ -105,11 +117,14 @@ func PostTransaction(c *gin.Context) {
 }
 
 func GetTransactions(c *gin.Context) {
-	// TODO: Check permissions
 
 	accountId := c.Param("accountId")
+	userId := c.GetString("userId")
 
-	transactions, err := config.Queries().ListTransactions(c, accountId)
+	transactions, err := config.Queries().ListTransactions(c, db.ListTransactionsParams{
+		AccountID: accountId,
+		UserID:    userId,
+	})
 
 	if err != nil {
 		c.Error(err)

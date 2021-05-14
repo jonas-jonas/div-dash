@@ -24,6 +24,7 @@ type Transaction struct {
 	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
 	AccountID           string          `json:"account_id"`
+	UserID              string          `json:"user_id"`
 	Side                string          `json:"side"`
 }
 
