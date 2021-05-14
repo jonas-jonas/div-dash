@@ -3,7 +3,7 @@ import {
   faChevronRight,
   faPlus,
   faSpinner,
-  faTimes
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ky from "ky";
@@ -42,6 +42,7 @@ function formatMoney(amount: number) {
 }
 
 export function Account() {
+  const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useRecoilState(transactionsState);
   const [creating, setCreating] = useState(false);
   const token = useRecoilValue(tokenState);
@@ -63,6 +64,8 @@ export function Account() {
         setTransactions(transactions);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     };
     loadTransactions();
@@ -95,37 +98,48 @@ export function Account() {
             </tr>
           </thead>
           <tbody>
-            {transactions?.map((transaction) => (
-              <tr
-                className="border-b border-gray-200"
-                key={transaction.transactionId}
-              >
-                <td className="py-3 px-2">
-                  <span className="font-mono font-bold tracking-wider text-blue-700">
-                    {transaction.transactionId}
-                  </span>
-                </td>
-                <td className="py-3 px-2 flex flex-col">
-                  <span className="text-sm">
-                    {formatDate(transaction.date)}
-                  </span>
-                  <span className="text-xs text-gray-700">
-                    {formatTime(transaction.date)}
-                  </span>
-                </td>
-                <td className="py-3 px-2">{transaction.symbol}</td>
-                <td className="py-3 px-2 capitalize">{transaction.type}</td>
-                <td className="py-3 px-2">{formatMoney(transaction.price)}</td>
-                <td className="py-3 px-2">{transaction.amount}</td>
-                <td className="py-3 px-2">
-                  {formatMoney(transaction.amount * transaction.price)}
-                </td>
-                <td className="py-3 px-2 uppercase">{transaction.side}</td>
-                <td className="py-3 px-2">
-                  <button className="text-blue-700 font-bold">Details</button>
-                </td>
-              </tr>
-            ))}
+            {!loading &&
+              transactions?.map((transaction) => (
+                <tr
+                  className="border-b border-gray-200"
+                  key={transaction.transactionId}
+                >
+                  <td className="py-3 px-2">
+                    <span className="font-mono font-bold tracking-wider text-blue-700">
+                      {transaction.transactionId}
+                    </span>
+                  </td>
+                  <td className="py-3 px-2 flex flex-col">
+                    <span className="text-sm">
+                      {formatDate(transaction.date)}
+                    </span>
+                    <span className="text-xs text-gray-700">
+                      {formatTime(transaction.date)}
+                    </span>
+                  </td>
+                  <td className="py-3 px-2">{transaction.symbol}</td>
+                  <td className="py-3 px-2 capitalize">{transaction.type}</td>
+                  <td className="py-3 px-2">
+                    {formatMoney(transaction.price)}
+                  </td>
+                  <td className="py-3 px-2">{transaction.amount}</td>
+                  <td className="py-3 px-2">
+                    {formatMoney(transaction.amount * transaction.price)}
+                  </td>
+                  <td className="py-3 px-2 uppercase">{transaction.side}</td>
+                  <td className="py-3 px-2">
+                    <button className="text-blue-700 font-bold">Details</button>
+                  </td>
+                </tr>
+              ))}
+            {loading && (
+              <>
+                <TransactionRowLoadingIndicator />
+                <TransactionRowLoadingIndicator />
+                <TransactionRowLoadingIndicator />
+                <TransactionRowLoadingIndicator />
+              </>
+            )}
           </tbody>
         </table>
         <div className="flex justify-end mt-4">
@@ -157,6 +171,42 @@ export function Account() {
     </div>
   );
 }
+
+function TransactionRowLoadingIndicator() {
+  return (
+    <tr className="border-b border-gray-200 animate-pulse">
+      <td className="py-3 px-2">
+        <span className="h-5 w-20 bg-blue-100 block rounded"></span>
+      </td>
+      <td className="py-3 px-2 flex flex-col">
+        <span className="h-4 w-16 bg-blue-100 block rounded mb-1"></span>
+        <span className="h-3 w-14 bg-blue-100 block rounded"></span>
+      </td>
+      <td className="py-3 px-2">
+        <span className="h-5 w-16 bg-blue-100 block rounded"></span>
+      </td>
+      <td className="py-3 px-2 capitalize">
+        <span className="h-5 w-12 bg-blue-100 block rounded"></span>
+      </td>
+      <td className="py-3 px-2">
+        <span className="h-5 w-12 bg-blue-100 block rounded"></span>
+      </td>
+      <td className="py-3 px-2">
+        <span className="h-5 w-8 bg-blue-100 block rounded"></span>
+      </td>
+      <td className="py-3 px-2">
+        <span className="h-5 w-12 bg-blue-100 block rounded"></span>
+      </td>
+      <td className="py-3 px-2 uppercase">
+        <span className="h-5 w-10 bg-blue-100 block rounded"></span>
+      </td>
+      <td className="py-3 px-2">
+        <span className="h-5 w-16 bg-blue-100 block rounded"></span>
+      </td>
+    </tr>
+  );
+}
+
 type CreateTransactionModalProps = {
   close: () => void;
   accountId: string;
