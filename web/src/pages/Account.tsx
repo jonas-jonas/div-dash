@@ -15,31 +15,11 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { Transaction } from "../models/transaction";
 import { tokenState } from "../state/authState";
 import { transactionsState } from "../state/transactionState";
+import { formatDate, formatMoney, formatTime } from "../util/formatter";
 
 type AccountParams = {
   accountId: string;
 };
-
-function formatDate(date: string) {
-  const d = Date.parse(date);
-  return new Intl.DateTimeFormat("de-DE", {
-    dateStyle: "short",
-  }).format(d);
-}
-
-function formatTime(date: string) {
-  const d = Date.parse(date);
-  return new Intl.DateTimeFormat("de-DE", {
-    timeStyle: "medium",
-  }).format(d);
-}
-
-function formatMoney(amount: number) {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
 
 export function Account() {
   const [loading, setLoading] = useState(true);

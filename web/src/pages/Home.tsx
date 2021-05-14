@@ -1,3 +1,4 @@
+import { PortfolioBalance } from "../components/PortfolioBalance";
 import { PortfolioGraph } from "../components/PortfolioGraph";
 
 export function Home() {
@@ -6,9 +7,10 @@ export function Home() {
       <div className="grid grid-cols-3 gap-4 p-8">
         <PortfolioGraph />
 
-        <div>
+        <div className="col-span-1 bg-gray-300">
           <div></div>
         </div>
+        <PortfolioBalance />
       </div>
     </div>
   );

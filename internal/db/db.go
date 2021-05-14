@@ -58,6 +58,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getAccountStmt, err = db.PrepareContext(ctx, getAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAccount: %w", err)
 	}
+	if q.getBalanceStmt, err = db.PrepareContext(ctx, getBalance); err != nil {
+		return nil, fmt.Errorf("error preparing query GetBalance: %w", err)
+	}
+	if q.getCostBasisStmt, err = db.PrepareContext(ctx, getCostBasis); err != nil {
+		return nil, fmt.Errorf("error preparing query GetCostBasis: %w", err)
+	}
 	if q.getTransactionStmt, err = db.PrepareContext(ctx, getTransaction); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTransaction: %w", err)
 	}
@@ -148,6 +154,16 @@ func (q *Queries) Close() error {
 	if q.getAccountStmt != nil {
 		if cerr := q.getAccountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getAccountStmt: %w", cerr)
+		}
+	}
+	if q.getBalanceStmt != nil {
+		if cerr := q.getBalanceStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getBalanceStmt: %w", cerr)
+		}
+	}
+	if q.getCostBasisStmt != nil {
+		if cerr := q.getCostBasisStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getCostBasisStmt: %w", cerr)
 		}
 	}
 	if q.getTransactionStmt != nil {
@@ -246,6 +262,8 @@ type Queries struct {
 	existsByEmailStmt               *sql.Stmt
 	findByEmailStmt                 *sql.Stmt
 	getAccountStmt                  *sql.Stmt
+	getBalanceStmt                  *sql.Stmt
+	getCostBasisStmt                *sql.Stmt
 	getTransactionStmt              *sql.Stmt
 	getUserStmt                     *sql.Stmt
 	getUserRegistrationStmt         *sql.Stmt
@@ -273,6 +291,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		existsByEmailStmt:               q.existsByEmailStmt,
 		findByEmailStmt:                 q.findByEmailStmt,
 		getAccountStmt:                  q.getAccountStmt,
+		getBalanceStmt:                  q.getBalanceStmt,
+		getCostBasisStmt:                q.getCostBasisStmt,
 		getTransactionStmt:              q.getTransactionStmt,
 		getUserStmt:                     q.getUserStmt,
 		getUserRegistrationStmt:         q.getUserRegistrationStmt,
