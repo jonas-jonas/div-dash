@@ -7,6 +7,7 @@ import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { Accounts } from "./pages/Accounts";
 import { loggedInState, tokenState, userState } from "./state/authState";
+import { Account } from "./pages/Account";
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -56,6 +57,9 @@ function App() {
           />
           <Route path="/accounts" exact>
             <Accounts></Accounts>
+          </Route>
+          <Route path="/account/:accountId" exact>
+            <Account></Account>
           </Route>
           <Route path="/" exact>
             <Home></Home>
