@@ -142,23 +142,33 @@ export function Account() {
             )}
           </tbody>
         </table>
-        <div className="flex justify-end mt-4">
-          <div className="bg-white rounded shadow p-2 text-gray-900">
-            <button className="px-2 text-blue-700">
-              <FontAwesomeIcon icon={faChevronLeft} size="sm" />
-            </button>
-            <button className="px-2 border border-blue-700 text-blue-700 rounded font-bold">
-              1
-            </button>
-            <button className="px-2">2</button>
-            <button className="px-2">3</button>
-            <button className="px-2">...</button>
-            <button className="px-2">22</button>
-            <button className="px-2 text-blue-700">
-              <FontAwesomeIcon icon={faChevronRight} size="sm" />
+        {!loading && transactions.length === 0 && (
+          <div className="text-center mt-4">
+            You have no transactions.{" "}
+            <button className="text-blue-700" onClick={() => setCreating(true)}>
+              Create one now
             </button>
           </div>
-        </div>
+        )}
+        {!loading && transactions.length > 0 && (
+          <div className="flex justify-end mt-4">
+            <div className="bg-white rounded shadow p-2 text-gray-900">
+              <button className="px-2 text-blue-700">
+                <FontAwesomeIcon icon={faChevronLeft} size="sm" />
+              </button>
+              <button className="px-2 border border-blue-700 text-blue-700 rounded font-bold">
+                1
+              </button>
+              <button className="px-2">2</button>
+              <button className="px-2">3</button>
+              <button className="px-2">...</button>
+              <button className="px-2">22</button>
+              <button className="px-2 text-blue-700">
+                <FontAwesomeIcon icon={faChevronRight} size="sm" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       {creating &&
         ReactDOM.createPortal(
