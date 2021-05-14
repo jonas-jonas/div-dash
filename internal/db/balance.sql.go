@@ -8,21 +8,52 @@ import (
 )
 
 const getBalance = `-- name: GetBalance :many
-SELECT 
-    symbol,
-    CAST(SUM(CASE 
-            WHEN t.side = 'buy' THEN t.amount
-            ELSE t.amount * -1
-        END
-    ) AS DOUBLE PRECISION) AS total
-FROM "transaction" as t
-WHERE t.user_id = $1
-GROUP BY symbol
+WITH ordered_in AS (
+    SELECT 
+        t.id, t.symbol, t.type, t.transaction_provider, t.price, t.date, t.amount, t.account_id, t.user_id, t.side,
+        ROW_NUMBER() OVER (PARTITION BY t.symbol ORDER BY t.date) AS rn
+    FROM "transaction" t
+    WHERE t.side = 'buy' AND t.user_id = $1
+), running_totals as (
+    SELECT symbol,amount,price,amount as total, 0 as prev_total, rn 
+    FROM ordered_in
+    WHERE rn = 1
+    UNION ALL
+    SELECT rt.symbol,oi.amount,oi.price,rt.total + oi.amount,rt.total,oi.rn
+    FROM
+        running_totals rt
+            INNER JOIN
+        ordered_in oi
+            ON
+                rt.symbol = oi.symbol AND
+                rt.rn = oi.rn - 1
+), total_out AS (
+    SELECT 
+        symbol,
+        SUM(amount) AS amount
+    FROM "transaction"
+    WHERE side='sell' AND user_id = $1
+    GROUP BY symbol
+)
+SELECT
+    rt.symbol,
+    CAST(SUM(CASE WHEN prev_total > COALESCE(out.amount,0) THEN rt.amount ELSE rt.total - COALESCE(out.amount,0) END * price) AS DOUBLE PRECISION) AS cost_basis,
+    CAST(SUM(CASE WHEN prev_total > COALESCE(out.amount,0) THEN rt.amount ELSE rt.total - COALESCE(out.amount,0) END) AS DOUBLE PRECISION) AS total
+FROM
+    running_totals rt
+        LEFT JOIN
+    total_out out
+        ON
+            rt.symbol = out.symbol
+WHERE
+    rt.total > COALESCE(out.amount, 0) 
+GROUP BY rt.symbol
 `
 
 type GetBalanceRow struct {
-	Symbol string  `json:"symbol"`
-	Total  float64 `json:"total"`
+	Symbol    string  `json:"symbol"`
+	CostBasis float64 `json:"cost_basis"`
+	Total     float64 `json:"total"`
 }
 
 func (q *Queries) GetBalance(ctx context.Context, userID string) ([]GetBalanceRow, error) {
@@ -34,7 +65,7 @@ func (q *Queries) GetBalance(ctx context.Context, userID string) ([]GetBalanceRo
 	var items []GetBalanceRow
 	for rows.Next() {
 		var i GetBalanceRow
-		if err := rows.Scan(&i.Symbol, &i.Total); err != nil {
+		if err := rows.Scan(&i.Symbol, &i.CostBasis, &i.Total); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -46,57 +77,4 @@ func (q *Queries) GetBalance(ctx context.Context, userID string) ([]GetBalanceRo
 		return nil, err
 	}
 	return items, nil
-}
-
-const getCostBasis = `-- name: GetCostBasis :one
-WITH A AS (
-    SELECT 
-        row_number() OVER (ORDER BY date) n,
-        side,
-        amount,
-        price,
-        SUM(
-            CASE 
-                WHEN side = 'buy' THEN amount
-                ELSE amount * -1
-            END
-        ) OVER (ORDER BY date, id) as current_amount
-    FROM "transaction"
-    WHERE symbol = $1 AND user_id = $2
-),
-R AS (
-    SELECT 
-        n,
-        current_amount,
-        price as running_total
-    FROM A 
-    WHERE n = 1
-    UNION ALL 
-    SELECT 
-        A.n, 
-        A.current_amount,
-        CASE 
-            WHEN A.side = 'buy' THEN (R.current_amount * R.running_total + A.amount*A.price)/(R.current_amount+A.amount)
-            ELSE running_total
-        END as running_total
-    FROM R
-        JOIN A 
-            ON A.n = R.n+1
-)
-
-SELECT cast(R.running_total as BIGINT) as cost_basis FROM R
-ORDER BY n DESC
-LIMIT 1
-`
-
-type GetCostBasisParams struct {
-	Symbol string `json:"symbol"`
-	UserID string `json:"user_id"`
-}
-
-func (q *Queries) GetCostBasis(ctx context.Context, arg GetCostBasisParams) (int64, error) {
-	row := q.queryRow(ctx, q.getCostBasisStmt, getCostBasis, arg.Symbol, arg.UserID)
-	var cost_basis int64
-	err := row.Scan(&cost_basis)
-	return cost_basis, err
 }

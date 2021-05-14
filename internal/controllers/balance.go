@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"div-dash/internal/config"
-	"div-dash/internal/db"
 	"net/http"
 
 	"github.com/Rhymond/go-money"
@@ -26,21 +25,12 @@ func GetBalance(c *gin.Context) {
 
 	resp := []balanceResponse{}
 
-	for _, balance := range balances {
-		symbol := balance.Symbol
-
-		costBasis, err := config.Queries().GetCostBasis(c, db.GetCostBasisParams{
-			Symbol: symbol,
-			UserID: userId,
-		})
-		if err != nil {
-			c.Error(err)
-			return
-		}
+	for _, entry := range balances {
+		costBasis := entry.CostBasis / entry.Total
 		resp = append(resp, balanceResponse{
-			Symbol:    symbol,
-			Total:     balance.Total,
-			CostBasis: money.New(costBasis, "EUR").AsMajorUnits(),
+			Symbol:    entry.Symbol,
+			Total:     entry.Total,
+			CostBasis: money.New(int64(costBasis), "EUR").AsMajorUnits(),
 		})
 	}
 
