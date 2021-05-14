@@ -2,24 +2,19 @@ import {
   faChevronLeft,
   faChevronRight,
   faPlus,
+  faSpinner,
+  faTimes
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ky from "ky";
 import { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
+import { useForm } from "react-hook-form";
 import { useParams } from "react-router";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { Transaction } from "../models/transaction";
 import { tokenState } from "../state/authState";
-
-type Transaction = {
-  transactionId: string;
-  symbol: string;
-  type: string;
-  transactionProvider: string;
-  price: number;
-  date: string;
-  amount: number;
-  side: "buy" | "sell";
-};
+import { transactionsState } from "../state/transactionState";
 
 type AccountParams = {
   accountId: string;
@@ -47,7 +42,8 @@ function formatMoney(amount: number) {
 }
 
 export function Account() {
-  const [transactions, setTransactions] = useState<Transaction[]>();
+  const [transactions, setTransactions] = useRecoilState(transactionsState);
+  const [creating, setCreating] = useState(false);
   const token = useRecoilValue(tokenState);
 
   const { accountId } = useParams<AccountParams>();
@@ -70,13 +66,16 @@ export function Account() {
       }
     };
     loadTransactions();
-  }, [token, accountId]);
+  }, [token, accountId, setTransactions]);
 
   return (
     <div className="container mx-auto pt-10">
       <div className="flex justify-between mb-4">
         <h1 className="text-2xl pl-4">Account</h1>
-        <button className="bg-gray-900 text-white py-2 px-3 rounded shadow">
+        <button
+          className="bg-gray-900 text-white py-2 px-3 rounded shadow"
+          onClick={() => setCreating(true)}
+        >
           <FontAwesomeIcon icon={faPlus} />
         </button>
       </div>
@@ -97,7 +96,10 @@ export function Account() {
           </thead>
           <tbody>
             {transactions?.map((transaction) => (
-              <tr className="border-b border-gray-200">
+              <tr
+                className="border-b border-gray-200"
+                key={transaction.transactionId}
+              >
                 <td className="py-3 px-2">
                   <span className="font-mono font-bold tracking-wider text-blue-700">
                     {transaction.transactionId}
@@ -131,7 +133,9 @@ export function Account() {
             <button className="px-2 text-blue-700">
               <FontAwesomeIcon icon={faChevronLeft} size="sm" />
             </button>
-            <button className="px-2 border border-blue-700 text-blue-700 rounded font-bold">1</button>
+            <button className="px-2 border border-blue-700 text-blue-700 rounded font-bold">
+              1
+            </button>
             <button className="px-2">2</button>
             <button className="px-2">3</button>
             <button className="px-2">...</button>
@@ -142,6 +146,176 @@ export function Account() {
           </div>
         </div>
       </div>
+      {creating &&
+        ReactDOM.createPortal(
+          <CreateTransactionModal
+            close={() => setCreating(false)}
+            accountId={accountId}
+          />,
+          document.body
+        )}
+    </div>
+  );
+}
+type CreateTransactionModalProps = {
+  close: () => void;
+  accountId: string;
+};
+
+type CreateTransactionForm = {
+  symbol: string;
+  type: "crypto" | "stock" | "etf";
+  transactionProvider: string;
+  price: string;
+  date: string;
+  amount: string;
+  side: "buy" | "sell";
+};
+
+function CreateTransactionModal({
+  close,
+  accountId,
+}: CreateTransactionModalProps) {
+  const { register, handleSubmit, formState } =
+    useForm<CreateTransactionForm>();
+  const [error, setError] = useState<string>();
+  const token = useRecoilValue(tokenState);
+  const [, setTransactions] = useRecoilState(transactionsState);
+
+  const onSubmit = async (values: CreateTransactionForm) => {
+    const date = new Date(values.date);
+    try {
+      const response = await ky.post(
+        "/api/account/" + accountId + "/transaction",
+        {
+          json: {
+            ...values,
+            date: date.toISOString(),
+            amount: parseFloat(values.amount),
+            price: parseFloat(values.price),
+            transactionProvider: "binance",
+          },
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        }
+      );
+      const transaction: Transaction = await response.json();
+      setTransactions((transactions) => [...transactions, transaction]);
+      close();
+    } catch (error) {
+      if (error instanceof ky.HTTPError) {
+        const json = await error.response.json();
+        setError(json.message);
+      }
+    }
+  };
+
+  return (
+    <div className="top-0 fixed">
+      <form
+        className="w-96 mx-auto bg-gray-50 rounded fixed top-1/4 transform z-10 left-1/2 -translate-x-1/2 shadow"
+        onSubmit={handleSubmit(onSubmit)}
+      >
+        <div className="border-b border-gray-200 px-8 py-4 flex justify-between">
+          <h2 className="text-xl">New Transaction</h2>
+          <button onClick={close} className="px-2">
+            <FontAwesomeIcon icon={faTimes} />
+          </button>
+        </div>
+        <div className="px-8 py-4">
+          <div className="rounded bg-white shadow w-full flex mb-4">
+            <label className="w-full text-center cursor-pointer hover:bg-green-50 py-3 transition-colors">
+              Buy
+              <input
+                type="radio"
+                value="buy"
+                {...register("side", { required: true })}
+                className="ml-3"
+              />
+            </label>
+            <label className="w-full text-center cursor-pointer hover:bg-red-50 py-3 transition-colors">
+              Sell
+              <input
+                type="radio"
+                value="sell"
+                {...register("side", { required: true })}
+                className="ml-3"
+              />
+            </label>
+          </div>
+          <label className="block mb-4">
+            <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
+              Symbol
+            </span>
+            <input
+              type="text"
+              placeholder="BTC"
+              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
+              {...register("symbol", { required: true })}
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
+              Type
+            </span>
+            <select
+              {...register("type", { required: true })}
+              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
+            >
+              <option value="crypto">Crypto</option>
+              <option value="stock">Stock</option>
+              <option value="etf">ETF</option>
+            </select>
+          </label>
+          <label className="block mb-4">
+            <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
+              Amount
+            </span>
+            <input
+              type="number"
+              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
+              {...register("amount", { required: true })}
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
+              Price
+            </span>
+            <input
+              type="number"
+              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
+              {...register("price", { required: true })}
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
+              Date
+            </span>
+            <input
+              type="datetime-local"
+              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
+              {...register("date", { required: true })}
+            />
+          </label>
+          {error && (
+            <div className="bg-red-300 rounded shadow p-2 text-sm text-red-900 mb-4">
+              {error}
+            </div>
+          )}
+          <button
+            className="mx-auto block bg-gray-900 text-white rounded px-6 py-2 shadow hover:bg-gray-600 transition-colors focus:outline-none"
+            type="submit"
+          >
+            {formState.isSubmitting ? (
+              <FontAwesomeIcon icon={faSpinner} spin />
+            ) : (
+              "Create"
+            )}
+          </button>
+        </div>
+      </form>
+      <div className="bg-gray-600 opacity-40 fixed w-full h-full top-0 z-0"></div>
     </div>
   );
 }
