@@ -29,7 +29,7 @@ WITH ordered_in AS (
 SELECT
     rt.symbol,
     CAST(SUM(CASE WHEN prev_total > COALESCE(out.amount,0) THEN rt.amount ELSE rt.total - COALESCE(out.amount,0) END * price) AS DOUBLE PRECISION) AS cost_basis,
-    CAST(SUM(CASE WHEN prev_total > COALESCE(out.amount,0) THEN rt.amount ELSE rt.total - COALESCE(out.amount,0) END) AS DOUBLE PRECISION) AS total
+    CAST(SUM(CASE WHEN prev_total > COALESCE(out.amount,0) THEN rt.amount ELSE rt.total - COALESCE(out.amount,0) END) AS DOUBLE PRECISION) AS amount
 FROM
     running_totals rt
         LEFT JOIN

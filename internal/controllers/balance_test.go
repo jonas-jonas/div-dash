@@ -13,7 +13,7 @@ func TestGetBalance(t *testing.T) {
 	mock, cleanup, router := NewApi()
 
 	defer cleanup()
-	rows := sqlmock.NewRows([]string{"symbol", "cost_basis", "total"}).
+	rows := sqlmock.NewRows([]string{"symbol", "cost_basis", "amount"}).
 		AddRow("BTC", float64(10000), float64(20))
 
 	mock.ExpectQuery("^-- name: GetBalance :many .*$").
@@ -23,7 +23,7 @@ func TestGetBalance(t *testing.T) {
 	w := PerformAuthenticatedRequest(router, "GET", "/api/balance")
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `[{"costBasis":5, "symbol":"BTC", "total":20}]`, w.Body.String())
+	assert.JSONEq(t, `[{"costBasis":5, "symbol":"BTC", "amount":20, "total":100}]`, w.Body.String())
 }
 
 func TestGetBalanceDbErrorOnBalance(t *testing.T) {

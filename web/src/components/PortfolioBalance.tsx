@@ -1,17 +1,13 @@
 import ky from "ky";
-import { useEffect, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useEffect } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { Balance } from "../models/balance";
 import { tokenState } from "../state/authState";
+import { balancesState } from "../state/balanceState";
 import { formatMoney } from "../util/formatter";
 
-type Balance = {
-  symbol: string;
-  total: number;
-  costBasis: number;
-};
-
 export function PortfolioBalance() {
-  const [balances, setBalance] = useState<Balance[]>();
+  const [balances, setBalance] = useRecoilState(balancesState);
   const token = useRecoilValue(tokenState);
 
   useEffect(() => {
@@ -29,7 +25,7 @@ export function PortfolioBalance() {
       }
     };
     loadBalance();
-  }, [token]);
+  }, [token, setBalance]);
 
   return (
     <div className="col-span-2">
@@ -64,10 +60,10 @@ export function PortfolioBalance() {
                 {new Intl.NumberFormat("de-DE", {
                   minimumFractionDigits: 4,
                   maximumFractionDigits: 4,
-                }).format(balanceItem.total)}
+                }).format(balanceItem.amount)}
               </td>
               <td className="py-3 px-2">
-                {formatMoney(balanceItem.costBasis * balanceItem.total)}
+                {formatMoney(balanceItem.costBasis * balanceItem.amount)}
               </td>
               <td className="py-3 px-2">
                 {formatMoney(balanceItem.costBasis)}

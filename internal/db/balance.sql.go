@@ -38,7 +38,7 @@ WITH ordered_in AS (
 SELECT
     rt.symbol,
     CAST(SUM(CASE WHEN prev_total > COALESCE(out.amount,0) THEN rt.amount ELSE rt.total - COALESCE(out.amount,0) END * price) AS DOUBLE PRECISION) AS cost_basis,
-    CAST(SUM(CASE WHEN prev_total > COALESCE(out.amount,0) THEN rt.amount ELSE rt.total - COALESCE(out.amount,0) END) AS DOUBLE PRECISION) AS total
+    CAST(SUM(CASE WHEN prev_total > COALESCE(out.amount,0) THEN rt.amount ELSE rt.total - COALESCE(out.amount,0) END) AS DOUBLE PRECISION) AS amount
 FROM
     running_totals rt
         LEFT JOIN
@@ -53,7 +53,7 @@ GROUP BY rt.symbol
 type GetBalanceRow struct {
 	Symbol    string  `json:"symbol"`
 	CostBasis float64 `json:"cost_basis"`
-	Total     float64 `json:"total"`
+	Amount    float64 `json:"amount"`
 }
 
 func (q *Queries) GetBalance(ctx context.Context, userID string) ([]GetBalanceRow, error) {
@@ -65,7 +65,7 @@ func (q *Queries) GetBalance(ctx context.Context, userID string) ([]GetBalanceRo
 	var items []GetBalanceRow
 	for rows.Next() {
 		var i GetBalanceRow
-		if err := rows.Scan(&i.Symbol, &i.CostBasis, &i.Total); err != nil {
+		if err := rows.Scan(&i.Symbol, &i.CostBasis, &i.Amount); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
