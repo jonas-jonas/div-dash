@@ -3,6 +3,7 @@ package services
 import (
 	"div-dash/internal/config"
 	"div-dash/internal/id"
+	"div-dash/internal/job"
 	"div-dash/internal/mail"
 	"div-dash/internal/token"
 	"sync"
@@ -14,11 +15,15 @@ var services struct {
 	TokenService *token.TokenService
 	MailService  *mail.MailService
 	IdService    *id.IdService
+	JobService   *job.JobService
 }
 
-var onceTokenService sync.Once
-var onceMailService sync.Once
-var onceIdService sync.Once
+var (
+	onceTokenService sync.Once
+	onceMailService  sync.Once
+	onceIdService    sync.Once
+	onceJobService   sync.Once
+)
 
 func initTokenService() {
 	services.TokenService = token.NewPasetoService(config.Config().Paseto)
@@ -49,4 +54,14 @@ func initIdService() {
 func IdService() *id.IdService {
 	onceIdService.Do(initIdService)
 	return services.IdService
+}
+
+
+func initJobService() {
+	services.JobService = job.New(config.Queries(), config.Logger())
+}
+
+func JobService() *job.JobService {
+	onceJobService.Do(initJobService)
+	return services.JobService
 }

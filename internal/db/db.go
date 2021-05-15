@@ -55,11 +55,23 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findByEmailStmt, err = db.PrepareContext(ctx, findByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query FindByEmail: %w", err)
 	}
+	if q.finishJobStmt, err = db.PrepareContext(ctx, finishJob); err != nil {
+		return nil, fmt.Errorf("error preparing query FinishJob: %w", err)
+	}
 	if q.getAccountStmt, err = db.PrepareContext(ctx, getAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAccount: %w", err)
 	}
 	if q.getBalanceStmt, err = db.PrepareContext(ctx, getBalance); err != nil {
 		return nil, fmt.Errorf("error preparing query GetBalance: %w", err)
+	}
+	if q.getJobStmt, err = db.PrepareContext(ctx, getJob); err != nil {
+		return nil, fmt.Errorf("error preparing query GetJob: %w", err)
+	}
+	if q.getJobsByNameStmt, err = db.PrepareContext(ctx, getJobsByName); err != nil {
+		return nil, fmt.Errorf("error preparing query GetJobsByName: %w", err)
+	}
+	if q.getLastJobByNameStmt, err = db.PrepareContext(ctx, getLastJobByName); err != nil {
+		return nil, fmt.Errorf("error preparing query GetLastJobByName: %w", err)
 	}
 	if q.getTransactionStmt, err = db.PrepareContext(ctx, getTransaction); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTransaction: %w", err)
@@ -84,6 +96,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.listUsersStmt, err = db.PrepareContext(ctx, listUsers); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUsers: %w", err)
+	}
+	if q.startJobStmt, err = db.PrepareContext(ctx, startJob); err != nil {
+		return nil, fmt.Errorf("error preparing query StartJob: %w", err)
 	}
 	if q.updateAccountStmt, err = db.PrepareContext(ctx, updateAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateAccount: %w", err)
@@ -148,6 +163,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findByEmailStmt: %w", cerr)
 		}
 	}
+	if q.finishJobStmt != nil {
+		if cerr := q.finishJobStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing finishJobStmt: %w", cerr)
+		}
+	}
 	if q.getAccountStmt != nil {
 		if cerr := q.getAccountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getAccountStmt: %w", cerr)
@@ -156,6 +176,21 @@ func (q *Queries) Close() error {
 	if q.getBalanceStmt != nil {
 		if cerr := q.getBalanceStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getBalanceStmt: %w", cerr)
+		}
+	}
+	if q.getJobStmt != nil {
+		if cerr := q.getJobStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getJobStmt: %w", cerr)
+		}
+	}
+	if q.getJobsByNameStmt != nil {
+		if cerr := q.getJobsByNameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getJobsByNameStmt: %w", cerr)
+		}
+	}
+	if q.getLastJobByNameStmt != nil {
+		if cerr := q.getLastJobByNameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getLastJobByNameStmt: %w", cerr)
 		}
 	}
 	if q.getTransactionStmt != nil {
@@ -196,6 +231,11 @@ func (q *Queries) Close() error {
 	if q.listUsersStmt != nil {
 		if cerr := q.listUsersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listUsersStmt: %w", cerr)
+		}
+	}
+	if q.startJobStmt != nil {
+		if cerr := q.startJobStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing startJobStmt: %w", cerr)
 		}
 	}
 	if q.updateAccountStmt != nil {
@@ -253,8 +293,12 @@ type Queries struct {
 	deleteUserStmt                  *sql.Stmt
 	existsByEmailStmt               *sql.Stmt
 	findByEmailStmt                 *sql.Stmt
+	finishJobStmt                   *sql.Stmt
 	getAccountStmt                  *sql.Stmt
 	getBalanceStmt                  *sql.Stmt
+	getJobStmt                      *sql.Stmt
+	getJobsByNameStmt               *sql.Stmt
+	getLastJobByNameStmt            *sql.Stmt
 	getTransactionStmt              *sql.Stmt
 	getUserStmt                     *sql.Stmt
 	getUserRegistrationStmt         *sql.Stmt
@@ -263,6 +307,7 @@ type Queries struct {
 	listAccountsStmt                *sql.Stmt
 	listTransactionsStmt            *sql.Stmt
 	listUsersStmt                   *sql.Stmt
+	startJobStmt                    *sql.Stmt
 	updateAccountStmt               *sql.Stmt
 }
 
@@ -281,8 +326,12 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteUserStmt:                  q.deleteUserStmt,
 		existsByEmailStmt:               q.existsByEmailStmt,
 		findByEmailStmt:                 q.findByEmailStmt,
+		finishJobStmt:                   q.finishJobStmt,
 		getAccountStmt:                  q.getAccountStmt,
 		getBalanceStmt:                  q.getBalanceStmt,
+		getJobStmt:                      q.getJobStmt,
+		getJobsByNameStmt:               q.getJobsByNameStmt,
+		getLastJobByNameStmt:            q.getLastJobByNameStmt,
 		getTransactionStmt:              q.getTransactionStmt,
 		getUserStmt:                     q.getUserStmt,
 		getUserRegistrationStmt:         q.getUserRegistrationStmt,
@@ -291,6 +340,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		listAccountsStmt:                q.listAccountsStmt,
 		listTransactionsStmt:            q.listTransactionsStmt,
 		listUsersStmt:                   q.listUsersStmt,
+		startJobStmt:                    q.startJobStmt,
 		updateAccountStmt:               q.updateAccountStmt,
 	}
 }

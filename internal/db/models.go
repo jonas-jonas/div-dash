@@ -3,6 +3,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +14,15 @@ type Account struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
 	UserID string `json:"user_id"`
+}
+
+
+type JobHistory struct {
+	ID           int32          `json:"id"`
+	Name         string         `json:"name"`
+	Started      int64          `json:"started"`
+	Finished     sql.NullInt64  `json:"finished"`
+	ErrorMessage sql.NullString `json:"error_message"`
 }
 
 type Transaction struct {
