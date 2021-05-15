@@ -96,7 +96,7 @@ func (q *Queries) GetJobsByName(ctx context.Context, name string) ([]JobHistory,
 }
 
 const getLastJobByName = `-- name: GetLastJobByName :one
-SELECT id, name, started, finished, error_message, CASE WHEN error_message IS NULL THEN true ELSE false END AS had_error
+SELECT id, name, started, finished, error_message, CASE WHEN error_message IS NULL THEN false ELSE true END AS had_error
 FROM "job_history"
 WHERE name = $1
 ORDER BY started DESC

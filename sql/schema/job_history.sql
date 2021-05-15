@@ -10,7 +10,7 @@ WHERE name = $1
 ORDER BY started;
 
 -- name: GetLastJobByName :one
-SELECT *, CASE WHEN error_message IS NULL THEN true ELSE false END AS had_error
+SELECT *, CASE WHEN error_message IS NULL THEN false ELSE true END AS had_error
 FROM "job_history"
 WHERE name = $1
 ORDER BY started DESC
