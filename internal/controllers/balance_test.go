@@ -23,7 +23,7 @@ func TestGetBalance(t *testing.T) {
 	w := PerformAuthenticatedRequest(router, "GET", "/api/balance")
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `[{"costBasis":5, "symbol":"BTC", "amount":20, "total":100}]`, w.Body.String())
+	assert.JSONEq(t, `[{"costBasis":5, "symbol":"BTC", "amount":20}]`, w.Body.String())
 }
 
 func TestGetBalanceDbErrorOnBalance(t *testing.T) {

@@ -1,10 +1,12 @@
 package services
 
 import (
+	"div-dash/internal/binance"
 	"div-dash/internal/config"
 	"div-dash/internal/id"
 	"div-dash/internal/job"
 	"div-dash/internal/mail"
+	"div-dash/internal/price"
 	"div-dash/internal/token"
 	"sync"
 
@@ -12,17 +14,21 @@ import (
 )
 
 var services struct {
-	TokenService *token.TokenService
-	MailService  *mail.MailService
-	IdService    *id.IdService
-	JobService   *job.JobService
+	TokenService   *token.TokenService
+	MailService    *mail.MailService
+	IdService      *id.IdService
+	BinanceService *binance.BinanceService
+	PriceService   *price.PriceService
+	JobService     *job.JobService
 }
 
 var (
-	onceTokenService sync.Once
-	onceMailService  sync.Once
-	onceIdService    sync.Once
-	onceJobService   sync.Once
+	onceTokenService   sync.Once
+	onceMailService    sync.Once
+	onceIdService      sync.Once
+	onceBinanceService sync.Once
+	oncePriceService   sync.Once
+	onceJobService     sync.Once
 )
 
 func initTokenService() {
@@ -56,6 +62,23 @@ func IdService() *id.IdService {
 	return services.IdService
 }
 
+func initBinanceService() {
+	services.BinanceService = binance.New(JobService(), config.DB(), config.Queries())
+}
+
+func BinanceService() *binance.BinanceService {
+	onceBinanceService.Do(initBinanceService)
+	return services.BinanceService
+}
+
+func initPriceService() {
+	services.PriceService = price.New(config.Queries(), BinanceService())
+}
+
+func PriceService() *price.PriceService {
+	oncePriceService.Do(initPriceService)
+	return services.PriceService
+}
 
 func initJobService() {
 	services.JobService = job.New(config.Queries(), config.Logger())

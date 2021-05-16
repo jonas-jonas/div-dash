@@ -16,6 +16,12 @@ type Account struct {
 	UserID string `json:"user_id"`
 }
 
+type Asset struct {
+	AssetName string        `json:"asset_name"`
+	Type      string        `json:"type"`
+	Source    string        `json:"source"`
+	Precision sql.NullInt32 `json:"precision"`
+}
 
 type JobHistory struct {
 	ID           int32          `json:"id"`

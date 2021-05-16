@@ -25,6 +25,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.activateUserStmt, err = db.PrepareContext(ctx, activateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query ActivateUser: %w", err)
 	}
+	if q.addAssetStmt, err = db.PrepareContext(ctx, addAsset); err != nil {
+		return nil, fmt.Errorf("error preparing query AddAsset: %w", err)
+	}
+	if q.assetExistsStmt, err = db.PrepareContext(ctx, assetExists); err != nil {
+		return nil, fmt.Errorf("error preparing query AssetExists: %w", err)
+	}
 	if q.countByEmailStmt, err = db.PrepareContext(ctx, countByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query CountByEmail: %w", err)
 	}
@@ -60,6 +66,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getAccountStmt, err = db.PrepareContext(ctx, getAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAccount: %w", err)
+	}
+	if q.getAssetStmt, err = db.PrepareContext(ctx, getAsset); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAsset: %w", err)
 	}
 	if q.getBalanceStmt, err = db.PrepareContext(ctx, getBalance); err != nil {
 		return nil, fmt.Errorf("error preparing query GetBalance: %w", err)
@@ -111,6 +120,16 @@ func (q *Queries) Close() error {
 	if q.activateUserStmt != nil {
 		if cerr := q.activateUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing activateUserStmt: %w", cerr)
+		}
+	}
+	if q.addAssetStmt != nil {
+		if cerr := q.addAssetStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing addAssetStmt: %w", cerr)
+		}
+	}
+	if q.assetExistsStmt != nil {
+		if cerr := q.assetExistsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing assetExistsStmt: %w", cerr)
 		}
 	}
 	if q.countByEmailStmt != nil {
@@ -171,6 +190,11 @@ func (q *Queries) Close() error {
 	if q.getAccountStmt != nil {
 		if cerr := q.getAccountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getAccountStmt: %w", cerr)
+		}
+	}
+	if q.getAssetStmt != nil {
+		if cerr := q.getAssetStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAssetStmt: %w", cerr)
 		}
 	}
 	if q.getBalanceStmt != nil {
@@ -283,6 +307,8 @@ type Queries struct {
 	db                              DBTX
 	tx                              *sql.Tx
 	activateUserStmt                *sql.Stmt
+	addAssetStmt                    *sql.Stmt
+	assetExistsStmt                 *sql.Stmt
 	countByEmailStmt                *sql.Stmt
 	createAccountStmt               *sql.Stmt
 	createTransactionStmt           *sql.Stmt
@@ -295,6 +321,7 @@ type Queries struct {
 	findByEmailStmt                 *sql.Stmt
 	finishJobStmt                   *sql.Stmt
 	getAccountStmt                  *sql.Stmt
+	getAssetStmt                    *sql.Stmt
 	getBalanceStmt                  *sql.Stmt
 	getJobStmt                      *sql.Stmt
 	getJobsByNameStmt               *sql.Stmt
@@ -316,6 +343,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                              tx,
 		tx:                              tx,
 		activateUserStmt:                q.activateUserStmt,
+		addAssetStmt:                    q.addAssetStmt,
+		assetExistsStmt:                 q.assetExistsStmt,
 		countByEmailStmt:                q.countByEmailStmt,
 		createAccountStmt:               q.createAccountStmt,
 		createTransactionStmt:           q.createTransactionStmt,
@@ -328,6 +357,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findByEmailStmt:                 q.findByEmailStmt,
 		finishJobStmt:                   q.finishJobStmt,
 		getAccountStmt:                  q.getAccountStmt,
+		getAssetStmt:                    q.getAssetStmt,
 		getBalanceStmt:                  q.getBalanceStmt,
 		getJobStmt:                      q.getJobStmt,
 		getJobsByNameStmt:               q.getJobsByNameStmt,
