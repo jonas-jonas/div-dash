@@ -33,9 +33,9 @@ func (j *JobService) HasLastSuccessfulJobExpired(ctx context.Context, name strin
 	}
 	var lastJobTimestamp time.Time
 	if lastJob.Finished.Valid {
-		lastJobTimestamp = time.Unix(0, lastJob.Finished.Int64)
+		lastJobTimestamp = time.Unix(lastJob.Finished.Int64, 0)
 	} else {
-		lastJobTimestamp = time.Unix(0, lastJob.Started)
+		lastJobTimestamp = time.Unix(lastJob.Started, 0)
 	}
 
 	return lastJobTimestamp.Add(duration).Before(j.nowFunc()), nil
@@ -44,7 +44,7 @@ func (j *JobService) HasLastSuccessfulJobExpired(ctx context.Context, name strin
 func (j *JobService) StartJob(ctx context.Context, name string) (db.StartJobRow, error) {
 	job, err := j.queries.StartJob(ctx, db.StartJobParams{
 		Name:    name,
-		Started: j.nowFunc().UnixNano(),
+		Started: j.nowFunc().Unix(),
 	})
 	if err != nil {
 		j.logger.Printf("Could not start job '%s': %s", name, err.Error())
@@ -58,7 +58,7 @@ func (j *JobService) FinishJob(ctx context.Context, id int32) error {
 	job, err := j.queries.FinishJob(ctx, db.FinishJobParams{
 		ID: id,
 		Finished: sql.NullInt64{
-			Int64: j.nowFunc().UnixNano(),
+			Int64: j.nowFunc().Unix(),
 			Valid: true,
 		},
 	})
@@ -68,7 +68,7 @@ func (j *JobService) FinishJob(ctx context.Context, id int32) error {
 		return err
 	}
 
-	j.logger.Printf("Job %s#%d succeded in '%d'ms", job.Name, job.ID, (job.Finished.Int64-job.Started)/1000)
+	j.logger.Printf("Job %s#%d succeded in '%d'ms", job.Name, job.ID, (job.Finished.Int64 - job.Started))
 	return nil
 }
 
@@ -76,7 +76,7 @@ func (j *JobService) FailJob(ctx context.Context, id int32, message string) erro
 	job, err := j.queries.FinishJob(ctx, db.FinishJobParams{
 		ID: id,
 		Finished: sql.NullInt64{
-			Int64: j.nowFunc().UnixNano(),
+			Int64: j.nowFunc().Unix(),
 			Valid: true,
 		},
 		ErrorMessage: sql.NullString{
@@ -89,6 +89,6 @@ func (j *JobService) FailJob(ctx context.Context, id int32, message string) erro
 		return err
 	}
 
-	j.logger.Printf("Job %s#%d failed in %dms", job.Name, job.ID, (job.Finished.Int64-job.Started)/1000)
+	j.logger.Printf("Job %s#%d failed in %ds", job.Name, job.ID, (job.Finished.Int64 - job.Started))
 	return nil
 }

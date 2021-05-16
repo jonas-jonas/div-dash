@@ -20,7 +20,7 @@ func TestHasLastSuccessfulJobExpired(t *testing.T) {
 	jobService := JobService{
 		queries: db.New(sdb),
 		logger:  log.New(&str, "", 0),
-		nowFunc: func() time.Time { return time.Unix(0, 200) },
+		nowFunc: func() time.Time { return time.Unix(200, 0) },
 	}
 
 	rows := sqlmock.NewRows([]string{"id", "name", "started", "finished", "error_message", "had_error"}).
@@ -30,7 +30,7 @@ func TestHasLastSuccessfulJobExpired(t *testing.T) {
 
 	ctx := context.Background()
 
-	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", 50)
+	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", time.Second*50)
 	assert.True(t, expired)
 	assert.Empty(t, err)
 }
@@ -51,7 +51,7 @@ func TestHasLastSuccessfulJobExpiredNotExpiredReturnFalse(t *testing.T) {
 
 	ctx := context.Background()
 
-	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", 50)
+	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", time.Second*50)
 	assert.False(t, expired)
 	assert.Empty(t, err)
 }
@@ -70,7 +70,7 @@ func TestHasLastSuccessfulJobExpiredNoEntriesReturnsTrue(t *testing.T) {
 
 	ctx := context.Background()
 
-	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", 50)
+	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", time.Second*50)
 	assert.True(t, expired)
 	assert.Equal(t, err, sql.ErrNoRows)
 }
@@ -90,7 +90,7 @@ func TestHasLastSuccessfulJobExpiredHadErrorReturnsTrue(t *testing.T) {
 
 	ctx := context.Background()
 
-	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", 50)
+	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", time.Second*50)
 	assert.True(t, expired)
 	assert.Equal(t, err.Error(), "test-error")
 }
@@ -101,7 +101,7 @@ func TestHasLastSuccessfulJobExpiredNoFinishedTimestampReturnsTrue(t *testing.T)
 	jobService := JobService{
 		queries: db.New(sdb),
 		logger:  log.New(&str, "", 0),
-		nowFunc: func() time.Time { return time.Unix(0, 100) },
+		nowFunc: func() time.Time { return time.Unix(100, 0) },
 	}
 
 	rows := sqlmock.NewRows([]string{"id", "name", "started", "finished", "error_message", "had_error"}).
@@ -111,7 +111,7 @@ func TestHasLastSuccessfulJobExpiredNoFinishedTimestampReturnsTrue(t *testing.T)
 
 	ctx := context.Background()
 
-	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", 50)
+	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", time.Second*50)
 	assert.True(t, expired)
 	assert.Nil(t, err)
 }
@@ -122,7 +122,7 @@ func TestHasLastSuccessfulJobExpiredNoFinishedTimestampNoExpiredReturnsFalse(t *
 	jobService := JobService{
 		queries: db.New(sdb),
 		logger:  log.New(&str, "", 0),
-		nowFunc: func() time.Time { return time.Unix(0, 100) },
+		nowFunc: func() time.Time { return time.Unix(100, 0) },
 	}
 
 	rows := sqlmock.NewRows([]string{"id", "name", "started", "finished", "error_message", "had_error"}).
@@ -132,7 +132,7 @@ func TestHasLastSuccessfulJobExpiredNoFinishedTimestampNoExpiredReturnsFalse(t *
 
 	ctx := context.Background()
 
-	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", 150)
+	expired, err := jobService.HasLastSuccessfulJobExpired(ctx, "job-name", time.Second*100)
 	assert.False(t, expired)
 	assert.Nil(t, err)
 }
@@ -183,7 +183,7 @@ func TestFinishJob(t *testing.T) {
 	jobService := JobService{
 		queries: db.New(sdb),
 		logger:  log.New(&str, "", 0),
-		nowFunc: func() time.Time { return time.Unix(0, 100) },
+		nowFunc: func() time.Time { return time.Unix(100, 0) },
 	}
 
 	rows := sqlmock.NewRows([]string{"name", "id", "started", "finished"}).
@@ -203,7 +203,7 @@ func TestFinishJobDbError(t *testing.T) {
 	jobService := JobService{
 		queries: db.New(sdb),
 		logger:  log.New(&str, "", 0),
-		nowFunc: func() time.Time { return time.Unix(0, 100) },
+		nowFunc: func() time.Time { return time.Unix(100, 0) },
 	}
 
 	mock.ExpectQuery("^-- name: FinishJob :one .*$").WithArgs(100, nil, 1).WillReturnError(errors.New("test-error"))
@@ -220,7 +220,7 @@ func TestFailJob(t *testing.T) {
 	jobService := JobService{
 		queries: db.New(sdb),
 		logger:  log.New(&str, "", 0),
-		nowFunc: func() time.Time { return time.Unix(0, 100) },
+		nowFunc: func() time.Time { return time.Unix(100, 0) },
 	}
 
 	rows := sqlmock.NewRows([]string{"name", "id", "started", "finished"}).
@@ -239,7 +239,7 @@ func TestFailJobDbError(t *testing.T) {
 	jobService := JobService{
 		queries: db.New(sdb),
 		logger:  log.New(&str, "", 0),
-		nowFunc: func() time.Time { return time.Unix(0, 100) },
+		nowFunc: func() time.Time { return time.Unix(100, 0) },
 	}
 
 	mock.ExpectQuery("^-- name: FinishJob :one .*$").WithArgs(100, "test-error", 1).WillReturnError(errors.New("test-dberror"))
