@@ -11,7 +11,6 @@ import (
 type balanceResponse struct {
 	Symbol    string  `json:"symbol"`
 	Amount    float64 `json:"amount"`
-	Total     float64 `json:"total"`
 	CostBasis float64 `json:"costBasis"`
 }
 
@@ -31,7 +30,6 @@ func GetBalance(c *gin.Context) {
 		resp = append(resp, balanceResponse{
 			Symbol:    entry.Symbol,
 			Amount:    entry.Amount,
-			Total:     money.New(int64(entry.CostBasis), "EUR").AsMajorUnits(),
 			CostBasis: money.New(int64(costBasis), "EUR").AsMajorUnits(),
 		})
 	}

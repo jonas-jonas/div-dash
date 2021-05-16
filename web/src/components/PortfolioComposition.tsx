@@ -26,16 +26,16 @@ export function PortfolioComposition() {
     return balances.map((balance) => {
       return {
         symbol: balance.symbol,
-        total: balance.amount * balance.costBasis,
+        total: balance.costBasis * balance.amount,
       };
     });
   }, [balances]);
 
   const total = useMemo(() => {
-    return balances.reduce((prev, curr) => {
+    return chartData.reduce((prev, curr) => {
       return prev + curr.total;
     }, 0);
-  }, [balances]);
+  }, [chartData]);
 
   return (
     <div className="col-span-1 row-span-2 bg-white shadow rounded px-6 py-8 flex flex-col">

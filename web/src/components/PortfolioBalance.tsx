@@ -63,7 +63,6 @@ export function PortfolioBalance() {
                 }).format(balanceItem.amount)}
               </td>
               <td className="py-3 px-2">
-                {formatMoney(balanceItem.costBasis * balanceItem.amount)}
               </td>
               <td className="py-3 px-2">
                 {formatMoney(balanceItem.costBasis)}
