@@ -16,6 +16,8 @@ type balanceResponse struct {
 	CostBasis      float64  `json:"costBasis"`
 	FiatAssetPrice float64  `json:"fiatAssetPrice"`
 	FiatValue      float64  `json:"fiatValue"`
+	PLAbsolute     float64  `json:"plAbsolute"`
+	PLPercent      float64  `json:"plPercent"`
 }
 
 func GetBalance(c *gin.Context) {
@@ -30,7 +32,7 @@ func GetBalance(c *gin.Context) {
 	resp := []balanceResponse{}
 
 	for _, entry := range balances {
-		costBasis := entry.CostBasis / entry.Amount
+		costBasis := money.New(int64(entry.CostBasis), "EUR").AsMajorUnits()
 		asset, err := config.Queries().GetAsset(c, entry.Symbol)
 		if err != nil {
 			config.Logger().Printf("Could not find asset for symbol %s: %s. Skipping balance entry... ", entry.Symbol, err.Error())
@@ -41,12 +43,17 @@ func GetBalance(c *gin.Context) {
 			config.Logger().Printf("Could not get current price for asset %s: %s.", entry.Symbol, err.Error())
 			currentPrice = -0.0
 		}
+		fiatValue := currentPrice * entry.Amount
+		plAbsolute := fiatValue - costBasis
+		plPercent := plAbsolute / costBasis
 		resp = append(resp, balanceResponse{
 			Asset:          asset,
 			Amount:         entry.Amount,
-			CostBasis:      money.New(int64(costBasis), "EUR").AsMajorUnits(),
+			CostBasis:      costBasis,
 			FiatAssetPrice: currentPrice,
-			FiatValue:      currentPrice * entry.Amount,
+			FiatValue:      fiatValue,
+			PLAbsolute:     plAbsolute,
+			PLPercent:      plPercent,
 		})
 	}
 

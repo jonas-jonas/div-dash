@@ -18,3 +18,11 @@ export function formatTime(date: string) {
     timeStyle: "medium",
   }).format(d);
 }
+
+export function formatPercent(percent: number) {
+  return new Intl.NumberFormat("de-DE", {
+    style: "percent",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(percent);
+}

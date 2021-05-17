@@ -12,6 +12,8 @@ import (
 func TestGetBalance(t *testing.T) {
 	mock, cleanup, router := NewApi()
 
+	// TODO: Mock Price Services here
+
 	defer cleanup()
 	rows := sqlmock.NewRows([]string{"symbol", "cost_basis", "amount"}).
 		AddRow("BTC", float64(10000), float64(20))
@@ -20,10 +22,17 @@ func TestGetBalance(t *testing.T) {
 		WithArgs(testutil.TestUserID).
 		WillReturnRows(rows)
 
+	rows = sqlmock.NewRows([]string{"asset_name", "type", "source", "precision"}).
+		AddRow("BTC", "crypto", "binance", 8)
+
+	mock.ExpectQuery("^-- name: GetAsset :one .*$").
+		WithArgs("BTC").
+		WillReturnRows(rows)
+
 	w := PerformAuthenticatedRequest(router, "GET", "/api/balance")
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `[{"costBasis":5, "symbol":"BTC", "amount":20}]`, w.Body.String())
+	assert.JSONEq(t, `["amount":20, "asset":map[string]interface {}{"assetName":"BTC", "precision":8, "source":"binance", "type":"crypto"}, "costBasis":100, "fiatAssetPrice":35900.4684846, "fiatValue":718009.3696920001, "plAbsolute":717909.3696920001, "plPercent":7179.093696920001}]`, w.Body.String())
 }
 
 func TestGetBalanceDbErrorOnBalance(t *testing.T) {

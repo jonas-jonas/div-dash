@@ -6,4 +6,6 @@ export type Balance = {
   costBasis: number;
   fiatAssetPrice: number;
   fiatValue: number;
+  plAbsolute: number;
+  plPercent: number;
 };
