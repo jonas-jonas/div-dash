@@ -72,7 +72,7 @@ func BinanceService() *binance.BinanceService {
 }
 
 func initPriceService() {
-	services.PriceService = price.New(config.Queries(), BinanceService())
+	services.PriceService = price.New(BinanceService())
 }
 
 func PriceService() *price.PriceService {

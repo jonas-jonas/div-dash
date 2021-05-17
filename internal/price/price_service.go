@@ -8,25 +8,20 @@ import (
 
 type PriceService struct {
 	priceServices map[string]IPriceService
-	queries       *db.Queries
 }
 
 type IPriceService interface {
 	GetPrice(ctx context.Context, asset db.Asset) (float64, error)
 }
 
-func New(queries *db.Queries, binance *binance.BinanceService) *PriceService {
+func New(binance *binance.BinanceService) *PriceService {
 	priceServices := map[string]IPriceService{
 		"binance": binance,
 	}
-	return &PriceService{priceServices, queries}
+	return &PriceService{priceServices}
 }
 
-func (p *PriceService) GetPrice(ctx context.Context, assetName string) (float64, error) {
-	asset, err := p.queries.GetAsset(ctx, assetName)
-	if err != nil {
-		return -1, err
-	}
+func (p *PriceService) GetPriceOfAsset(ctx context.Context, asset db.Asset) (float64, error) {
 
 	priceService := p.priceServices[asset.Source]
 

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,9 +23,7 @@ func (m *mockPriceServiceWithErr) GetPrice(ctx context.Context, asset db.Asset) 
 	return -1, errors.New("test-price-service-error")
 }
 
-func TestGetPrice(t *testing.T) {
-
-	sdb, mock, _ := sqlmock.New()
+func TestGetPriceOfAsset(t *testing.T) {
 
 	priceServices := map[string]IPriceService{
 		"test-source": &mockPriceService{},
@@ -34,46 +31,21 @@ func TestGetPrice(t *testing.T) {
 
 	priceService := PriceService{
 		priceServices: priceServices,
-		queries:       db.New(sdb),
 	}
 
-	rows := sqlmock.NewRows([]string{"asset_name", "type", "source", "precision"}).
-		AddRow("test-asset", "crypto", "test-source", 8)
-
-	mock.ExpectQuery("^-- name: GetAsset :one .*$").WithArgs("test-asset").
-		WillReturnRows(rows)
+	asset := db.Asset{
+		AssetName: "test-asset",
+		Type:      "crypto",
+		Source:    "test-source",
+	}
 
 	ctx := context.Background()
-	price, err := priceService.GetPrice(ctx, "test-asset")
+	price, err := priceService.GetPriceOfAsset(ctx, asset)
 	assert.Equal(t, price, 10.0)
 	assert.Nil(t, err)
 }
 
-func TestGetPriceDbErrorReturnsMinus1AndErr(t *testing.T) {
-
-	sdb, mock, _ := sqlmock.New()
-
-	priceServices := map[string]IPriceService{
-		"test-source": &mockPriceService{},
-	}
-
-	priceService := PriceService{
-		priceServices: priceServices,
-		queries:       db.New(sdb),
-	}
-
-	mock.ExpectQuery("^-- name: GetAsset :one .*$").WithArgs("test-asset").
-		WillReturnError(errors.New("test-error"))
-
-	ctx := context.Background()
-	price, err := priceService.GetPrice(ctx, "test-asset")
-	assert.Equal(t, price, -1.0)
-	assert.Equal(t, "test-error", err.Error())
-}
-
 func TestGetPricePriceServiceErrorReturnsMinus1AndErr(t *testing.T) {
-
-	sdb, mock, _ := sqlmock.New()
 
 	priceServices := map[string]IPriceService{
 		"test-source": &mockPriceServiceWithErr{},
@@ -81,17 +53,15 @@ func TestGetPricePriceServiceErrorReturnsMinus1AndErr(t *testing.T) {
 
 	priceService := PriceService{
 		priceServices: priceServices,
-		queries:       db.New(sdb),
+	}
+	asset := db.Asset{
+		AssetName: "test-asset",
+		Type:      "crypto",
+		Source:    "test-source",
 	}
 
-	rows := sqlmock.NewRows([]string{"asset_name", "type", "source", "precision"}).
-		AddRow("test-asset", "crypto", "test-source", 8)
-
-	mock.ExpectQuery("^-- name: GetAsset :one .*$").WithArgs("test-asset").
-		WillReturnRows(rows)
-
 	ctx := context.Background()
-	price, err := priceService.GetPrice(ctx, "test-asset")
+	price, err := priceService.GetPriceOfAsset(ctx, asset)
 	assert.Equal(t, price, -1.0)
 	assert.Equal(t, "test-price-service-error", err.Error())
 }

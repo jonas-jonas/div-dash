@@ -1,5 +1,9 @@
+import { Asset } from "./asset";
+
 export type Balance = {
-  symbol: string;
+  asset: Asset;
   amount: number;
   costBasis: number;
+  fiatAssetPrice: number;
+  fiatValue: number;
 };

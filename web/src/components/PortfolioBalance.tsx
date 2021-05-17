@@ -7,7 +7,7 @@ import { balancesState } from "../state/balanceState";
 import { formatMoney } from "../util/formatter";
 
 export function PortfolioBalance() {
-  const [balances, setBalance] = useRecoilState(balancesState);
+  const [balances, setBalances] = useRecoilState(balancesState);
   const token = useRecoilValue(tokenState);
 
   useEffect(() => {
@@ -18,14 +18,14 @@ export function PortfolioBalance() {
             Authorization: "Bearer " + token,
           },
         });
-        const balance: Balance[] = await response.json();
-        setBalance(balance);
+        const balances: Balance[] = await response.json();
+        setBalances(balances);
       } catch (error) {
         console.error(error);
       }
     };
     loadBalance();
-  }, [token, setBalance]);
+  }, [token, setBalances]);
 
   return (
     <div className="col-span-2">
@@ -41,12 +41,12 @@ export function PortfolioBalance() {
         </thead>
         <tbody>
           {balances?.map((balanceItem) => (
-            <tr className="border-b border-gray-200" key={balanceItem.symbol}>
+            <tr className="border-b border-gray-200" key={balanceItem.asset.assetName}>
               <td className="py-3 px-2 flex items-center">
                 <img
                   src={
                     "https://cryptoicons.org/api/black/" +
-                    balanceItem.symbol.toLowerCase() +
+                    balanceItem.asset.assetName.toLowerCase() +
                     "/20"
                   }
                   width="20"
@@ -54,7 +54,7 @@ export function PortfolioBalance() {
                   alt="BTC icon"
                   className="mr-2"
                 />{" "}
-                {balanceItem.symbol}
+                {balanceItem.asset.assetName}
               </td>
               <td className="py-3 px-2 capitalize">
                 {new Intl.NumberFormat("de-DE", {
@@ -63,6 +63,7 @@ export function PortfolioBalance() {
                 }).format(balanceItem.amount)}
               </td>
               <td className="py-3 px-2">
+                {formatMoney(balanceItem.fiatValue)}
               </td>
               <td className="py-3 px-2">
                 {formatMoney(balanceItem.costBasis)}

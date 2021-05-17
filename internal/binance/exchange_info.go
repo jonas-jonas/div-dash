@@ -2,7 +2,6 @@ package binance
 
 import (
 	"context"
-	"database/sql"
 	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"encoding/json"
@@ -108,10 +107,7 @@ func (b *BinanceService) SaveExchangeInfo() error {
 			AssetName: symbol.Baseasset,
 			Type:      "crypto",
 			Source:    "binance",
-			Precision: sql.NullInt32{
-				Int32: symbol.Baseassetprecision,
-				Valid: true,
-			},
+			Precision: symbol.Baseassetprecision,
 		})
 		if err != nil {
 			config.Logger().Printf("Could not import symbol %s because %s, ignoring...", symbol.Baseasset, err.Error())

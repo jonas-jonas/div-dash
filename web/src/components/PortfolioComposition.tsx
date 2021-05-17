@@ -25,8 +25,8 @@ export function PortfolioComposition() {
   const chartData = useMemo(() => {
     return balances.map((balance) => {
       return {
-        symbol: balance.symbol,
-        total: balance.costBasis * balance.amount,
+        symbol: balance.asset.assetName,
+        total: balance.fiatValue,
       };
     });
   }, [balances]);
