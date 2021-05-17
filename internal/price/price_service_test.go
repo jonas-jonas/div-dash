@@ -5,8 +5,10 @@ import (
 	"div-dash/internal/db"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"zgo.at/zcache"
 )
 
 type mockPriceService struct {
@@ -31,6 +33,7 @@ func TestGetPriceOfAsset(t *testing.T) {
 
 	priceService := PriceService{
 		priceServices: priceServices,
+		cache:         zcache.New(1, 10),
 	}
 
 	asset := db.Asset{
@@ -45,6 +48,33 @@ func TestGetPriceOfAsset(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestGetPriceOfAssetCacheHit(t *testing.T) {
+
+	priceServices := map[string]IPriceService{
+		"test-source": &mockPriceService{},
+	}
+
+	testCache := zcache.New(1*time.Minute, 10*time.Minute)
+
+	priceService := PriceService{
+		priceServices: priceServices,
+		cache:         testCache,
+	}
+
+	testCache.Set("test-source/test-asset", 182473.2414, zcache.DefaultExpiration)
+
+	asset := db.Asset{
+		AssetName: "test-asset",
+		Type:      "crypto",
+		Source:    "test-source",
+	}
+
+	ctx := context.Background()
+	price, err := priceService.GetPriceOfAsset(ctx, asset)
+	assert.Equal(t, price, 182473.2414)
+	assert.Nil(t, err)
+}
+
 func TestGetPricePriceServiceErrorReturnsMinus1AndErr(t *testing.T) {
 
 	priceServices := map[string]IPriceService{
@@ -53,6 +83,7 @@ func TestGetPricePriceServiceErrorReturnsMinus1AndErr(t *testing.T) {
 
 	priceService := PriceService{
 		priceServices: priceServices,
+		cache:         zcache.New(1, 10),
 	}
 	asset := db.Asset{
 		AssetName: "test-asset",
