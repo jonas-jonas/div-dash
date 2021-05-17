@@ -5,7 +5,7 @@ CREATE TABLE "asset" (
     asset_name  TEXT NOT NULL,
     type        TEXT NOT NULL,
     source      TEXT NOT NULL,
-    precision   INT DEFAULT 2,
+    precision   INT NOT NULL DEFAULT 2,
     PRIMARY KEY (asset_name, type, source)
 );
 -- +goose StatementEnd

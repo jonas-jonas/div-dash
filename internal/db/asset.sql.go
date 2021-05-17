@@ -5,7 +5,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const addAsset = `-- name: AddAsset :exec
@@ -15,10 +14,10 @@ ON CONFLICT DO NOTHING
 `
 
 type AddAssetParams struct {
-	AssetName string        `json:"asset_name"`
-	Type      string        `json:"type"`
-	Source    string        `json:"source"`
-	Precision sql.NullInt32 `json:"precision"`
+	AssetName string `json:"assetName"`
+	Type      string `json:"type"`
+	Source    string `json:"source"`
+	Precision int32  `json:"precision"`
 }
 
 func (q *Queries) AddAsset(ctx context.Context, arg AddAssetParams) error {

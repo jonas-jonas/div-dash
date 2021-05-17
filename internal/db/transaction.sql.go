@@ -23,12 +23,12 @@ type CreateTransactionParams struct {
 	ID                  string          `json:"id"`
 	Symbol              string          `json:"symbol"`
 	Type                string          `json:"type"`
-	TransactionProvider string          `json:"transaction_provider"`
+	TransactionProvider string          `json:"transactionProvider"`
 	Price               int64           `json:"price"`
 	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
-	AccountID           string          `json:"account_id"`
-	UserID              string          `json:"user_id"`
+	AccountID           string          `json:"accountID"`
+	UserID              string          `json:"userID"`
 	Side                string          `json:"side"`
 }
 
@@ -57,8 +57,8 @@ WHERE id = $1 AND account_id = $2 AND user_id = $3
 
 type DeleteTransactionParams struct {
 	ID        string `json:"id"`
-	AccountID string `json:"account_id"`
-	UserID    string `json:"user_id"`
+	AccountID string `json:"accountID"`
+	UserID    string `json:"userID"`
 }
 
 func (q *Queries) DeleteTransaction(ctx context.Context, arg DeleteTransactionParams) error {
@@ -74,8 +74,8 @@ LIMIT 1
 
 type GetTransactionParams struct {
 	ID        string `json:"id"`
-	AccountID string `json:"account_id"`
-	UserID    string `json:"user_id"`
+	AccountID string `json:"accountID"`
+	UserID    string `json:"userID"`
 }
 
 func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) (Transaction, error) {
@@ -103,8 +103,8 @@ ORDER BY date DESC
 `
 
 type ListTransactionsParams struct {
-	AccountID string `json:"account_id"`
-	UserID    string `json:"user_id"`
+	AccountID string `json:"accountID"`
+	UserID    string `json:"userID"`
 }
 
 func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsParams) ([]Transaction, error) {

@@ -13,14 +13,14 @@ import (
 type Account struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
-	UserID string `json:"user_id"`
+	UserID string `json:"userID"`
 }
 
 type Asset struct {
-	AssetName string        `json:"asset_name"`
-	Type      string        `json:"type"`
-	Source    string        `json:"source"`
-	Precision sql.NullInt32 `json:"precision"`
+	AssetName string `json:"assetName"`
+	Type      string `json:"type"`
+	Source    string `json:"source"`
+	Precision int32  `json:"precision"`
 }
 
 type JobHistory struct {
@@ -28,31 +28,31 @@ type JobHistory struct {
 	Name         string         `json:"name"`
 	Started      int64          `json:"started"`
 	Finished     sql.NullInt64  `json:"finished"`
-	ErrorMessage sql.NullString `json:"error_message"`
+	ErrorMessage sql.NullString `json:"errorMessage"`
 }
 
 type Transaction struct {
 	ID                  string          `json:"id"`
 	Symbol              string          `json:"symbol"`
 	Type                string          `json:"type"`
-	TransactionProvider string          `json:"transaction_provider"`
+	TransactionProvider string          `json:"transactionProvider"`
 	Price               int64           `json:"price"`
 	Date                time.Time       `json:"date"`
 	Amount              decimal.Decimal `json:"amount"`
-	AccountID           string          `json:"account_id"`
-	UserID              string          `json:"user_id"`
+	AccountID           string          `json:"accountID"`
+	UserID              string          `json:"userID"`
 	Side                string          `json:"side"`
 }
 
 type User struct {
 	ID           string `json:"id"`
 	Email        string `json:"email"`
-	PasswordHash string `json:"password_hash"`
+	PasswordHash string `json:"passwordHash"`
 	Status       string `json:"status"`
 }
 
 type UserRegistration struct {
 	ID        uuid.UUID `json:"id"`
-	UserID    string    `json:"user_id"`
+	UserID    string    `json:"userID"`
 	Timestamp time.Time `json:"timestamp"`
 }

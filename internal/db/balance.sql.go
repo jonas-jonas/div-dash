@@ -52,7 +52,7 @@ GROUP BY rt.symbol
 
 type GetBalanceRow struct {
 	Symbol    string  `json:"symbol"`
-	CostBasis float64 `json:"cost_basis"`
+	CostBasis float64 `json:"costBasis"`
 	Amount    float64 `json:"amount"`
 }
 

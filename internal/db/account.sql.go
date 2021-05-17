@@ -19,7 +19,7 @@ RETURNING id, name, user_id
 type CreateAccountParams struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
-	UserID string `json:"user_id"`
+	UserID string `json:"userID"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {

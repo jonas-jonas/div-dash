@@ -42,7 +42,7 @@ RETURNING id, email, password_hash, status
 type CreateUserParams struct {
 	ID           string `json:"id"`
 	Email        string `json:"email"`
-	PasswordHash string `json:"password_hash"`
+	PasswordHash string `json:"passwordHash"`
 	Status       string `json:"status"`
 }
 

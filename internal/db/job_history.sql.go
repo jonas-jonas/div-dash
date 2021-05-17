@@ -17,7 +17,7 @@ RETURNING "name", "id", "started", "finished"
 
 type FinishJobParams struct {
 	Finished     sql.NullInt64  `json:"finished"`
-	ErrorMessage sql.NullString `json:"error_message"`
+	ErrorMessage sql.NullString `json:"errorMessage"`
 	ID           int32          `json:"id"`
 }
 
@@ -108,8 +108,8 @@ type GetLastJobByNameRow struct {
 	Name         string         `json:"name"`
 	Started      int64          `json:"started"`
 	Finished     sql.NullInt64  `json:"finished"`
-	ErrorMessage sql.NullString `json:"error_message"`
-	HadError     bool           `json:"had_error"`
+	ErrorMessage sql.NullString `json:"errorMessage"`
+	HadError     bool           `json:"hadError"`
 }
 
 func (q *Queries) GetLastJobByName(ctx context.Context, name string) (GetLastJobByNameRow, error) {

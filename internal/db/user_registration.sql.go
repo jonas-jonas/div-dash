@@ -21,7 +21,7 @@ RETURNING id
 
 type CreateUserRegistrationParams struct {
 	ID        uuid.UUID `json:"id"`
-	UserID    string    `json:"user_id"`
+	UserID    string    `json:"userID"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
