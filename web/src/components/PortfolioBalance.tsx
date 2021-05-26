@@ -71,7 +71,10 @@ export function PortfolioBalance() {
                   />
                 )}
                 <div className="flex flex-col">
-                  <span>{balanceItem.symbol.symbolName || balanceItem.symbol.symbolID}</span>
+                  <span>
+                    {balanceItem.symbol.symbolName ||
+                      balanceItem.symbol.symbolID}
+                  </span>
                   <span className="text-sm text-gray-600">
                     {new Intl.NumberFormat("de-DE", {
                       minimumFractionDigits: balanceItem.symbol.precision,
@@ -80,7 +83,10 @@ export function PortfolioBalance() {
                 </div>
               </td>
               <td className="py-3 px-2">
-                {formatMoney(balanceItem.fiatValue)}
+                <div className="flex flex-col">
+                  <span>{formatMoney(balanceItem.fiatAssetPrice)}</span>
+                  <span className="text-sm text-gray-600">{formatMoney(balanceItem.fiatValue)}</span>
+                </div>
               </td>
               <td className="py-3 px-2">
                 <span>{formatMoney(balanceItem.costBasis)}</span>
