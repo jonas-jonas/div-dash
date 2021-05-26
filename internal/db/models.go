@@ -16,13 +16,6 @@ type Account struct {
 	UserID string `json:"userID"`
 }
 
-type Asset struct {
-	AssetName string `json:"assetName"`
-	Type      string `json:"type"`
-	Source    string `json:"source"`
-	Precision int32  `json:"precision"`
-}
-
 type AssetExchange struct {
 	Symbol   string `json:"symbol"`
 	Exchange string `json:"exchange"`
@@ -42,6 +35,14 @@ type JobHistory struct {
 	Started      int64          `json:"started"`
 	Finished     sql.NullInt64  `json:"finished"`
 	ErrorMessage sql.NullString `json:"errorMessage"`
+}
+
+type Symbol struct {
+	SymbolID   string         `json:"symbolID"`
+	Type       string         `json:"type"`
+	Source     string         `json:"source"`
+	Precision  int32          `json:"precision"`
+	SymbolName sql.NullString `json:"symbolName"`
 }
 
 type Transaction struct {

@@ -13,14 +13,14 @@ import (
 type mockPriceService struct {
 }
 
-func (m *mockPriceService) GetPrice(asset db.Asset) (float64, error) {
+func (m *mockPriceService) GetPrice(asset db.Symbol) (float64, error) {
 	return 10.0, nil
 }
 
 type mockPriceServiceWithErr struct {
 }
 
-func (m *mockPriceServiceWithErr) GetPrice(asset db.Asset) (float64, error) {
+func (m *mockPriceServiceWithErr) GetPrice(asset db.Symbol) (float64, error) {
 	return -1, errors.New("test-price-service-error")
 }
 
@@ -35,10 +35,10 @@ func TestGetPriceOfAsset(t *testing.T) {
 		cache:         zcache.New(1, 10),
 	}
 
-	asset := db.Asset{
-		AssetName: "test-asset",
-		Type:      "crypto",
-		Source:    "test-source",
+	asset := db.Symbol{
+		SymbolID: "test-asset",
+		Type:     "crypto",
+		Source:   "test-source",
 	}
 
 	price, err := priceService.GetPriceOfAsset(asset)
@@ -61,10 +61,10 @@ func TestGetPriceOfAssetCacheHit(t *testing.T) {
 
 	testCache.Set("test-source/test-asset", 182473.2414, zcache.DefaultExpiration)
 
-	asset := db.Asset{
-		AssetName: "test-asset",
-		Type:      "crypto",
-		Source:    "test-source",
+	asset := db.Symbol{
+		SymbolID: "test-asset",
+		Type:     "crypto",
+		Source:   "test-source",
 	}
 	price, err := priceService.GetPriceOfAsset(asset)
 	assert.Equal(t, price, 182473.2414)
@@ -81,10 +81,10 @@ func TestGetPricePriceServiceErrorReturnsMinus1AndErr(t *testing.T) {
 		priceServices: priceServices,
 		cache:         zcache.New(1, 10),
 	}
-	asset := db.Asset{
-		AssetName: "test-asset",
-		Type:      "crypto",
-		Source:    "test-source",
+	asset := db.Symbol{
+		SymbolID: "test-asset",
+		Type:     "crypto",
+		Source:   "test-source",
 	}
 	price, err := priceService.GetPriceOfAsset(asset)
 	assert.Equal(t, price, -1.0)

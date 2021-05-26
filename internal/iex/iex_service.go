@@ -25,20 +25,32 @@ func New(queries *db.Queries, db *sql.DB, jobService job.IJobService) *IEXServic
 	return &IEXService{client, queries, db, jobService}
 }
 
-func (i *IEXService) GetPrice(asset db.Asset) (float64, error) {
+var exchangeWeights = map[string]int{
+	"GY": 10,
+}
 
-	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.AssetName)
+func (i *IEXService) GetPrice(asset db.Symbol) (float64, error) {
+
+	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
 	if err != nil {
 		return -1.0, err
 	}
 
-	exchange := exchanges[0]
+	var exchange db.Exchange
+	lastExchangeWeight := -1
+
+	for _, ex := range exchanges {
+		weight := exchangeWeights[ex.Exchange]
+		if weight > lastExchangeWeight {
+			exchange = ex
+		}
+	}
 
 	token := "pk_f63a9516a1d14334bcf987d1dd52af64"
 
 	resp, err := i.client.R().
 		SetQueryParam("token", token).
-		SetPathParam("symbol", asset.AssetName+exchange.ExchangeSuffix).
+		SetPathParam("symbol", asset.SymbolID+exchange.ExchangeSuffix).
 		Get("https://cloud.iexapis.com/stable/stock/{symbol}/quote/latestPrice")
 
 	if err != nil {
@@ -47,7 +59,7 @@ func (i *IEXService) GetPrice(asset db.Asset) (float64, error) {
 
 	body := string(resp.Body())
 	if resp.StatusCode() != http.StatusOK {
-		errorMsg := fmt.Sprintf("iex/GetPrice: could not get price for '%s': %s", asset.AssetName, body)
+		errorMsg := fmt.Sprintf("iex/GetPrice: could not get price for '%s': %s", asset.SymbolID, body)
 		return -1, errors.New(errorMsg)
 	}
 

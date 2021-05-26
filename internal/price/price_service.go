@@ -15,7 +15,7 @@ type PriceService struct {
 }
 
 type IPriceService interface {
-	GetPrice(asset db.Asset) (float64, error)
+	GetPrice(asset db.Symbol) (float64, error)
 }
 
 func New(binance *binance.BinanceService, iex *iex.IEXService) *PriceService {
@@ -27,9 +27,9 @@ func New(binance *binance.BinanceService, iex *iex.IEXService) *PriceService {
 	return &PriceService{cache, priceServices}
 }
 
-func (p *PriceService) GetPriceOfAsset(asset db.Asset) (float64, error) {
+func (p *PriceService) GetPriceOfAsset(asset db.Symbol) (float64, error) {
 
-	cacheKey := asset.Source + "/" + asset.AssetName
+	cacheKey := asset.Source + "/" + asset.SymbolID
 
 	if price, found := p.cache.Get(cacheKey); found {
 		return price.(float64), nil

@@ -28,17 +28,17 @@ func New(jobService *job.JobService, db *sql.DB, queries *db.Queries) *BinanceSe
 	}
 }
 
-func (b *BinanceService) GetPrice(asset db.Asset) (float64, error) {
+func (b *BinanceService) GetPrice(asset db.Symbol) (float64, error) {
 
 	resp, err := b.client.R().
-		SetQueryParam("symbol", asset.AssetName+"EUR").
+		SetQueryParam("symbol", asset.SymbolID+"EUR").
 		Get("https://api.binance.com/api/v3/avgPrice")
 	if err != nil {
 		return -1, err
 	}
 	body := string(resp.Body())
 	if resp.StatusCode() != http.StatusOK {
-		return -1, fmt.Errorf("binance/GetPrice: could not get price for '%s': %s", asset.AssetName, body)
+		return -1, fmt.Errorf("binance/GetPrice: could not get price for '%s': %s", asset.SymbolID, body)
 	}
 	price := gjson.Get(body, "price")
 

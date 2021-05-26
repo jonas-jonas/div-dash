@@ -2,7 +2,7 @@ import classNames from "classnames";
 import ky from "ky";
 import { useEffect } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { Asset } from "../models/asset";
+import { Symbol } from "../models/symbol";
 import { Balance } from "../models/balance";
 import { tokenState } from "../state/authState";
 import { balancesState } from "../state/balanceState";
@@ -29,14 +29,14 @@ export function PortfolioBalance() {
     loadBalance();
   }, [token, setBalances]);
 
-  const getIconURL = (asset: Asset) => {
-    switch (asset.source) {
+  const getIconURL = (symbol: Symbol) => {
+    switch (symbol.source) {
       case "iex":
         return "";
       case "binance":
         return (
           "https://cryptoicons.org/api/black/" +
-          asset.assetName.toLowerCase() +
+          symbol.symbolID.toLowerCase() +
           "/20"
         );
     }
@@ -58,12 +58,12 @@ export function PortfolioBalance() {
           {balances?.map((balanceItem) => (
             <tr
               className="border-b border-gray-200"
-              key={balanceItem.asset.assetName}
+              key={balanceItem.symbol.symbolID}
             >
               <td className="py-3 px-2 flex items-center">
-                {balanceItem.asset.type === "crypto" && (
+                {balanceItem.symbol.type === "crypto" && (
                   <img
-                    src={getIconURL(balanceItem.asset)}
+                    src={getIconURL(balanceItem.symbol)}
                     width="20"
                     height="20"
                     alt="BTC icon"
@@ -71,10 +71,10 @@ export function PortfolioBalance() {
                   />
                 )}
                 <div className="flex flex-col">
-                  <span>{balanceItem.asset.assetName}</span>
+                  <span>{balanceItem.symbol.symbolName || balanceItem.symbol.symbolID}</span>
                   <span className="text-sm text-gray-600">
                     {new Intl.NumberFormat("de-DE", {
-                      minimumFractionDigits: balanceItem.asset.precision,
+                      minimumFractionDigits: balanceItem.symbol.precision,
                     }).format(balanceItem.amount)}
                   </span>
                 </div>

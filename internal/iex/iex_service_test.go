@@ -34,8 +34,8 @@ func TestGetPrice(t *testing.T) {
 		WithArgs("LUS").
 		WillReturnRows(rows)
 
-	price, err := binanceService.GetPrice(db.Asset{
-		AssetName: "LUS",
+	price, err := binanceService.GetPrice(db.Symbol{
+		SymbolID: "LUS",
 	})
 
 	assert.Equal(t, 3923.423, price)
@@ -55,8 +55,8 @@ func TestGetPriceForAssetWithoutPrice(t *testing.T) {
 		WithArgs("LUS").
 		WillReturnError(errors.New("test-error"))
 
-	price, err := binanceService.GetPrice(db.Asset{
-		AssetName: "LUS",
+	price, err := binanceService.GetPrice(db.Symbol{
+		SymbolID: "LUS",
 	})
 
 	assert.Equal(t, -1.0, price)
@@ -86,8 +86,8 @@ func TestGetPriceNonOKStatusReturnsMinus1(t *testing.T) {
 		WithArgs("LUS").
 		WillReturnRows(rows)
 
-	price, err := binanceService.GetPrice(db.Asset{
-		AssetName: "LUS",
+	price, err := binanceService.GetPrice(db.Symbol{
+		SymbolID: "LUS",
 	})
 
 	assert.Equal(t, -1.0, price)
@@ -117,8 +117,8 @@ func TestGetPriceNonNumberReturnMinus1(t *testing.T) {
 		WithArgs("LUS").
 		WillReturnRows(rows)
 
-	price, err := binanceService.GetPrice(db.Asset{
-		AssetName: "LUS",
+	price, err := binanceService.GetPrice(db.Symbol{
+		SymbolID: "LUS",
 	})
 
 	assert.Equal(t, -1.0, price)

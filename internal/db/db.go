@@ -25,14 +25,11 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.activateUserStmt, err = db.PrepareContext(ctx, activateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query ActivateUser: %w", err)
 	}
-	if q.addAssetStmt, err = db.PrepareContext(ctx, addAsset); err != nil {
-		return nil, fmt.Errorf("error preparing query AddAsset: %w", err)
+	if q.addSymbolStmt, err = db.PrepareContext(ctx, addSymbol); err != nil {
+		return nil, fmt.Errorf("error preparing query AddSymbol: %w", err)
 	}
-	if q.assetExistsStmt, err = db.PrepareContext(ctx, assetExists); err != nil {
-		return nil, fmt.Errorf("error preparing query AssetExists: %w", err)
-	}
-	if q.connectAssetWithExchangeStmt, err = db.PrepareContext(ctx, connectAssetWithExchange); err != nil {
-		return nil, fmt.Errorf("error preparing query ConnectAssetWithExchange: %w", err)
+	if q.connectSymbolWithExchangeStmt, err = db.PrepareContext(ctx, connectSymbolWithExchange); err != nil {
+		return nil, fmt.Errorf("error preparing query ConnectSymbolWithExchange: %w", err)
 	}
 	if q.countByEmailStmt, err = db.PrepareContext(ctx, countByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query CountByEmail: %w", err)
@@ -73,9 +70,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getAccountStmt, err = db.PrepareContext(ctx, getAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAccount: %w", err)
 	}
-	if q.getAssetStmt, err = db.PrepareContext(ctx, getAsset); err != nil {
-		return nil, fmt.Errorf("error preparing query GetAsset: %w", err)
-	}
 	if q.getBalanceStmt, err = db.PrepareContext(ctx, getBalance); err != nil {
 		return nil, fmt.Errorf("error preparing query GetBalance: %w", err)
 	}
@@ -90,6 +84,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getLastJobByNameStmt, err = db.PrepareContext(ctx, getLastJobByName); err != nil {
 		return nil, fmt.Errorf("error preparing query GetLastJobByName: %w", err)
+	}
+	if q.getSymbolStmt, err = db.PrepareContext(ctx, getSymbol); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSymbol: %w", err)
 	}
 	if q.getTransactionStmt, err = db.PrepareContext(ctx, getTransaction); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTransaction: %w", err)
@@ -118,6 +115,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.startJobStmt, err = db.PrepareContext(ctx, startJob); err != nil {
 		return nil, fmt.Errorf("error preparing query StartJob: %w", err)
 	}
+	if q.symbolExistsStmt, err = db.PrepareContext(ctx, symbolExists); err != nil {
+		return nil, fmt.Errorf("error preparing query SymbolExists: %w", err)
+	}
 	if q.updateAccountStmt, err = db.PrepareContext(ctx, updateAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateAccount: %w", err)
 	}
@@ -131,19 +131,14 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing activateUserStmt: %w", cerr)
 		}
 	}
-	if q.addAssetStmt != nil {
-		if cerr := q.addAssetStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing addAssetStmt: %w", cerr)
+	if q.addSymbolStmt != nil {
+		if cerr := q.addSymbolStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing addSymbolStmt: %w", cerr)
 		}
 	}
-	if q.assetExistsStmt != nil {
-		if cerr := q.assetExistsStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing assetExistsStmt: %w", cerr)
-		}
-	}
-	if q.connectAssetWithExchangeStmt != nil {
-		if cerr := q.connectAssetWithExchangeStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing connectAssetWithExchangeStmt: %w", cerr)
+	if q.connectSymbolWithExchangeStmt != nil {
+		if cerr := q.connectSymbolWithExchangeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing connectSymbolWithExchangeStmt: %w", cerr)
 		}
 	}
 	if q.countByEmailStmt != nil {
@@ -211,11 +206,6 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getAccountStmt: %w", cerr)
 		}
 	}
-	if q.getAssetStmt != nil {
-		if cerr := q.getAssetStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getAssetStmt: %w", cerr)
-		}
-	}
 	if q.getBalanceStmt != nil {
 		if cerr := q.getBalanceStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getBalanceStmt: %w", cerr)
@@ -239,6 +229,11 @@ func (q *Queries) Close() error {
 	if q.getLastJobByNameStmt != nil {
 		if cerr := q.getLastJobByNameStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getLastJobByNameStmt: %w", cerr)
+		}
+	}
+	if q.getSymbolStmt != nil {
+		if cerr := q.getSymbolStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSymbolStmt: %w", cerr)
 		}
 	}
 	if q.getTransactionStmt != nil {
@@ -286,6 +281,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing startJobStmt: %w", cerr)
 		}
 	}
+	if q.symbolExistsStmt != nil {
+		if cerr := q.symbolExistsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing symbolExistsStmt: %w", cerr)
+		}
+	}
 	if q.updateAccountStmt != nil {
 		if cerr := q.updateAccountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateAccountStmt: %w", cerr)
@@ -331,9 +331,8 @@ type Queries struct {
 	db                              DBTX
 	tx                              *sql.Tx
 	activateUserStmt                *sql.Stmt
-	addAssetStmt                    *sql.Stmt
-	assetExistsStmt                 *sql.Stmt
-	connectAssetWithExchangeStmt    *sql.Stmt
+	addSymbolStmt                   *sql.Stmt
+	connectSymbolWithExchangeStmt   *sql.Stmt
 	countByEmailStmt                *sql.Stmt
 	createAccountStmt               *sql.Stmt
 	createExchangeStmt              *sql.Stmt
@@ -347,12 +346,12 @@ type Queries struct {
 	findByEmailStmt                 *sql.Stmt
 	finishJobStmt                   *sql.Stmt
 	getAccountStmt                  *sql.Stmt
-	getAssetStmt                    *sql.Stmt
 	getBalanceStmt                  *sql.Stmt
 	getExchangesOfAssetStmt         *sql.Stmt
 	getJobStmt                      *sql.Stmt
 	getJobsByNameStmt               *sql.Stmt
 	getLastJobByNameStmt            *sql.Stmt
+	getSymbolStmt                   *sql.Stmt
 	getTransactionStmt              *sql.Stmt
 	getUserStmt                     *sql.Stmt
 	getUserRegistrationStmt         *sql.Stmt
@@ -362,6 +361,7 @@ type Queries struct {
 	listTransactionsStmt            *sql.Stmt
 	listUsersStmt                   *sql.Stmt
 	startJobStmt                    *sql.Stmt
+	symbolExistsStmt                *sql.Stmt
 	updateAccountStmt               *sql.Stmt
 }
 
@@ -370,9 +370,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                              tx,
 		tx:                              tx,
 		activateUserStmt:                q.activateUserStmt,
-		addAssetStmt:                    q.addAssetStmt,
-		assetExistsStmt:                 q.assetExistsStmt,
-		connectAssetWithExchangeStmt:    q.connectAssetWithExchangeStmt,
+		addSymbolStmt:                   q.addSymbolStmt,
+		connectSymbolWithExchangeStmt:   q.connectSymbolWithExchangeStmt,
 		countByEmailStmt:                q.countByEmailStmt,
 		createAccountStmt:               q.createAccountStmt,
 		createExchangeStmt:              q.createExchangeStmt,
@@ -386,12 +385,12 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findByEmailStmt:                 q.findByEmailStmt,
 		finishJobStmt:                   q.finishJobStmt,
 		getAccountStmt:                  q.getAccountStmt,
-		getAssetStmt:                    q.getAssetStmt,
 		getBalanceStmt:                  q.getBalanceStmt,
 		getExchangesOfAssetStmt:         q.getExchangesOfAssetStmt,
 		getJobStmt:                      q.getJobStmt,
 		getJobsByNameStmt:               q.getJobsByNameStmt,
 		getLastJobByNameStmt:            q.getLastJobByNameStmt,
+		getSymbolStmt:                   q.getSymbolStmt,
 		getTransactionStmt:              q.getTransactionStmt,
 		getUserStmt:                     q.getUserStmt,
 		getUserRegistrationStmt:         q.getUserRegistrationStmt,
@@ -401,6 +400,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		listTransactionsStmt:            q.listTransactionsStmt,
 		listUsersStmt:                   q.listUsersStmt,
 		startJobStmt:                    q.startJobStmt,
+		symbolExistsStmt:                q.symbolExistsStmt,
 		updateAccountStmt:               q.updateAccountStmt,
 	}
 }

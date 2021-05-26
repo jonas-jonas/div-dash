@@ -23,10 +23,10 @@ func TestGetBalance(t *testing.T) {
 		WithArgs(testutil.TestUserID).
 		WillReturnRows(rows)
 
-	rows = sqlmock.NewRows([]string{"asset_name", "type", "source", "precision"}).
-		AddRow("BTC", "crypto", "binance", 8)
+	rows = sqlmock.NewRows([]string{"symbol_id", "type", "source", "precision", "symbol_name"}).
+		AddRow("BTC", "crypto", "binance", 8, "")
 
-	mock.ExpectQuery("^-- name: GetAsset :one .*$").
+	mock.ExpectQuery("^-- name: GetSymbol :one .*$").
 		WithArgs("BTC").
 		WillReturnRows(rows)
 
@@ -39,7 +39,7 @@ func TestGetBalance(t *testing.T) {
 	result := gjson.Parse(body)
 
 	assert.Equal(t, result.Get("#").Int(), int64(1))
-	assert.Equal(t, result.Get("0.asset.assetName").String(), "BTC")
+	assert.Equal(t, result.Get("0.symbol.symbolID").String(), "BTC")
 }
 
 func TestGetBalanceDbErrorOnBalance(t *testing.T) {

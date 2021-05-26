@@ -21,8 +21,8 @@ func TestGetPrice(t *testing.T) {
 		client: client,
 	}
 
-	price, err := binanceService.GetPrice(db.Asset{
-		AssetName: "BTC",
+	price, err := binanceService.GetPrice(db.Symbol{
+		SymbolID: "BTC",
 	})
 
 	assert.Equal(t, 123.987, price)
@@ -41,8 +41,8 @@ func TestGetPriceErrorResponseReturnMinus1AndError(t *testing.T) {
 		client: client,
 	}
 
-	price, err := binanceService.GetPrice(db.Asset{
-		AssetName: "BTC",
+	price, err := binanceService.GetPrice(db.Symbol{
+		SymbolID: "BTC",
 	})
 
 	assert.Equal(t, -1.0, price)

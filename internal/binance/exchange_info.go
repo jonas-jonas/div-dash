@@ -103,8 +103,8 @@ func (b *BinanceService) SaveExchangeInfo() error {
 		return err
 	}
 	for _, symbol := range exchangeInfo.Symbols {
-		err := queries.AddAsset(ctx, db.AddAssetParams{
-			AssetName: symbol.Baseasset,
+		err := queries.AddSymbol(ctx, db.AddSymbolParams{
+			SymbolID:  symbol.Baseasset,
 			Type:      "crypto",
 			Source:    "binance",
 			Precision: symbol.Baseassetprecision,

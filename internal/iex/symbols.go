@@ -2,6 +2,7 @@ package iex
 
 import (
 	"context"
+	"database/sql"
 	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"encoding/json"
@@ -97,13 +98,17 @@ func (i *IEXService) SaveSymbols() error {
 	}
 
 	for _, symbol := range symbols {
-		symbolName := symbol.Symbol
+		symbolId := symbol.Symbol
 		if strings.Contains(symbol.Symbol, "-") {
 			parts := strings.Split(symbol.Symbol, "-")
-			symbolName = parts[0]
+			symbolId = parts[0]
 		}
-		err = queries.AddAsset(ctx, db.AddAssetParams{
-			AssetName: symbolName,
+		err = queries.AddSymbol(ctx, db.AddSymbolParams{
+			SymbolID: symbolId,
+			SymbolName: sql.NullString{
+				Valid:  true,
+				String: symbol.Name,
+			},
 			Source:    "iex",
 			Type:      symbol.Type,
 			Precision: 4,
@@ -113,8 +118,8 @@ func (i *IEXService) SaveSymbols() error {
 			config.Logger().Printf("Could not save iex symbol %s: %s", symbol.Symbol, err.Error())
 			continue
 		}
-		err = queries.ConnectAssetWithExchange(ctx, db.ConnectAssetWithExchangeParams{
-			Symbol:   symbolName,
+		err = queries.ConnectSymbolWithExchange(ctx, db.ConnectSymbolWithExchangeParams{
+			Symbol:   symbolId,
 			Exchange: symbol.Exchange,
 		})
 
