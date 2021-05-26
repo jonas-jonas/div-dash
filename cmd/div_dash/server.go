@@ -19,6 +19,16 @@ func main() {
 	if err != nil {
 		log.Printf("Error Importing Binance Exchange Info %s", err.Error())
 	}
+
+	err = services.IEXService().SaveSymbols()
+	if err != nil {
+		log.Printf("Error saving IEX Symbols %s", err.Error())
+	}
+
+	err = services.IEXService().SaveExchanges()
+	if err != nil {
+		log.Printf("Error saving IEX Exchanges %s", err.Error())
+	}
 	controllers.RegisterRoutes(r)
 	port := viper.GetString("server.port")
 	r.Run(":" + port)

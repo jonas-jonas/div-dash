@@ -1,7 +1,6 @@
 package price
 
 import (
-	"context"
 	"div-dash/internal/db"
 	"errors"
 	"testing"
@@ -14,14 +13,14 @@ import (
 type mockPriceService struct {
 }
 
-func (m *mockPriceService) GetPrice(ctx context.Context, asset db.Asset) (float64, error) {
+func (m *mockPriceService) GetPrice(asset db.Asset) (float64, error) {
 	return 10.0, nil
 }
 
 type mockPriceServiceWithErr struct {
 }
 
-func (m *mockPriceServiceWithErr) GetPrice(ctx context.Context, asset db.Asset) (float64, error) {
+func (m *mockPriceServiceWithErr) GetPrice(asset db.Asset) (float64, error) {
 	return -1, errors.New("test-price-service-error")
 }
 
@@ -42,8 +41,7 @@ func TestGetPriceOfAsset(t *testing.T) {
 		Source:    "test-source",
 	}
 
-	ctx := context.Background()
-	price, err := priceService.GetPriceOfAsset(ctx, asset)
+	price, err := priceService.GetPriceOfAsset(asset)
 	assert.Equal(t, price, 10.0)
 	assert.Nil(t, err)
 }
@@ -68,9 +66,7 @@ func TestGetPriceOfAssetCacheHit(t *testing.T) {
 		Type:      "crypto",
 		Source:    "test-source",
 	}
-
-	ctx := context.Background()
-	price, err := priceService.GetPriceOfAsset(ctx, asset)
+	price, err := priceService.GetPriceOfAsset(asset)
 	assert.Equal(t, price, 182473.2414)
 	assert.Nil(t, err)
 }
@@ -90,9 +86,7 @@ func TestGetPricePriceServiceErrorReturnsMinus1AndErr(t *testing.T) {
 		Type:      "crypto",
 		Source:    "test-source",
 	}
-
-	ctx := context.Background()
-	price, err := priceService.GetPriceOfAsset(ctx, asset)
+	price, err := priceService.GetPriceOfAsset(asset)
 	assert.Equal(t, price, -1.0)
 	assert.Equal(t, "test-price-service-error", err.Error())
 }

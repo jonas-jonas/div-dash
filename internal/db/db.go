@@ -31,11 +31,17 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.assetExistsStmt, err = db.PrepareContext(ctx, assetExists); err != nil {
 		return nil, fmt.Errorf("error preparing query AssetExists: %w", err)
 	}
+	if q.connectAssetWithExchangeStmt, err = db.PrepareContext(ctx, connectAssetWithExchange); err != nil {
+		return nil, fmt.Errorf("error preparing query ConnectAssetWithExchange: %w", err)
+	}
 	if q.countByEmailStmt, err = db.PrepareContext(ctx, countByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query CountByEmail: %w", err)
 	}
 	if q.createAccountStmt, err = db.PrepareContext(ctx, createAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateAccount: %w", err)
+	}
+	if q.createExchangeStmt, err = db.PrepareContext(ctx, createExchange); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateExchange: %w", err)
 	}
 	if q.createTransactionStmt, err = db.PrepareContext(ctx, createTransaction); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateTransaction: %w", err)
@@ -72,6 +78,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getBalanceStmt, err = db.PrepareContext(ctx, getBalance); err != nil {
 		return nil, fmt.Errorf("error preparing query GetBalance: %w", err)
+	}
+	if q.getExchangesOfAssetStmt, err = db.PrepareContext(ctx, getExchangesOfAsset); err != nil {
+		return nil, fmt.Errorf("error preparing query GetExchangesOfAsset: %w", err)
 	}
 	if q.getJobStmt, err = db.PrepareContext(ctx, getJob); err != nil {
 		return nil, fmt.Errorf("error preparing query GetJob: %w", err)
@@ -132,6 +141,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing assetExistsStmt: %w", cerr)
 		}
 	}
+	if q.connectAssetWithExchangeStmt != nil {
+		if cerr := q.connectAssetWithExchangeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing connectAssetWithExchangeStmt: %w", cerr)
+		}
+	}
 	if q.countByEmailStmt != nil {
 		if cerr := q.countByEmailStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing countByEmailStmt: %w", cerr)
@@ -140,6 +154,11 @@ func (q *Queries) Close() error {
 	if q.createAccountStmt != nil {
 		if cerr := q.createAccountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createAccountStmt: %w", cerr)
+		}
+	}
+	if q.createExchangeStmt != nil {
+		if cerr := q.createExchangeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createExchangeStmt: %w", cerr)
 		}
 	}
 	if q.createTransactionStmt != nil {
@@ -200,6 +219,11 @@ func (q *Queries) Close() error {
 	if q.getBalanceStmt != nil {
 		if cerr := q.getBalanceStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getBalanceStmt: %w", cerr)
+		}
+	}
+	if q.getExchangesOfAssetStmt != nil {
+		if cerr := q.getExchangesOfAssetStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getExchangesOfAssetStmt: %w", cerr)
 		}
 	}
 	if q.getJobStmt != nil {
@@ -309,8 +333,10 @@ type Queries struct {
 	activateUserStmt                *sql.Stmt
 	addAssetStmt                    *sql.Stmt
 	assetExistsStmt                 *sql.Stmt
+	connectAssetWithExchangeStmt    *sql.Stmt
 	countByEmailStmt                *sql.Stmt
 	createAccountStmt               *sql.Stmt
+	createExchangeStmt              *sql.Stmt
 	createTransactionStmt           *sql.Stmt
 	createUserStmt                  *sql.Stmt
 	createUserRegistrationStmt      *sql.Stmt
@@ -323,6 +349,7 @@ type Queries struct {
 	getAccountStmt                  *sql.Stmt
 	getAssetStmt                    *sql.Stmt
 	getBalanceStmt                  *sql.Stmt
+	getExchangesOfAssetStmt         *sql.Stmt
 	getJobStmt                      *sql.Stmt
 	getJobsByNameStmt               *sql.Stmt
 	getLastJobByNameStmt            *sql.Stmt
@@ -345,8 +372,10 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		activateUserStmt:                q.activateUserStmt,
 		addAssetStmt:                    q.addAssetStmt,
 		assetExistsStmt:                 q.assetExistsStmt,
+		connectAssetWithExchangeStmt:    q.connectAssetWithExchangeStmt,
 		countByEmailStmt:                q.countByEmailStmt,
 		createAccountStmt:               q.createAccountStmt,
+		createExchangeStmt:              q.createExchangeStmt,
 		createTransactionStmt:           q.createTransactionStmt,
 		createUserStmt:                  q.createUserStmt,
 		createUserRegistrationStmt:      q.createUserRegistrationStmt,
@@ -359,6 +388,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getAccountStmt:                  q.getAccountStmt,
 		getAssetStmt:                    q.getAssetStmt,
 		getBalanceStmt:                  q.getBalanceStmt,
+		getExchangesOfAssetStmt:         q.getExchangesOfAssetStmt,
 		getJobStmt:                      q.getJobStmt,
 		getJobsByNameStmt:               q.getJobsByNameStmt,
 		getLastJobByNameStmt:            q.getLastJobByNameStmt,

@@ -23,7 +23,7 @@ func TestGetAccount(t *testing.T) {
 	w := PerformAuthenticatedRequest(router, "GET", "/api/account/1")
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `{"id": "1", "name": "Test Account", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
+	assert.JSONEq(t, `{"id": "1", "name": "Test Account", "userID": "`+testutil.TestUserID+`"}`, w.Body.String())
 }
 
 func TestGetAccountNoAccount(t *testing.T) {
@@ -64,7 +64,7 @@ func TestPostAccount(t *testing.T) {
 	w := PerformAuthenticatedRequestWithBody(router, "POST", "/api/account", `{"name": "Test Account"}`)
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `{"id": "1", "name": "Test Account", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
+	assert.JSONEq(t, `{"id": "1", "name": "Test Account", "userID": "`+testutil.TestUserID+`"}`, w.Body.String())
 }
 
 func TestPostAccountDbError(t *testing.T) {
@@ -105,7 +105,7 @@ func TestPutAccount(t *testing.T) {
 	w := PerformAuthenticatedRequestWithBody(router, "PUT", "/api/account/1", `{"name": "New Test Account"}`)
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `{"id": "1", "name": "New Test Account", "user_id": "`+testutil.TestUserID+`"}`, w.Body.String())
+	assert.JSONEq(t, `{"id": "1", "name": "New Test Account", "userID": "`+testutil.TestUserID+`"}`, w.Body.String())
 }
 
 func TestPutAccountDbError(t *testing.T) {

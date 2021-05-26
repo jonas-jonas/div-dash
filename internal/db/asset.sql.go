@@ -44,6 +44,21 @@ func (q *Queries) AssetExists(ctx context.Context, assetName string) (bool, erro
 	return exists, err
 }
 
+const connectAssetWithExchange = `-- name: ConnectAssetWithExchange :exec
+INSERT INTO "asset_exchange" (symbol, exchange)
+VALUES ($1, $2)
+`
+
+type ConnectAssetWithExchangeParams struct {
+	Symbol   string `json:"symbol"`
+	Exchange string `json:"exchange"`
+}
+
+func (q *Queries) ConnectAssetWithExchange(ctx context.Context, arg ConnectAssetWithExchangeParams) error {
+	_, err := q.exec(ctx, q.connectAssetWithExchangeStmt, connectAssetWithExchange, arg.Symbol, arg.Exchange)
+	return err
+}
+
 const getAsset = `-- name: GetAsset :one
 SELECT asset_name, type, source, precision
 FROM "asset"

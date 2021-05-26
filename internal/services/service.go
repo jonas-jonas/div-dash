@@ -4,6 +4,7 @@ import (
 	"div-dash/internal/binance"
 	"div-dash/internal/config"
 	"div-dash/internal/id"
+	"div-dash/internal/iex"
 	"div-dash/internal/job"
 	"div-dash/internal/mail"
 	"div-dash/internal/price"
@@ -20,6 +21,7 @@ var services struct {
 	BinanceService *binance.BinanceService
 	PriceService   *price.PriceService
 	JobService     *job.JobService
+	IEXService     *iex.IEXService
 }
 
 var (
@@ -29,6 +31,7 @@ var (
 	onceBinanceService sync.Once
 	oncePriceService   sync.Once
 	onceJobService     sync.Once
+	onceIEXService     sync.Once
 )
 
 func initTokenService() {
@@ -72,7 +75,7 @@ func BinanceService() *binance.BinanceService {
 }
 
 func initPriceService() {
-	services.PriceService = price.New(BinanceService())
+	services.PriceService = price.New(BinanceService(), IEXService())
 }
 
 func PriceService() *price.PriceService {
@@ -87,4 +90,13 @@ func initJobService() {
 func JobService() *job.JobService {
 	onceJobService.Do(initJobService)
 	return services.JobService
+}
+
+func initIEXService() {
+	services.IEXService = iex.New(config.Queries(), config.DB(), JobService())
+}
+
+func IEXService() *iex.IEXService {
+	onceIEXService.Do(initIEXService)
+	return services.IEXService
 }

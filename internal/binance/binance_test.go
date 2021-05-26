@@ -1,7 +1,6 @@
 package binance
 
 import (
-	"context"
 	"div-dash/internal/db"
 	"testing"
 
@@ -22,9 +21,7 @@ func TestGetPrice(t *testing.T) {
 		client: client,
 	}
 
-	ctx := context.Background()
-
-	price, err := binanceService.GetPrice(ctx, db.Asset{
+	price, err := binanceService.GetPrice(db.Asset{
 		AssetName: "BTC",
 	})
 
@@ -44,9 +41,7 @@ func TestGetPriceErrorResponseReturnMinus1AndError(t *testing.T) {
 		client: client,
 	}
 
-	ctx := context.Background()
-
-	price, err := binanceService.GetPrice(ctx, db.Asset{
+	price, err := binanceService.GetPrice(db.Asset{
 		AssetName: "BTC",
 	})
 

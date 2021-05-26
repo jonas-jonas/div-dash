@@ -1,6 +1,8 @@
+import classNames from "classnames";
 import ky from "ky";
 import { useEffect } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
+import { Asset } from "../models/asset";
 import { Balance } from "../models/balance";
 import { tokenState } from "../state/authState";
 import { balancesState } from "../state/balanceState";
@@ -27,6 +29,19 @@ export function PortfolioBalance() {
     loadBalance();
   }, [token, setBalances]);
 
+  const getIconURL = (asset: Asset) => {
+    switch (asset.source) {
+      case "iex":
+        return "";
+      case "binance":
+        return (
+          "https://cryptoicons.org/api/black/" +
+          asset.assetName.toLowerCase() +
+          "/20"
+        );
+    }
+  };
+
   return (
     <div className="col-span-2">
       <table className="table w-full text-left">
@@ -46,17 +61,15 @@ export function PortfolioBalance() {
               key={balanceItem.asset.assetName}
             >
               <td className="py-3 px-2 flex items-center">
-                <img
-                  src={
-                    "https://cryptoicons.org/api/black/" +
-                    balanceItem.asset.assetName.toLowerCase() +
-                    "/20"
-                  }
-                  width="20"
-                  height="20"
-                  alt="BTC icon"
-                  className="mr-2"
-                />
+                {balanceItem.asset.type === "crypto" && (
+                  <img
+                    src={getIconURL(balanceItem.asset)}
+                    width="20"
+                    height="20"
+                    alt="BTC icon"
+                    className="mr-2"
+                  />
+                )}
                 <div className="flex flex-col">
                   <span>{balanceItem.asset.assetName}</span>
                   <span className="text-sm text-gray-600">
@@ -75,7 +88,15 @@ export function PortfolioBalance() {
               <td>
                 <div className="flex flex-col items-start">
                   <span>{formatMoney(balanceItem.plAbsolute)}</span>
-                  <span className="text-sm text-white px-2 rounded-full bg-red-600">
+                  <span
+                    className={classNames(
+                      "text-sm text-white px-2 rounded-full",
+                      {
+                        "bg-red-600": balanceItem.plAbsolute < 0,
+                        "bg-green-600": balanceItem.plAbsolute > 0,
+                      }
+                    )}
+                  >
                     {formatPercent(balanceItem.plPercent)}
                   </span>
                 </div>

@@ -23,6 +23,19 @@ type Asset struct {
 	Precision int32  `json:"precision"`
 }
 
+type AssetExchange struct {
+	Symbol   string `json:"symbol"`
+	Exchange string `json:"exchange"`
+}
+
+type Exchange struct {
+	Exchange       string `json:"exchange"`
+	ExchangeSuffix string `json:"exchangeSuffix"`
+	Region         string `json:"region"`
+	Description    string `json:"description"`
+	Mic            string `json:"mic"`
+}
+
 type JobHistory struct {
 	ID           int32          `json:"id"`
 	Name         string         `json:"name"`

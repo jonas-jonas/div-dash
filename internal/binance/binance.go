@@ -1,11 +1,9 @@
 package binance
 
 import (
-	"context"
 	"database/sql"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -30,7 +28,7 @@ func New(jobService *job.JobService, db *sql.DB, queries *db.Queries) *BinanceSe
 	}
 }
 
-func (b *BinanceService) GetPrice(ctx context.Context, asset db.Asset) (float64, error) {
+func (b *BinanceService) GetPrice(asset db.Asset) (float64, error) {
 
 	resp, err := b.client.R().
 		SetQueryParam("symbol", asset.AssetName+"EUR").
@@ -40,8 +38,7 @@ func (b *BinanceService) GetPrice(ctx context.Context, asset db.Asset) (float64,
 	}
 	body := string(resp.Body())
 	if resp.StatusCode() != http.StatusOK {
-		errorMsg := fmt.Sprintf("binance/GetPrice: could not get price for '%s': %s", asset.AssetName, body)
-		return -1, errors.New(errorMsg)
+		return -1, fmt.Errorf("binance/GetPrice: could not get price for '%s': %s", asset.AssetName, body)
 	}
 	price := gjson.Get(body, "price")
 

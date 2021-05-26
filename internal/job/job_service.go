@@ -15,6 +15,13 @@ type JobService struct {
 	nowFunc func() time.Time
 }
 
+type IJobService interface {
+	HasLastSuccessfulJobExpired(ctx context.Context, name string, duration time.Duration) (bool, error)
+	StartJob(ctx context.Context, name string) (db.StartJobRow, error)
+	FinishJob(ctx context.Context, id int32) error
+	FailJob(ctx context.Context, id int32, message string) error
+}
+
 func New(queries *db.Queries, logger *log.Logger) *JobService {
 	return &JobService{
 		queries: queries,

@@ -1,9 +1,9 @@
 package price
 
 import (
-	"context"
 	"div-dash/internal/binance"
 	"div-dash/internal/db"
+	"div-dash/internal/iex"
 	"time"
 
 	"zgo.at/zcache"
@@ -15,18 +15,19 @@ type PriceService struct {
 }
 
 type IPriceService interface {
-	GetPrice(ctx context.Context, asset db.Asset) (float64, error)
+	GetPrice(asset db.Asset) (float64, error)
 }
 
-func New(binance *binance.BinanceService) *PriceService {
+func New(binance *binance.BinanceService, iex *iex.IEXService) *PriceService {
 	priceServices := map[string]IPriceService{
 		"binance": binance,
+		"iex":     iex,
 	}
 	cache := zcache.New(5*time.Minute, 10*time.Minute)
 	return &PriceService{cache, priceServices}
 }
 
-func (p *PriceService) GetPriceOfAsset(ctx context.Context, asset db.Asset) (float64, error) {
+func (p *PriceService) GetPriceOfAsset(asset db.Asset) (float64, error) {
 
 	cacheKey := asset.Source + "/" + asset.AssetName
 
@@ -36,7 +37,7 @@ func (p *PriceService) GetPriceOfAsset(ctx context.Context, asset db.Asset) (flo
 
 	priceService := p.priceServices[asset.Source]
 
-	price, err := priceService.GetPrice(ctx, asset)
+	price, err := priceService.GetPrice(asset)
 	if err != nil {
 		return -1, err
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestGetBalance(t *testing.T) {
@@ -32,7 +33,13 @@ func TestGetBalance(t *testing.T) {
 	w := PerformAuthenticatedRequest(router, "GET", "/api/balance")
 
 	assert.Equal(t, 200, w.Code)
-	assert.JSONEq(t, `["amount":20, "asset":map[string]interface {}{"assetName":"BTC", "precision":8, "source":"binance", "type":"crypto"}, "costBasis":100, "fiatAssetPrice":35900.4684846, "fiatValue":718009.3696920001, "plAbsolute":717909.3696920001, "plPercent":7179.093696920001}]`, w.Body.String())
+
+	body := w.Body.String()
+
+	result := gjson.Parse(body)
+
+	assert.Equal(t, result.Get("#").Int(), int64(1))
+	assert.Equal(t, result.Get("0.asset.assetName").String(), "BTC")
 }
 
 func TestGetBalanceDbErrorOnBalance(t *testing.T) {

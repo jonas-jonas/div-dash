@@ -116,6 +116,7 @@ func (b *BinanceService) SaveExchangeInfo() error {
 	err = tx.Commit()
 	if err != nil {
 		b.jobService.FailJob(ctx, job.ID, err.Error())
+		return err
 	}
 	config.Logger().Printf("Imported %v Binance Assets successfully.", count)
 	b.jobService.FinishJob(ctx, job.ID)
