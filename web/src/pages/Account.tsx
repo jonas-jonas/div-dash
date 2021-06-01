@@ -15,6 +15,7 @@ import { useParams } from "react-router";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { Symbol, SymbolType, SymbolTypeLabels } from "../models/symbol";
 import { Transaction } from "../models/transaction";
+import { accountByIdSelector } from "../state/accountState";
 import { tokenState } from "../state/authState";
 import { transactionsState } from "../state/transactionState";
 import { formatDate, formatMoney, formatTime } from "../util/formatter";
@@ -30,6 +31,7 @@ export function Account() {
   const token = useRecoilValue(tokenState);
 
   const { accountId } = useParams<AccountParams>();
+  const account = useRecoilValue(accountByIdSelector(accountId));
 
   useEffect(() => {
     const loadTransactions = async () => {
@@ -56,7 +58,7 @@ export function Account() {
   return (
     <div className="container mx-auto pt-10">
       <div className="flex justify-between mb-4">
-        <h1 className="text-2xl pl-4">Account</h1>
+        <h1 className="text-2xl pl-4">{account?.name}</h1>
         <button
           className="bg-gray-900 text-white py-2 px-3 rounded shadow"
           onClick={() => setCreating(true)}
@@ -100,7 +102,9 @@ export function Account() {
                     </span>
                   </td>
                   <td className="py-3 px-2">{transaction.symbol}</td>
-                  <td className="py-3 px-2 capitalize">{transaction.type}</td>
+                  <td className="py-3 px-2 capitalize">
+                    {SymbolTypeLabels[transaction.type]}
+                  </td>
                   <td className="py-3 px-2">
                     {formatMoney(transaction.price)}
                   </td>

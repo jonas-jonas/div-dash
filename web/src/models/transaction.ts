@@ -1,7 +1,9 @@
+import { SymbolType } from "./symbol";
+
 export type Transaction = {
   transactionId: string;
   symbol: string;
-  type: string;
+  type: SymbolType;
   transactionProvider: string;
   price: number;
   date: string;
