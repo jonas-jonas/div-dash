@@ -112,6 +112,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.listUsersStmt, err = db.PrepareContext(ctx, listUsers); err != nil {
 		return nil, fmt.Errorf("error preparing query ListUsers: %w", err)
 	}
+	if q.searchSymbolStmt, err = db.PrepareContext(ctx, searchSymbol); err != nil {
+		return nil, fmt.Errorf("error preparing query SearchSymbol: %w", err)
+	}
 	if q.startJobStmt, err = db.PrepareContext(ctx, startJob); err != nil {
 		return nil, fmt.Errorf("error preparing query StartJob: %w", err)
 	}
@@ -276,6 +279,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing listUsersStmt: %w", cerr)
 		}
 	}
+	if q.searchSymbolStmt != nil {
+		if cerr := q.searchSymbolStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing searchSymbolStmt: %w", cerr)
+		}
+	}
 	if q.startJobStmt != nil {
 		if cerr := q.startJobStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing startJobStmt: %w", cerr)
@@ -360,6 +368,7 @@ type Queries struct {
 	listAccountsStmt                *sql.Stmt
 	listTransactionsStmt            *sql.Stmt
 	listUsersStmt                   *sql.Stmt
+	searchSymbolStmt                *sql.Stmt
 	startJobStmt                    *sql.Stmt
 	symbolExistsStmt                *sql.Stmt
 	updateAccountStmt               *sql.Stmt
@@ -399,6 +408,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		listAccountsStmt:                q.listAccountsStmt,
 		listTransactionsStmt:            q.listTransactionsStmt,
 		listUsersStmt:                   q.listUsersStmt,
+		searchSymbolStmt:                q.searchSymbolStmt,
 		startJobStmt:                    q.startJobStmt,
 		symbolExistsStmt:                q.symbolExistsStmt,
 		updateAccountStmt:               q.updateAccountStmt,

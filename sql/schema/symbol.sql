@@ -17,3 +17,9 @@ SELECT EXISTS(
   SELECT 1 FROM "symbol"
   WHERE symbol_id = $1
 );
+
+-- name: SearchSymbol :many
+SELECT *
+FROM "symbol"
+WHERE symbol_id LIKE @search OR symbol_name LIKE @search
+LIMIT @count;

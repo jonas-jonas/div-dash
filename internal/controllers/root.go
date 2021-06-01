@@ -65,6 +65,7 @@ func RegisterRoutes(r *gin.Engine) {
 		authorized.GET("/account/:accountId/transaction/:transactionId", GetTransaction)
 
 		authorized.GET("/balance", GetBalance)
+		authorized.GET("/symbol/search", SearchSymbol)
 	}
 }
 

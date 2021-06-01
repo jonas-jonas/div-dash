@@ -6,12 +6,14 @@ import {
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import ky from "ky";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useReducer, useState } from "react";
 import ReactDOM from "react-dom";
-import { useForm } from "react-hook-form";
+import { Path, useForm, UseFormRegister } from "react-hook-form";
 import { useParams } from "react-router";
 import { useRecoilState, useRecoilValue } from "recoil";
+import { Symbol, SymbolType, SymbolTypeLabels } from "../models/symbol";
 import { Transaction } from "../models/transaction";
 import { tokenState } from "../state/authState";
 import { transactionsState } from "../state/transactionState";
@@ -204,7 +206,7 @@ type CreateTransactionModalProps = {
 
 type CreateTransactionForm = {
   symbol: string;
-  type: "crypto" | "stock" | "etf";
+  type: SymbolType;
   transactionProvider: string;
   price: string;
   date: string;
@@ -216,7 +218,7 @@ function CreateTransactionModal({
   close,
   accountId,
 }: CreateTransactionModalProps) {
-  const { register, handleSubmit, formState } =
+  const { register, handleSubmit, formState, setValue } =
     useForm<CreateTransactionForm>();
   const [error, setError] = useState<string>();
   const token = useRecoilValue(tokenState);
@@ -254,7 +256,7 @@ function CreateTransactionModal({
   return (
     <div className="top-0 fixed">
       <form
-        className="w-96 mx-auto bg-gray-50 rounded fixed top-1/4 transform z-10 left-1/2 -translate-x-1/2 shadow"
+        className="w-1/2 mx-auto bg-gray-50 rounded fixed top-1/4 transform z-10 left-1/2 -translate-x-1/2 shadow"
         onSubmit={handleSubmit(onSubmit)}
       >
         <div className="border-b border-gray-200 px-8 py-4 flex justify-between">
@@ -288,11 +290,14 @@ function CreateTransactionModal({
             <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
               Symbol
             </span>
-            <input
-              type="text"
-              placeholder="BTC"
-              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
-              {...register("symbol", { required: true })}
+            <TypeAheadSymbolInput
+              formKey="symbol"
+              register={register}
+              close={(symbol) => {
+                setValue("symbol", symbol.symbolID);
+                setValue("type", symbol.type);
+              }}
+              autoComplete="off"
             />
           </label>
           <label className="block mb-4">
@@ -303,9 +308,13 @@ function CreateTransactionModal({
               {...register("type", { required: true })}
               className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
             >
-              <option value="crypto">Crypto</option>
-              <option value="stock">Stock</option>
-              <option value="etf">ETF</option>
+              {Object.entries(SymbolTypeLabels).map(([key, label]) => {
+                return (
+                  <option value={key} key={key}>
+                    {label}
+                  </option>
+                );
+              })}
             </select>
           </label>
           <label className="block mb-4">
@@ -358,6 +367,188 @@ function CreateTransactionModal({
         </div>
       </form>
       <div className="bg-gray-600 opacity-40 fixed w-full h-full top-0 z-0"></div>
+    </div>
+  );
+}
+
+type TypeAheadSymbolReducerState = {
+  loading: boolean;
+  searchResults: Symbol[];
+  error?: string;
+  show: boolean;
+};
+
+type TypeAheadSymbolReducerAction =
+  | TypeAheadSymbolReducerActionLoad
+  | TypeAheadSymbolReducerActionError
+  | TypeAheadSymbolReducerActionFinished
+  | TypeAheadSymbolReducerActionHide
+  | TypeAheadSymbolReducerActionShow;
+
+type TypeAheadSymbolReducerActionLoad = {
+  type: "LOAD";
+};
+type TypeAheadSymbolReducerActionError = {
+  type: "ERROR";
+  error: string;
+};
+type TypeAheadSymbolReducerActionFinished = {
+  type: "FINISHED";
+  payload: Symbol[];
+};
+type TypeAheadSymbolReducerActionHide = {
+  type: "HIDE";
+};
+type TypeAheadSymbolReducerActionShow = {
+  type: "SHOW";
+};
+
+function TypeAheadSymbolReducer(
+  state: TypeAheadSymbolReducerState,
+  action: TypeAheadSymbolReducerAction
+): TypeAheadSymbolReducerState {
+  switch (action.type) {
+    case "LOAD":
+      return { show: true, loading: true, searchResults: [] };
+    case "FINISHED":
+      return { show: true, loading: false, searchResults: action.payload };
+    case "ERROR":
+      return {
+        show: true,
+        loading: false,
+        error: action.error,
+        searchResults: [],
+      };
+    case "HIDE":
+      return {
+        show: false,
+        loading: state.loading,
+        searchResults: state.searchResults,
+        error: state.error,
+      };
+    case "SHOW":
+      return {
+        show: true,
+        loading: state.loading,
+        searchResults: state.searchResults,
+        error: state.error,
+      };
+  }
+}
+
+type TypeAheadSymbolInputProps<T> = {
+  formKey: Path<T>;
+  register: UseFormRegister<T>;
+  close: (value: Symbol) => void;
+} & React.InputHTMLAttributes<HTMLInputElement>;
+
+function TypeAheadSymbolInput<T>({
+  formKey,
+  register,
+  close,
+  ...rest
+}: TypeAheadSymbolInputProps<T>) {
+  const [searchDebounce, setSearchDebounce] = useState(-1);
+  const [state, dispatch] = useReducer(TypeAheadSymbolReducer, {
+    loading: false,
+    show: false,
+    searchResults: [],
+  });
+  const token = useRecoilValue(tokenState);
+
+  const onSymbolChange = async (evt: ChangeEvent<HTMLInputElement>) => {
+    if (searchDebounce >= 0) {
+      clearTimeout(searchDebounce);
+      setSearchDebounce(-1);
+    }
+    if (!evt.target.value) {
+      return;
+    }
+    dispatch({ type: "LOAD" });
+    const debounceTimer = window.setTimeout(async () => {
+      try {
+        const resp = await ky.get("/api/symbol/search", {
+          searchParams: {
+            query: evt.target.value || "",
+            count: 5,
+          },
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        });
+        const symbols: Symbol[] = await resp.json();
+        dispatch({ type: "FINISHED", payload: symbols });
+      } catch (error) {
+        dispatch({ type: "ERROR", error: error });
+      }
+    }, 500);
+    setSearchDebounce(debounceTimer);
+  };
+
+  const setValue = (result: any) => () => {
+    close(result);
+    dispatch({ type: "HIDE" });
+  };
+
+  useEffect(() => {
+    function clickListener(e: MouseEvent) {
+      if (
+        e.target &&
+        "id" in e.target &&
+        (e.target as Element).id === "typeahead-symbol-input"
+      ) {
+        return;
+      }
+      dispatch({ type: "HIDE" });
+    }
+    document.addEventListener("click", clickListener);
+    return () => {
+      document.removeEventListener("click", clickListener);
+    };
+  }, []);
+
+  const show = () => {
+    dispatch({ type: "SHOW" });
+  };
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        placeholder="BTC"
+        className={classNames(
+          "block w-full px-4 py-2 focus:bg-white shadow focus:border-blue-700 transition-colors",
+          { "shadow-xl rounded-t": state.show, rounded: !state.show }
+        )}
+        {...register(formKey)}
+        onChange={onSymbolChange}
+        onClick={show}
+        id="typeahead-symbol-input"
+        {...rest}
+      />
+      {state.show && (
+        <div className="absolute bg-white w-full shadow-xl rounded-b border-t px-2 py-3">
+          {state.searchResults.map((result) => (
+            <button
+              className="px-2 py-2 flex justify-start items-center hover:bg-gray-100 w-full text-left rounded-lg transition-colors duration-75"
+              key={result.symbolID}
+              onClick={setValue(result)}
+            >
+              <span className="rounded px-1 bg-gray-300 text-sm font-bold mr-2 whitespace-nowrap">
+                {SymbolTypeLabels[result.type]}
+              </span>
+              <span className="flex-shrink">
+                {result.symbolID} - {result.symbolName}
+              </span>
+            </button>
+          ))}
+          {state.loading && (
+            <div>
+              <FontAwesomeIcon icon={faSpinner} spin />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

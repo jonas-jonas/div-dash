@@ -67,6 +67,47 @@ func (q *Queries) GetSymbol(ctx context.Context, symbolID string) (Symbol, error
 	return i, err
 }
 
+const searchSymbol = `-- name: SearchSymbol :many
+SELECT symbol_id, type, source, precision, symbol_name
+FROM "symbol"
+WHERE symbol_id LIKE $1 OR symbol_name LIKE $1 
+LIMIT $2
+`
+
+type SearchSymbolParams struct {
+	Search string `json:"search"`
+	Count  int32  `json:"count"`
+}
+
+func (q *Queries) SearchSymbol(ctx context.Context, arg SearchSymbolParams) ([]Symbol, error) {
+	rows, err := q.query(ctx, q.searchSymbolStmt, searchSymbol, arg.Search, arg.Count)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Symbol
+	for rows.Next() {
+		var i Symbol
+		if err := rows.Scan(
+			&i.SymbolID,
+			&i.Type,
+			&i.Source,
+			&i.Precision,
+			&i.SymbolName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const symbolExists = `-- name: SymbolExists :one
 SELECT EXISTS(
   SELECT 1 FROM "symbol"
