@@ -32,12 +32,12 @@ export function PortfolioBalance() {
   const getIconURL = (symbol: Symbol) => {
     switch (symbol.source) {
       case "iex":
-        return "";
+        return "http://localhost:8091/32/color/generic.png";
       case "binance":
         return (
-          "https://cryptoicons.org/api/black/" +
+          "http://localhost:8091/32/color/" +
           symbol.symbolID.toLowerCase() +
-          "/20"
+          ".png"
         );
     }
   };
@@ -61,15 +61,13 @@ export function PortfolioBalance() {
               key={balanceItem.symbol.symbolID}
             >
               <td className="py-3 px-2 flex items-center">
-                {balanceItem.symbol.type === "crypto" && (
-                  <img
-                    src={getIconURL(balanceItem.symbol)}
-                    width="20"
-                    height="20"
-                    alt="BTC icon"
-                    className="mr-2"
-                  />
-                )}
+                <img
+                  src={getIconURL(balanceItem.symbol)}
+                  width="20"
+                  height="20"
+                  alt="BTC icon"
+                  className="mr-2"
+                />
                 <div className="flex flex-col">
                   <span>
                     {balanceItem.symbol.symbolName ||
@@ -85,7 +83,9 @@ export function PortfolioBalance() {
               <td className="py-3 px-2">
                 <div className="flex flex-col">
                   <span>{formatMoney(balanceItem.fiatAssetPrice)}</span>
-                  <span className="text-sm text-gray-600">{formatMoney(balanceItem.fiatValue)}</span>
+                  <span className="text-sm text-gray-600">
+                    {formatMoney(balanceItem.fiatValue)}
+                  </span>
                 </div>
               </td>
               <td className="py-3 px-2">
