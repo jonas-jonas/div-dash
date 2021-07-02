@@ -38,8 +38,8 @@ func TestGetBalance(t *testing.T) {
 
 	result := gjson.Parse(body)
 
-	assert.Equal(t, result.Get("#").Int(), int64(1))
-	assert.Equal(t, result.Get("0.symbol.symbolID").String(), "BTC")
+	assert.Equal(t, result.Get("symbols.#").Int(), int64(1))
+	assert.Equal(t, result.Get("symbols.0.symbol.symbolID").String(), "BTC")
 }
 
 func TestGetBalanceDbErrorOnBalance(t *testing.T) {
