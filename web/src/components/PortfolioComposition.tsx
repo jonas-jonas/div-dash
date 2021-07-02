@@ -20,22 +20,16 @@ const COLORS: { [key: string]: string } = {
 };
 
 export function PortfolioComposition() {
-  const balances = useRecoilValue(balancesState);
+  const balance = useRecoilValue(balancesState);
 
   const chartData = useMemo(() => {
-    return balances.map((balance) => {
+    return balance?.symbols.map((balanceItem) => {
       return {
-        symbol: balance.symbol.symbolID,
-        total: balance.fiatValue,
+        symbol: balanceItem.symbol.symbolID,
+        total: balanceItem.fiatValue,
       };
     });
-  }, [balances]);
-
-  const total = useMemo(() => {
-    return chartData.reduce((prev, curr) => {
-      return prev + curr.total;
-    }, 0);
-  }, [chartData]);
+  }, [balance?.symbols]);
 
   return (
     <div className="col-span-1 row-span-2 bg-white shadow rounded px-6 py-8 flex flex-col">
@@ -63,18 +57,25 @@ export function PortfolioComposition() {
               paddingAngle={2}
               dataKey="total"
             >
-              {chartData.map((entry) => (
+              {chartData?.map((entry) => (
                 <Cell
                   key={entry.total}
                   name={entry.symbol}
                   fill={COLORS[entry.symbol]}
                 />
               ))}
+
               <Label
-                value={formatMoney(total)}
-                position="center"
+                textAnchor="top"
+                dominantBaseline="middle"
+                x={200}
+                position="centerBottom"
+                offset={2000}
+                fontWeight="bold"
                 fontSize={20}
-              />
+              >
+                {formatMoney(balance?.fiatValue!)}
+              </Label>
             </Pie>
             <Legend></Legend>
           </PieChart>

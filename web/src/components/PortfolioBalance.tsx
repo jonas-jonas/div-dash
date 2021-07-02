@@ -9,7 +9,7 @@ import { balancesState } from "../state/balanceState";
 import { formatMoney, formatPercent } from "../util/formatter";
 
 export function PortfolioBalance() {
-  const [balances, setBalances] = useRecoilState(balancesState);
+  const [balance, setBalance] = useRecoilState(balancesState);
   const token = useRecoilValue(tokenState);
 
   useEffect(() => {
@@ -20,14 +20,14 @@ export function PortfolioBalance() {
             Authorization: "Bearer " + token,
           },
         });
-        const balances: Balance[] = await response.json();
-        setBalances(balances);
+        const balance: Balance = await response.json();
+        setBalance(balance);
       } catch (error) {
         console.error(error);
       }
     };
     loadBalance();
-  }, [token, setBalances]);
+  }, [token, setBalance]);
 
   const getIconURL = (symbol: Symbol) => {
     switch (symbol.source) {
@@ -55,7 +55,7 @@ export function PortfolioBalance() {
           </tr>
         </thead>
         <tbody>
-          {balances?.map((balanceItem) => (
+          {balance?.symbols.map((balanceItem) => (
             <tr
               className="border-b border-gray-200"
               key={balanceItem.symbol.symbolID}
@@ -93,17 +93,17 @@ export function PortfolioBalance() {
               </td>
               <td>
                 <div className="flex flex-col items-start">
-                  <span>{formatMoney(balanceItem.plAbsolute)}</span>
+                  <span>{formatMoney(balanceItem.pnl.pnl)}</span>
                   <span
                     className={classNames(
                       "text-sm text-white px-2 rounded-full",
                       {
-                        "bg-red-600": balanceItem.plAbsolute < 0,
-                        "bg-green-600": balanceItem.plAbsolute > 0,
+                        "bg-red-600": balanceItem.pnl.pnl < 0,
+                        "bg-green-600": balanceItem.pnl.pnl > 0,
                       }
                     )}
                   >
-                    {formatPercent(balanceItem.plPercent)}
+                    {formatPercent(balanceItem.pnl.pnlPercent)}
                   </span>
                 </div>
               </td>

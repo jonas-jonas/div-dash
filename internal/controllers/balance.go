@@ -17,14 +17,25 @@ type symbolResponse struct {
 	SymbolName string `json:"symbolName"`
 }
 
-type balanceResponse struct {
+type balanceItemResponse struct {
 	Symbol         symbolResponse `json:"symbol"`
 	Amount         float64        `json:"amount"`
 	CostBasis      float64        `json:"costBasis"`
 	FiatAssetPrice float64        `json:"fiatAssetPrice"`
 	FiatValue      float64        `json:"fiatValue"`
-	PLAbsolute     float64        `json:"plAbsolute"`
-	PLPercent      float64        `json:"plPercent"`
+	PNL            pnlResponse    `json:"pnl"`
+}
+
+type pnlResponse struct {
+	PNL        float64 `json:"pnl"`
+	PNLPercent float64 `json:"pnlPercent"`
+}
+
+type balanceResponse struct {
+	Symbols   []balanceItemResponse `json:"symbols"`
+	FiatValue float64               `json:"fiatValue"`
+	CostBasis float64               `json:"costBasis"`
+	PNL       pnlResponse           `json:"pnl"`
 }
 
 func GetBalance(c *gin.Context) {
@@ -36,7 +47,7 @@ func GetBalance(c *gin.Context) {
 		return
 	}
 
-	resp := []balanceResponse{}
+	resp := balanceResponse{}
 
 	for _, entry := range balances {
 		costBasis := money.New(int64(entry.CostBasis), "EUR").AsMajorUnits()
@@ -60,14 +71,20 @@ func GetBalance(c *gin.Context) {
 			Precision:  symbol.Precision,
 			SymbolName: symbol.SymbolName.String,
 		}
-		resp = append(resp, balanceResponse{
+
+		resp.CostBasis += costBasis
+		resp.FiatValue += fiatValue
+
+		resp.Symbols = append(resp.Symbols, balanceItemResponse{
 			Symbol:         symbolResponse,
 			Amount:         entry.Amount,
 			CostBasis:      costBasis,
 			FiatAssetPrice: currentPrice,
 			FiatValue:      fiatValue,
-			PLAbsolute:     plAbsolute,
-			PLPercent:      plPercent,
+			PNL: pnlResponse{
+				PNL:        plAbsolute,
+				PNLPercent: plPercent,
+			},
 		})
 	}
 

@@ -1,7 +1,7 @@
 import { atom } from "recoil";
 import { Balance } from "../models/balance";
 
-export const balancesState = atom<Balance[]>({
+export const balancesState = atom<Balance | null>({
   key: "Balances",
-  default: [],
+  default: null,
 });
