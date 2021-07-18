@@ -93,7 +93,7 @@ func JobService() *job.JobService {
 }
 
 func initIEXService() {
-	services.IEXService = iex.New(config.Queries(), config.DB(), JobService())
+	services.IEXService = iex.New(config.Queries(), config.DB(), JobService(), config.Config().IEX)
 }
 
 func IEXService() *iex.IEXService {

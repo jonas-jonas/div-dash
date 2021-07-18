@@ -3,6 +3,7 @@ package iex
 import (
 	"context"
 	"database/sql"
+	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
 	"div-dash/internal/model"
@@ -24,13 +25,17 @@ type IEXService struct {
 	jobService job.IJobService
 	quoteCache *zcache.Cache
 	token      string
+	baseUrl    string
 }
 
-func New(queries *db.Queries, db *sql.DB, jobService job.IJobService) *IEXService {
+func New(queries *db.Queries, db *sql.DB, jobService job.IJobService, iexConfig config.IEXConfiguration) *IEXService {
 	client := resty.New()
 	quoteCache := zcache.New(zcache.NoExpiration, -1)
-	token := "Tpk_dc884d96cdc34cd0bd17d035434e55ab"
-	return &IEXService{client, queries, db, jobService, quoteCache, token}
+	token := iexConfig.Token
+	baseUrl := iexConfig.BaseUrl
+	client.SetHostURL(baseUrl)
+	client.SetQueryParam("token", token)
+	return &IEXService{client, queries, db, jobService, quoteCache, token, baseUrl}
 }
 
 var exchangeWeights = map[string]int{
@@ -117,9 +122,8 @@ func (i *IEXService) GetPrice(asset db.Symbol) (float64, error) {
 	}
 
 	resp, err := i.client.R().
-		SetQueryParam("token", i.token).
 		SetPathParam("symbol", asset.SymbolID+exchange.ExchangeSuffix).
-		Get("https://cloud.iexapis.com/stable/stock/{symbol}/quote")
+		Get("/stock/{symbol}/quote")
 
 	if err != nil {
 		return -1, err
@@ -143,9 +147,8 @@ func (i *IEXService) GetPrice(asset db.Symbol) (float64, error) {
 func (i *IEXService) getCompanyDetails(symbol string) (CompanyDetails, error) {
 
 	resp, err := i.client.R().
-		SetQueryParam("token", i.token).
 		SetPathParam("symbol", symbol).
-		Get("https://sandbox.iexapis.com/stable/stock/{symbol}/company")
+		Get("/stock/{symbol}/company")
 
 	if err != nil {
 		return CompanyDetails{}, err
@@ -165,9 +168,8 @@ func (i *IEXService) getCompanyDetails(symbol string) (CompanyDetails, error) {
 func (i *IEXService) getCompanyKeyStats(symbol string) (CompanyKeyStats, error) {
 
 	resp, err := i.client.R().
-		SetQueryParam("token", i.token).
 		SetPathParam("symbol", symbol).
-		Get("https://sandbox.iexapis.com/stable/stock/{symbol}/stats")
+		Get("/stock/{symbol}/stats")
 
 	if err != nil {
 		return CompanyKeyStats{}, err
@@ -267,11 +269,10 @@ func (i *IEXService) GetChart(asset db.Symbol, span int) (model.Chart, error) {
 	}
 
 	resp, err := i.client.R().
-		SetQueryParam("token", i.token).
 		SetPathParam("symbol", asset.SymbolID+exchange.ExchangeSuffix).
 		SetPathParam("span", strconv.Itoa(span)+"y").
 		SetQueryParam("chartCloseOnly", "true").
-		Get("https://sandbox.iexapis.com/stable/stock/{symbol}/chart/{span}")
+		Get("/stock/{symbol}/chart/{span}")
 
 	if err != nil {
 		return model.Chart{}, err

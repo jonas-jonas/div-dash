@@ -15,3 +15,7 @@ smtp:
 token:
   key: YELLOW SUBMARINE, BLACK WIZARDRY
   tokenValid: 24
+
+iex:
+  token: Tpk_dc884d96cdc34cd0bd17d035434e55ab
+  baseUrl: https://sandbox.iexapis.com/stable

@@ -13,6 +13,7 @@ type Configuration struct {
 	Database DatabaseConfiguration
 	SMTP     SmtpConfiguration
 	Token    TokenConfiguration
+	IEX      IEXConfiguration
 }
 
 type ServerConfiguration struct {
@@ -35,6 +36,11 @@ type SmtpConfiguration struct {
 type TokenConfiguration struct {
 	Key        string
 	TokenValid uint32
+}
+
+type IEXConfiguration struct {
+	Token   string
+	BaseUrl string
 }
 
 var configuration Configuration
