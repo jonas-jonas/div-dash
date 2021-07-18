@@ -115,7 +115,3 @@ func GetAuthIdentity(c *gin.Context) {
 
 	c.JSON(http.StatusOK, userResponseFromUser(user))
 }
-
-func GetLogout(c *gin.Context) {
-	c.SetCookie("token", "", -1, "/", "localhost", true, true)
-}

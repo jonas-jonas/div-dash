@@ -16,7 +16,6 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { Symbol, SymbolType, SymbolTypeLabels } from "../models/symbol";
 import { Transaction } from "../models/transaction";
 import { accountByIdSelector } from "../state/accountState";
-import { tokenState } from "../state/authState";
 import { transactionsState } from "../state/transactionState";
 import { formatDate, formatMoney, formatTime } from "../util/formatter";
 
@@ -28,7 +27,6 @@ export function Account() {
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useRecoilState(transactionsState);
   const [creating, setCreating] = useState(false);
-  const token = useRecoilValue(tokenState);
 
   const { accountId } = useParams<AccountParams>();
   const account = useRecoilValue(accountByIdSelector(accountId));
@@ -37,12 +35,7 @@ export function Account() {
     const loadTransactions = async () => {
       try {
         const response = await ky.get(
-          "/api/account/" + accountId + "/transaction",
-          {
-            headers: {
-              Authorization: "Bearer " + token,
-            },
-          }
+          "/api/account/" + accountId + "/transaction"
         );
         const transactions: Transaction[] = await response.json();
         setTransactions(transactions);
@@ -53,7 +46,7 @@ export function Account() {
       }
     };
     loadTransactions();
-  }, [token, accountId, setTransactions]);
+  }, [accountId, setTransactions]);
 
   return (
     <div className="container mx-auto pt-10">
@@ -225,7 +218,6 @@ function CreateTransactionModal({
   const { register, handleSubmit, formState, setValue } =
     useForm<CreateTransactionForm>();
   const [error, setError] = useState<string>();
-  const token = useRecoilValue(tokenState);
   const [, setTransactions] = useRecoilState(transactionsState);
 
   const onSubmit = async (values: CreateTransactionForm) => {
@@ -240,9 +232,6 @@ function CreateTransactionModal({
             amount: parseFloat(values.amount),
             price: parseFloat(values.price),
             transactionProvider: "binance",
-          },
-          headers: {
-            Authorization: "Bearer " + token,
           },
         }
       );
@@ -458,7 +447,6 @@ function TypeAheadSymbolInput<T>({
     show: false,
     searchResults: [],
   });
-  const token = useRecoilValue(tokenState);
 
   const onSymbolChange = async (evt: ChangeEvent<HTMLInputElement>) => {
     if (searchDebounce >= 0) {
@@ -475,9 +463,6 @@ function TypeAheadSymbolInput<T>({
           searchParams: {
             query: evt.target.value || "",
             count: 5,
-          },
-          headers: {
-            Authorization: "Bearer " + token,
           },
         });
         const symbols: Symbol[] = await resp.json();

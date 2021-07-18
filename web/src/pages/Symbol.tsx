@@ -1,7 +1,9 @@
 import {
-    faChevronDown,
-    faChevronRight,
-    faExternalLinkAlt, faLink, faSpinner
+  faChevronDown,
+  faChevronRight,
+  faExternalLinkAlt,
+  faLink,
+  faSpinner
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ky from "ky";
@@ -9,15 +11,14 @@ import numeral from "numeral";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
-    CartesianGrid, Line,
-    LineChart,
-    ResponsiveContainer,
-    XAxis,
-    YAxis
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis
 } from "recharts";
-import { useRecoilValue } from "recoil";
 import { SymbolType } from "../models/symbol";
-import { tokenState } from "../state/authState";
 import { formatMoney } from "../util/formatter";
 
 type SymbolPageParams = {
@@ -66,16 +67,11 @@ export function SymbolPage() {
   const [loadingSymbol, setLoadingSymbol] = useState(true);
   const [loadingChart, setLoadingChart] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const token = useRecoilValue(tokenState);
 
   useEffect(() => {
     const loadSymbolDetails = async () => {
       try {
-        const response = await ky.get("/api/symbol/details/" + symbolId, {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        });
+        const response = await ky.get("/api/symbol/details/" + symbolId);
         const symbolDetails: SymbolDetails = await response.json();
         setSymbolDetails(symbolDetails);
       } catch (error) {
@@ -85,16 +81,12 @@ export function SymbolPage() {
       }
     };
     loadSymbolDetails();
-  }, [symbolId, token]);
+  }, [symbolId]);
 
   useEffect(() => {
     const loadChart = async () => {
       try {
-        const response = await ky.get("/api/symbol/chart/" + symbolId, {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        });
+        const response = await ky.get("/api/symbol/chart/" + symbolId);
         const chart: ChartEntry[] = await response.json();
         setChart(chart);
       } catch (error) {
@@ -104,7 +96,7 @@ export function SymbolPage() {
       }
     };
     loadChart();
-  }, [symbolId, token]);
+  }, [symbolId]);
 
   return (
     <div className="container mb-24 mx-auto pt-8">
@@ -315,7 +307,9 @@ export function SymbolPage() {
           </div>
         </div>
       )}
-      {!loadingSymbol && error && <div>There was an error loading the data for this symbol.</div>}
+      {!loadingSymbol && error && (
+        <div>There was an error loading the data for this symbol.</div>
+      )}
     </div>
   );
 }

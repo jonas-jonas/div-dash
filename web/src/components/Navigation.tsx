@@ -1,16 +1,16 @@
 import classNames from "classnames";
+import ky from "ky";
 import { Link, useLocation } from "react-router-dom";
-import { useRecoilState, useResetRecoilState } from "recoil";
-import { tokenState, userState } from "../state/authState";
+import { useRecoilState } from "recoil";
+import { userState } from "../state/authState";
 
 export function Navigation() {
   const [user, setUser] = useRecoilState(userState);
-  const resetToken = useResetRecoilState(tokenState);
   const location = useLocation();
 
   const handleLogout = async () => {
     setUser(null);
-    resetToken();
+    await ky.get("/api/auth/logout");
   };
 
   const navItemClasses = (pathName: string) => {

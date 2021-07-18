@@ -12,7 +12,7 @@ type Configuration struct {
 	Server   ServerConfiguration
 	Database DatabaseConfiguration
 	SMTP     SmtpConfiguration
-	Paseto   PasetoConfiguration
+	Token    TokenConfiguration
 }
 
 type ServerConfiguration struct {
@@ -32,11 +32,9 @@ type SmtpConfiguration struct {
 	Password string
 }
 
-type PasetoConfiguration struct {
-	Audience   string
-	Issuer     string
+type TokenConfiguration struct {
 	Key        string
-	TokenValid int
+	TokenValid uint32
 }
 
 var configuration Configuration

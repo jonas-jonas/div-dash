@@ -4,7 +4,7 @@ import {
   faEllipsisH,
   faPlus,
   faSpinner,
-  faTimes,
+  faTimes
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ky from "ky";
@@ -12,25 +12,19 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import { Account } from "../models/account";
-import { tokenState } from "../state/authState";
 import { accountsState } from "../state/accountState";
 
 export function Accounts() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [accounts, setAccounts] = useRecoilState(accountsState);
-  const token = useRecoilValue(tokenState);
 
   useEffect(() => {
     const loadAccounts = async () => {
       try {
-        const response = await ky.get("/api/account", {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        });
+        const response = await ky.get("/api/account");
         const accounts: Account[] = await response.json();
         setAccounts(accounts);
       } catch (error) {
@@ -41,7 +35,7 @@ export function Accounts() {
       }
     };
     loadAccounts();
-  }, [token, setAccounts]);
+  }, [setAccounts]);
 
   return (
     <div className="container mx-auto py-8">
@@ -135,16 +129,12 @@ type CreateAccountForm = {
 function CreateAccountModal({ close }: CreateAccountModalProps) {
   const { register, handleSubmit, formState, setError } =
     useForm<CreateAccountForm>();
-  const token = useRecoilValue(tokenState);
   const [, setAccounts] = useRecoilState(accountsState);
 
   const onSubmit = async (values: CreateAccountForm) => {
     try {
       const response = await ky.post("/api/account", {
         json: values,
-        headers: {
-          Authorization: "Bearer " + token,
-        },
       });
 
       const account: Account = await response.json();

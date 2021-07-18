@@ -2,16 +2,10 @@ import ky from "ky";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useHistory } from "react-router";
-import { useRecoilState } from "recoil";
-import { tokenState } from "../state/authState";
 
 type LoginForm = {
   email: string;
   password: string;
-};
-
-type LoginResponse = {
-  token: string;
 };
 
 type ApiError = {
@@ -22,19 +16,16 @@ type ApiError = {
 };
 
 export function Login() {
-  const [, setToken] = useRecoilState(tokenState);
   const { register, handleSubmit, reset } = useForm<LoginForm>();
   const [error, setError] = useState<string | null>();
   const history = useHistory();
 
   const onSubmit = async (values: LoginForm) => {
     try {
-      const res = await ky.post("/api/login", {
+      await ky.post("/api/login", {
         json: values,
       });
-      const json: LoginResponse = await res.json();
 
-      setToken(json.token);
       history.replace("/");
     } catch (error) {
       if (error instanceof ky.HTTPError) {

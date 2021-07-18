@@ -3,16 +3,19 @@ package middleware
 import (
 	"div-dash/internal/services"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.Request.Header.Get("Authorization")
+		tokenCookie, err := c.Request.Cookie("token")
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized", "error": err.Error()})
+			return
+		}
 
-		token := strings.TrimPrefix(authHeader, "Bearer ")
+		token := tokenCookie.Value
 
 		result, userId, err := services.TokenService().VerifyToken(token)
 

@@ -2,24 +2,18 @@ import classNames from "classnames";
 import ky from "ky";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import { Balance } from "../models/balance";
-import { tokenState } from "../state/authState";
 import { balancesState } from "../state/balanceState";
 import { formatMoney, formatPercent } from "../util/formatter";
 
 export function PortfolioBalance() {
   const [balance, setBalance] = useRecoilState(balancesState);
-  const token = useRecoilValue(tokenState);
 
   useEffect(() => {
     const loadBalance = async () => {
       try {
-        const response = await ky.get("/api/balance", {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        });
+        const response = await ky.get("/api/balance");
         const balance: Balance = await response.json();
         setBalance(balance);
       } catch (error) {
@@ -27,7 +21,7 @@ export function PortfolioBalance() {
       }
     };
     loadBalance();
-  }, [token, setBalance]);
+  }, [setBalance]);
 
   return (
     <div className="col-span-2">
@@ -88,7 +82,12 @@ export function PortfolioBalance() {
                 </div>
               </td>
               <td className="py-3 px-2">
-                <Link className="text-blue-700 font-bold" to={"/symbol/" + balanceItem.symbol.symbolID}>Details</Link>
+                <Link
+                  className="text-blue-700 font-bold"
+                  to={"/symbol/" + balanceItem.symbol.symbolID}
+                >
+                  Details
+                </Link>
               </td>
             </tr>
           ))}

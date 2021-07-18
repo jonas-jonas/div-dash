@@ -35,7 +35,7 @@ var (
 )
 
 func initTokenService() {
-	services.TokenService = token.NewPasetoService(config.Config().Paseto)
+	services.TokenService = token.NewTokenService(config.Config().Token)
 }
 
 func TokenService() *token.TokenService {

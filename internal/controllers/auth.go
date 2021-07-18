@@ -51,7 +51,8 @@ func PostLogin(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.SetCookie("token", token, int(time.Hour.Seconds())*24, "/api", "localhost", true, true)
+	c.Status(http.StatusOK)
 }
 
 type RegisterRequest struct {
@@ -165,5 +166,10 @@ func PostActivate(c *gin.Context) {
 		return
 	}
 
+	c.Status(http.StatusOK)
+}
+
+func GetLogout(c *gin.Context) {
+	c.SetCookie("token", "", -1, "/api", "localhost", true, true)
 	c.Status(http.StatusOK)
 }

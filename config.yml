@@ -12,8 +12,6 @@ smtp:
   port: 1025
   password: pass
 
-paseto:
-  audience: div-dash
-  issuer: div-dash
+token:
   key: YELLOW SUBMARINE, BLACK WIZARDRY
   tokenValid: 24
