@@ -3,6 +3,7 @@ package controllers
 import (
 	"div-dash/internal/config"
 	"div-dash/internal/db"
+	"div-dash/internal/services"
 	"net/http"
 	"strconv"
 
@@ -39,4 +40,40 @@ func SearchSymbol(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func GetSymbolDetails(c *gin.Context) {
+	symbolId := c.Param("symbolId")
+
+	symbol, err := config.Queries().GetSymbol(c, symbolId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	details, err := services.PriceService().GetDetails(symbol)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, details)
+}
+
+func GetSymbolChart(c *gin.Context) {
+	symbolId := c.Param("symbolId")
+
+	symbol, err := config.Queries().GetSymbol(c, symbolId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	chart, err := services.PriceService().GetChart(symbol, 1)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, chart)
 }

@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
+	"div-dash/internal/model"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -21,16 +23,18 @@ type IEXService struct {
 	db         *sql.DB
 	jobService job.IJobService
 	quoteCache *zcache.Cache
+	token      string
 }
 
 func New(queries *db.Queries, db *sql.DB, jobService job.IJobService) *IEXService {
 	client := resty.New()
 	quoteCache := zcache.New(zcache.NoExpiration, -1)
-	return &IEXService{client, queries, db, jobService, quoteCache}
+	token := "Tpk_dc884d96cdc34cd0bd17d035434e55ab"
+	return &IEXService{client, queries, db, jobService, quoteCache, token}
 }
 
 var exchangeWeights = map[string]int{
-	"GY": 10,
+	"ETR": 10,
 }
 
 type Quote struct {
@@ -112,10 +116,8 @@ func (i *IEXService) GetPrice(asset db.Symbol) (float64, error) {
 		return quote.(Quote).LatestPrice, nil
 	}
 
-	token := "pk_f63a9516a1d14334bcf987d1dd52af64"
-
 	resp, err := i.client.R().
-		SetQueryParam("token", token).
+		SetQueryParam("token", i.token).
 		SetPathParam("symbol", asset.SymbolID+exchange.ExchangeSuffix).
 		Get("https://cloud.iexapis.com/stable/stock/{symbol}/quote")
 
@@ -136,4 +138,163 @@ func (i *IEXService) GetPrice(asset db.Symbol) (float64, error) {
 	i.quoteCache.Set(asset.SymbolID+exchange.ExchangeSuffix, quote, time.Hour)
 
 	return quote.LatestPrice, nil
+}
+
+func (i *IEXService) getCompanyDetails(symbol string) (CompanyDetails, error) {
+
+	resp, err := i.client.R().
+		SetQueryParam("token", i.token).
+		SetPathParam("symbol", symbol).
+		Get("https://sandbox.iexapis.com/stable/stock/{symbol}/company")
+
+	if err != nil {
+		return CompanyDetails{}, err
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		errorMsg := fmt.Sprintf("iex/getCompanyDetails: could not get details for '%s': %s", symbol, resp.Body())
+		return CompanyDetails{}, errors.New(errorMsg)
+	}
+
+	var companyDetails CompanyDetails
+	err = json.Unmarshal(resp.Body(), &companyDetails)
+
+	return companyDetails, err
+}
+
+func (i *IEXService) getCompanyKeyStats(symbol string) (CompanyKeyStats, error) {
+
+	resp, err := i.client.R().
+		SetQueryParam("token", i.token).
+		SetPathParam("symbol", symbol).
+		Get("https://sandbox.iexapis.com/stable/stock/{symbol}/stats")
+
+	if err != nil {
+		return CompanyKeyStats{}, err
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		errorMsg := fmt.Sprintf("iex/getCompanyKeyStats: could not get details for '%s': %s", symbol, resp.Body())
+		return CompanyKeyStats{}, errors.New(errorMsg)
+	}
+
+	var companyKeyStats CompanyKeyStats
+	err = json.Unmarshal(resp.Body(), &companyKeyStats)
+
+	return companyKeyStats, err
+}
+
+func assembleTags(companyDetails CompanyDetails) []model.SymbolTag {
+
+	tags := []model.SymbolTag{}
+
+	tags = append(tags, model.SymbolTag{
+		Label: fmt.Sprintf("%d Employees", companyDetails.Employees),
+		Type:  "CHIP",
+	})
+
+	for _, tag := range companyDetails.Tags {
+		tags = append(tags, model.SymbolTag{
+			Label: tag,
+			Type:  "CHIP",
+		})
+	}
+
+	tags = append(tags, model.SymbolTag{
+		Label: companyDetails.Website,
+		Link:  companyDetails.Website,
+		Type:  "LINK",
+	})
+	return tags
+}
+
+func (i *IEXService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) {
+
+	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
+	if err != nil {
+		return model.SymbolDetails{}, err
+	}
+
+	var exchange db.Exchange
+	lastExchangeWeight := -1
+
+	for _, ex := range exchanges {
+		weight := exchangeWeights[ex.Exchange]
+		if weight > lastExchangeWeight {
+			exchange = ex
+			lastExchangeWeight = weight
+		}
+	}
+	companyDetails, err := i.getCompanyDetails(asset.SymbolID + exchange.ExchangeSuffix)
+
+	if err != nil {
+		return model.SymbolDetails{}, err
+	}
+	companyKeyStats, err := i.getCompanyKeyStats(asset.SymbolID + exchange.ExchangeSuffix)
+	if err != nil {
+		return model.SymbolDetails{}, err
+	}
+
+	return model.SymbolDetails{
+		Type:          "cs",
+		Name:          companyDetails.CompanyName,
+		Description:   companyDetails.Description,
+		Tags:          assembleTags(companyDetails),
+		MarketCap:     companyKeyStats.Marketcap,
+		PERatio:       companyKeyStats.PeRatio,
+		DividendYield: companyKeyStats.DividendYield,
+		EPS:           companyKeyStats.TtmEPS,
+		Dates:         []model.SymbolDate{},
+	}, nil
+}
+
+func (i *IEXService) GetChart(asset db.Symbol, span int) (model.Chart, error) {
+
+	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
+	if err != nil {
+		return model.Chart{}, err
+	}
+
+	var exchange db.Exchange
+	lastExchangeWeight := -1
+
+	for _, ex := range exchanges {
+		weight := exchangeWeights[ex.Exchange]
+		if weight > lastExchangeWeight {
+			exchange = ex
+			lastExchangeWeight = weight
+		}
+	}
+
+	resp, err := i.client.R().
+		SetQueryParam("token", i.token).
+		SetPathParam("symbol", asset.SymbolID+exchange.ExchangeSuffix).
+		SetPathParam("span", strconv.Itoa(span)+"y").
+		SetQueryParam("chartCloseOnly", "true").
+		Get("https://sandbox.iexapis.com/stable/stock/{symbol}/chart/{span}")
+
+	if err != nil {
+		return model.Chart{}, err
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		errorMsg := fmt.Sprintf("iex/GetChart: could not get chart for '%s': %s", asset.SymbolID, resp.Body())
+		return model.Chart{}, errors.New(errorMsg)
+	}
+
+	var chart []ChartEntry
+	err = json.Unmarshal(resp.Body(), &chart)
+	if err != nil {
+		return model.Chart{}, err
+	}
+
+	chartResult := model.Chart{}
+
+	for _, chartEntry := range chart {
+		chartResult = append(chartResult, model.ChartEntry{
+			Date:  chartEntry.Date,
+			Price: chartEntry.Close,
+		})
+	}
+	return chartResult, nil
 }

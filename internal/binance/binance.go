@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
+	"div-dash/internal/model"
 	"fmt"
 	"net/http"
 
@@ -43,4 +44,9 @@ func (b *BinanceService) GetPrice(asset db.Symbol) (float64, error) {
 	price := gjson.Get(body, "price")
 
 	return price.Float(), nil
+}
+
+func (b *BinanceService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) {
+
+	return model.SymbolDetails{}, nil
 }

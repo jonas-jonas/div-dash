@@ -8,6 +8,7 @@ import { Login } from "./pages/Login";
 import { Accounts } from "./pages/Accounts";
 import { loggedInState, tokenState, userState } from "./state/authState";
 import { Account } from "./pages/Account";
+import { SymbolPage } from "./pages/Symbol";
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -60,6 +61,9 @@ function App() {
           </Route>
           <Route path="/account/:accountId" exact>
             <Account></Account>
+          </Route>
+          <Route path="/symbol/:symbolId" exact>
+            <SymbolPage></SymbolPage>
           </Route>
           <Route path="/" exact>
             <Home></Home>

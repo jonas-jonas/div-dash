@@ -1,8 +1,8 @@
 import classNames from "classnames";
 import ky from "ky";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { Symbol } from "../models/symbol";
 import { Balance } from "../models/balance";
 import { tokenState } from "../state/authState";
 import { balancesState } from "../state/balanceState";
@@ -29,19 +29,6 @@ export function PortfolioBalance() {
     loadBalance();
   }, [token, setBalance]);
 
-  const getIconURL = (symbol: Symbol) => {
-    switch (symbol.source) {
-      case "iex":
-        return "http://localhost:8091/32/color/generic.png";
-      case "binance":
-        return (
-          "http://localhost:8091/32/color/" +
-          symbol.symbolID.toLowerCase() +
-          ".png"
-        );
-    }
-  };
-
   return (
     <div className="col-span-2">
       <table className="table w-full text-left">
@@ -61,13 +48,6 @@ export function PortfolioBalance() {
               key={balanceItem.symbol.symbolID}
             >
               <td className="py-3 px-2 flex items-center">
-                <img
-                  src={getIconURL(balanceItem.symbol)}
-                  width="20"
-                  height="20"
-                  alt="BTC icon"
-                  className="mr-2"
-                />
                 <div className="flex flex-col">
                   <span>
                     {balanceItem.symbol.symbolName ||
@@ -108,7 +88,7 @@ export function PortfolioBalance() {
                 </div>
               </td>
               <td className="py-3 px-2">
-                <button className="text-blue-700 font-bold">Details</button>
+                <Link className="text-blue-700 font-bold" to={"/symbol/" + balanceItem.symbol.symbolID}>Details</Link>
               </td>
             </tr>
           ))}
