@@ -41,8 +41,7 @@ export function PortfolioBalance() {
             <th className="rounded-l py-3 px-2">Symbol</th>
             <th className="py-3 px-2">Total</th>
             <th className="py-3 px-2">Buy In</th>
-            <th className="py-3 px-2">Profit/Loss</th>
-            <th className="rounded-r py-3 px-2"></th>
+            <th className="rounded-r py-3 px-2">Profit/Loss</th>
           </tr>
         </thead>
         {!loading && !error && (
@@ -54,10 +53,13 @@ export function PortfolioBalance() {
               >
                 <td className="py-3 px-2 flex items-center">
                   <div className="flex flex-col">
-                    <span>
+                    <Link
+                      className="font-bold hover:underline"
+                      to={"/symbol/" + balanceItem.symbol.symbolID}
+                    >
                       {balanceItem.symbol.symbolName ||
                         balanceItem.symbol.symbolID}
-                    </span>
+                    </Link>
                     <span className="text-sm text-gray-600">
                       {new Intl.NumberFormat("de-DE", {
                         minimumFractionDigits: balanceItem.symbol.precision,
@@ -92,14 +94,6 @@ export function PortfolioBalance() {
                     </span>
                   </div>
                 </td>
-                <td className="py-3 px-2">
-                  <Link
-                    className="text-blue-700 font-bold"
-                    to={"/symbol/" + balanceItem.symbol.symbolID}
-                  >
-                    Details
-                  </Link>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -107,11 +101,7 @@ export function PortfolioBalance() {
       </table>
       {!loading && error && (
         <div className="flex items-center justify-center py-20 flex-col text-gray-500">
-          <FontAwesomeIcon
-            icon={faSadTear}
-            size="2x"
-            className="mb-3"
-          />
+          <FontAwesomeIcon icon={faSadTear} size="2x" className="mb-3" />
           <span>There was an error while loading your assets</span>
           <b className="my-1">{error}</b>
           <span>Please try again later</span>
