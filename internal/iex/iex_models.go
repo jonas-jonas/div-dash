@@ -30,7 +30,7 @@ type CompanyKeyStats struct {
 	Week52Low                 float64 `json:"week52low"`
 	Week52HighSplitAdjustOnly float64 `json:"week52highSplitAdjustOnly"`
 	Week52LowSplitAdjustOnly  float64 `json:"week52lowSplitAdjustOnly"`
-	Week52Change              int     `json:"week52change"`
+	Week52Change              float64 `json:"week52change"`
 	SharesOutstanding         int     `json:"sharesOutstanding"`
 	Float                     int     `json:"float"`
 	Avg10Volume               int     `json:"avg10Volume"`
