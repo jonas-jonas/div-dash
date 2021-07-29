@@ -48,7 +48,7 @@ export function Login() {
   return (
     <div className="w-full h-screen relative">
       <div className="w-full sm:w-2/3 md:w-1/2 xl:w-1/3 bg-white h-full relative z-10">
-        <form className="px-8 py-8 mx-auto" onSubmit={handleSubmit(onSubmit)}>
+        <form className="px-8 lg:px-20 py-8 mx-auto" onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-24">
             <img src="/logo-dark@2x.png" alt="div-dash logo" />
           </div>
@@ -94,7 +94,7 @@ export function Login() {
             </button>
           </div>
         </form>
-        <footer className="px-8 py-8">
+        <footer className="px-8 lg:px-20 py-8">
           <Link to="/impressum" className="mr-10 text-sm">
             Impressum
           </Link>
