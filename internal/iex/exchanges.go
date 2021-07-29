@@ -52,11 +52,7 @@ func (i *IEXService) SaveExchanges() error {
 	week := 60 * 60 * 24 * 7
 	expired, err := i.jobService.HasLastSuccessfulJobExpired(ctx, IEX_IMPORT_EXCHANGES_JOB_NAME, time.Duration(week))
 
-	if err != nil {
-		return fmt.Errorf("import-iex-exchanges: error while checking last exchange import: %w", err)
-	}
-
-	if !expired {
+	if !expired || err == nil {
 		return errors.New("import-iex-exchanges: last successful exchange import was less than a week ago")
 	}
 
