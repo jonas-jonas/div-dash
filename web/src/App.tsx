@@ -3,12 +3,12 @@ import React, { useEffect, useState } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { Navigation } from "./components/Navigation";
+import { Account } from "./pages/Account";
+import { Accounts } from "./pages/Accounts";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
-import { Accounts } from "./pages/Accounts";
-import { loggedInState, userState } from "./state/authState";
-import { Account } from "./pages/Account";
 import { SymbolPage } from "./pages/Symbol";
+import { loggedInState, userState } from "./state/authState";
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -32,24 +32,11 @@ function App() {
 
   if (loading) {
     return <p>Loading data...</p>;
-  } else {
+  } else if (isLoggedIn) {
     return (
       <div>
         <Navigation />
         <Switch>
-          <Route
-            path="/login"
-            exact
-            render={(props) =>
-              isLoggedIn ? (
-                <Redirect
-                  to={{ pathname: "/", state: { from: props.location } }}
-                />
-              ) : (
-                <Login />
-              )
-            }
-          />
           <Route path="/accounts" exact>
             <Accounts></Accounts>
           </Route>
@@ -61,6 +48,19 @@ function App() {
           </Route>
           <Route path="/" exact>
             <Home></Home>
+          </Route>
+        </Switch>
+      </div>
+    );
+  } else {
+    return (
+      <div className="h-full">
+        <Switch>
+          <Route path="/login" exact>
+            <Login />
+          </Route>
+          <Route>
+            <Redirect to="/login" />
           </Route>
         </Switch>
       </div>
