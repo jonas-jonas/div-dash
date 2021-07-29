@@ -114,6 +114,7 @@ func (i *IEXService) GetPrice(asset db.Symbol) (float64, error) {
 		weight := exchangeWeights[ex.Exchange]
 		if weight > lastExchangeWeight {
 			exchange = ex
+			lastExchangeWeight = weight
 		}
 	}
 
