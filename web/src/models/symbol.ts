@@ -36,3 +36,36 @@ export const SymbolTypeLabels: Record<SymbolType, string> = {
   wt: "Warrant",
   "": "Other",
 };
+
+type SymbolTagChip = {
+  label: string;
+  type: "CHIP";
+};
+type SymbolTagLink = {
+  label: string;
+  type: "LINK";
+  link: string;
+};
+type SymbolTag = SymbolTagChip | SymbolTagLink;
+
+type SymbolDate = {
+  label: string;
+  date: string;
+};
+
+export type SymbolDetails = {
+  type: SymbolType;
+  name: string;
+  tags: SymbolTag[];
+  marketCap: number;
+  peRatio: number;
+  dividendYield: number;
+  eps: number;
+  description: string;
+  dates: SymbolDate[];
+};
+
+export type SymbolChartEntry = {
+  date: string;
+  price: number;
+};

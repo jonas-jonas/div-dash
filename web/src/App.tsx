@@ -1,36 +1,21 @@
-import ky from "ky";
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
+import { useQuery } from "react-query";
 import { Redirect, Route, Switch } from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
 import { Navigation } from "./components/Navigation";
 import { Account } from "./pages/Account";
 import { Accounts } from "./pages/Accounts";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { SymbolPage } from "./pages/Symbol";
-import { loggedInState, userState } from "./state/authState";
+import { getIdentity } from "./util/api";
 
 function App() {
-  const [loading, setLoading] = useState<boolean>(true);
+  const { isLoading, data, error } = useQuery("identity", getIdentity, {
+    retry: false,
+  });
+  const isLoggedIn = useMemo(() => !error && data, [error, data]);
 
-  const [, setUser] = useRecoilState(userState);
-  const isLoggedIn = useRecoilValue(loggedInState);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = ky.get("/api/auth/identity");
-        setUser(await response.json());
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [setUser]);
-
-  if (loading) {
+  if (isLoading) {
     return <p>Loading data...</p>;
   } else if (isLoggedIn) {
     return (
@@ -48,6 +33,9 @@ function App() {
           </Route>
           <Route path="/" exact>
             <Home></Home>
+          </Route>
+          <Route path="/">
+            <Redirect to="/" />
           </Route>
         </Switch>
       </div>

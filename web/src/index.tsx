@@ -1,18 +1,28 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { QueryClient, QueryClientProvider } from "react-query";
 import { BrowserRouter as Router } from "react-router-dom";
-import { RecoilRoot } from "recoil";
 import App from "./App";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
+import { ReactQueryDevtools } from "react-query/devtools";
+
+const queryClient = new QueryClient();
+queryClient.setDefaultOptions({
+  queries: {
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  },
+});
 
 ReactDOM.render(
   <React.StrictMode>
-    <Router>
-      <RecoilRoot>
+    <QueryClientProvider client={queryClient}>
+      <Router>
         <App />
-      </RecoilRoot>
-    </Router>
+        <ReactQueryDevtools />
+      </Router>
+    </QueryClientProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );

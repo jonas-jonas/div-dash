@@ -1,16 +1,9 @@
 import ky from "ky";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useHistory } from "react-router";
+import { useMutation, useQueryClient } from "react-query";
 import { Link } from "react-router-dom";
-import { useRecoilState } from "recoil";
-import { User } from "../models/user";
-import { userState } from "../state/authState";
-
-type LoginForm = {
-  email: string;
-  password: string;
-};
+import { LoginForm } from "../form/LoginForm";
+import * as api from "../util/api";
 
 type ApiError = {
   message: string;
@@ -20,35 +13,35 @@ type ApiError = {
 };
 
 export function Login() {
-  const { register, handleSubmit, reset } = useForm<LoginForm>();
-  const [, setUser] = useRecoilState(userState);
-  const [error, setError] = useState<string | null>();
-  const history = useHistory();
+  const { register, handleSubmit, reset, formState, setError } =
+    useForm<LoginForm>();
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation<void, ky.HTTPError, LoginForm>(api.postLogin, {
+    onSuccess: () => {
+      queryClient.invalidateQueries("identity");
+    },
+    onError: async (error, variables) => {
+      reset({ email: variables.email, password: "" });
+      const json: ApiError = await error.response.json();
+      setError("password", {
+        message: json.message,
+      });
+    },
+  });
 
   const onSubmit = async (values: LoginForm) => {
-    try {
-      await ky.post("/api/login", {
-        json: values,
-      });
-      
-      const res = await ky.get("/api/auth/identity")
-      const user: User = await res.json();
-      setUser(user);
-
-      history.replace("/");
-    } catch (error) {
-      if (error instanceof ky.HTTPError) {
-        const errResponse: ApiError = await error.response.json();
-        setError(errResponse.message);
-        reset({ email: values.email, password: "" });
-      }
-    }
+    mutation.mutate(values);
   };
 
   return (
     <div className="w-full h-screen relative">
       <div className="w-full sm:w-2/3 md:w-1/2 xl:w-1/3 bg-white h-full relative z-10">
-        <form className="px-8 lg:px-20 py-8 mx-auto" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="px-8 lg:px-20 py-8 mx-auto"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <div className="mb-24">
             <img src="/logo-dark@2x.png" alt="div-dash logo" />
           </div>
@@ -72,9 +65,9 @@ export function Login() {
               {...register("password", { required: true })}
             />
           </label>
-          {error && (
+          {formState.errors.password && (
             <div className="text-red-500 mt-2">
-              {error}
+              {formState.errors.password.message}
             </div>
           )}
           <div className="flex justify-between items-center mt-6">

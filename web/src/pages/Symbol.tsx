@@ -3,12 +3,11 @@ import {
   faChevronRight,
   faExternalLinkAlt,
   faLink,
-  faSpinner
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import ky from "ky";
 import numeral from "numeral";
-import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import {
   CartesianGrid,
@@ -16,87 +15,26 @@ import {
   LineChart,
   ResponsiveContainer,
   XAxis,
-  YAxis
+  YAxis,
 } from "recharts";
-import { SymbolType } from "../models/symbol";
+import * as api from "../util/api";
 import { formatMoney } from "../util/formatter";
 
 type SymbolPageParams = {
   symbolId: string;
 };
 
-type SymbolTagChip = {
-  label: string;
-  type: "CHIP";
-};
-type SymbolTagLink = {
-  label: string;
-  type: "LINK";
-  link: string;
-};
-type SymbolTag = SymbolTagChip | SymbolTagLink;
-
-type SymbolDate = {
-  label: string;
-  date: string;
-};
-
-type SymbolDetails = {
-  type: SymbolType;
-  name: string;
-  tags: SymbolTag[];
-  marketCap: number;
-  peRatio: number;
-  dividendYield: number;
-  eps: number;
-  description: string;
-  dates: SymbolDate[];
-};
-
-type ChartEntry = {
-  date: string;
-  price: number;
-};
-
 export function SymbolPage() {
   const { symbolId } = useParams<SymbolPageParams>();
-  const [symbolDetails, setSymbolDetails] = useState<SymbolDetails | null>(
-    null
+
+  const { data: symbolDetails, isLoading: loadingSymbol } = useQuery(
+    ["symbol", symbolId, "details"],
+    () => api.getSymbolDetails(symbolId)
   );
-  const [chart, setChart] = useState<ChartEntry[]>([]);
-  const [loadingSymbol, setLoadingSymbol] = useState(true);
-  const [loadingChart, setLoadingChart] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadSymbolDetails = async () => {
-      try {
-        const response = await ky.get("/api/symbol/details/" + symbolId);
-        const symbolDetails: SymbolDetails = await response.json();
-        setSymbolDetails(symbolDetails);
-      } catch (error) {
-        setError(error);
-      } finally {
-        setLoadingSymbol(false);
-      }
-    };
-    loadSymbolDetails();
-  }, [symbolId]);
-
-  useEffect(() => {
-    const loadChart = async () => {
-      try {
-        const response = await ky.get("/api/symbol/chart/" + symbolId);
-        const chart: ChartEntry[] = await response.json();
-        setChart(chart);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoadingChart(false);
-      }
-    };
-    loadChart();
-  }, [symbolId]);
+  const { data: chart, isLoading: loadingChart } = useQuery(
+    ["symbol", symbolId, "chart"],
+    () => api.getSymbolChart(symbolId)
+  );
 
   return (
     <div className="container mb-24 mx-auto pt-8">
@@ -210,7 +148,7 @@ export function SymbolPage() {
                     <FontAwesomeIcon icon={faSpinner} spin />
                   </div>
                 )}
-                {!loadingChart && chart.length > 0 && (
+                {!loadingChart && chart && chart.length > 0 && (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart width={300} height={100} data={chart}>
                       <Line
@@ -306,9 +244,6 @@ export function SymbolPage() {
             </div>
           </div>
         </div>
-      )}
-      {!loadingSymbol && error && (
-        <div>There was an error loading the data for this symbol.</div>
       )}
     </div>
   );

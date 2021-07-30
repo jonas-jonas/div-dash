@@ -1,16 +1,16 @@
 import { faChartBar, faChartPie } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMemo } from "react";
+import { useQuery } from "react-query";
 import {
   Cell,
   Label,
   Legend,
   Pie,
   PieChart,
-  ResponsiveContainer,
+  ResponsiveContainer
 } from "recharts";
-import { useRecoilValue } from "recoil";
-import { balancesState } from "../state/balanceState";
+import * as api from "../util/api";
 import { formatMoney } from "../util/formatter";
 
 const COLORS: { [key: string]: string } = {
@@ -20,7 +20,8 @@ const COLORS: { [key: string]: string } = {
 };
 
 export function PortfolioComposition() {
-  const balance = useRecoilValue(balancesState);
+
+  const { data: balance } = useQuery("balance", api.getBalance);
 
   const chartData = useMemo(() => {
     return balance?.symbols.map((balanceItem) => {

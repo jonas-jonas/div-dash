@@ -1,50 +1,42 @@
 import {
   faChartLine,
   faSpinner,
-  faTimes,
+  faTimes
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ky from "ky";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { useForm } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { Link } from "react-router-dom";
-import { useRecoilState } from "recoil";
+import { AccountForm } from "../form/AccountForm";
 import { Account } from "../models/account";
-import { accountsState } from "../state/accountState";
+import * as api from "../util/api";
 import { formatMoney } from "../util/formatter";
 
 export function Accounts() {
-  const [loading, setLoading] = useState(true);
+  const { data: accounts, isLoading } = useQuery("accounts", api.getAccounts);
   const [creating, setCreating] = useState(false);
-  const [accounts, setAccounts] = useRecoilState(accountsState);
 
-  useEffect(() => {
-    const loadAccounts = async () => {
-      try {
-        const response = await ky.get("/api/account");
-        const accounts: Account[] = await response.json();
-        setAccounts(accounts);
-      } catch (error) {
-        if (error instanceof ky.HTTPError) {
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadAccounts();
-  }, [setAccounts]);
+  const handleCreate = () => {
+    setCreating(true);
+  };
 
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between mb-8">
         <h1 className="text-3xl">Your Accounts</h1>
-        <button className="bg-gray-900 text-white py-2 px-4 rounded shadow">
+        <button
+          className="bg-gray-900 text-white py-2 px-4 rounded shadow"
+          onClick={handleCreate}
+        >
           + Account
         </button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {!loading &&
+        {!isLoading &&
+          accounts &&
           accounts.map((account) => (
             <Link
               className="bg-white rounded px-6 py-4 transition-all border border-transparent hover:border-blue-600 hover:shadow"
@@ -64,7 +56,7 @@ export function Accounts() {
               </div>
             </Link>
           ))}
-        {loading && (
+        {isLoading && (
           <>
             <AccountCardLoadingIndicator />
             <AccountCardLoadingIndicator />
@@ -101,31 +93,34 @@ type CreateAccountModalProps = {
   close: () => void;
 };
 
-type CreateAccountForm = {
-  name: string;
-};
-
 function CreateAccountModal({ close }: CreateAccountModalProps) {
   const { register, handleSubmit, formState, setError } =
-    useForm<CreateAccountForm>();
-  const [, setAccounts] = useRecoilState(accountsState);
+    useForm<AccountForm>();
 
-  const onSubmit = async (values: CreateAccountForm) => {
-    try {
-      const response = await ky.post("/api/account", {
-        json: values,
-      });
+  const queryClient = useQueryClient();
 
-      const account: Account = await response.json();
-      setAccounts((accounts) => [...accounts, account]);
-      close();
-    } catch (error) {
-      if (error instanceof ky.HTTPError) {
+  const createAccountMutation = useMutation<Account, ky.HTTPError, AccountForm>(
+    api.postAccount,
+    {
+      onError: (error) => {
         setError("name", {
           message: error.message,
         });
-      }
+      },
+      onSuccess: (account) => {
+        queryClient.setQueryData<Account[]>("accounts", (accounts) => {
+          if (accounts) {
+            return [...accounts, account];
+          }
+          return [account];
+        });
+        close();
+      },
     }
+  );
+
+  const onSubmit = async (values: AccountForm) => {
+    createAccountMutation.mutate(values);
   };
   return (
     <div className="top-0 fixed">

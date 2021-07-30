@@ -2,36 +2,18 @@ import { faSadTear, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import ky from "ky";
-import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { Link } from "react-router-dom";
-import { useRecoilState } from "recoil";
 import { Balance } from "../models/balance";
-import { balancesState } from "../state/balanceState";
+import * as api from "../util/api";
 import { formatMoney, formatPercent } from "../util/formatter";
 
 export function PortfolioBalance() {
-  const [balance, setBalance] = useRecoilState(balancesState);
-  const [error, setError] = useState<string>();
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const loadBalance = async () => {
-      try {
-        const response = await ky.get("/api/balance");
-        const balance: Balance = await response.json();
-        setBalance(balance);
-      } catch (error) {
-        if (error instanceof ky.HTTPError) {
-          setError(error.message);
-        } else {
-          setError("General error");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadBalance();
-  }, [setBalance]);
+  const {
+    data: balance,
+    isLoading,
+    error,
+  } = useQuery<Balance, ky.HTTPError>("balance", api.getBalance);
 
   return (
     <div className="col-span-2">
@@ -44,7 +26,7 @@ export function PortfolioBalance() {
             <th className="rounded-r py-3 px-2">Profit/Loss</th>
           </tr>
         </thead>
-        {!loading && !error && (
+        {!isLoading && !error && (
           <tbody>
             {balance?.symbols.map((balanceItem) => (
               <tr
@@ -110,15 +92,15 @@ export function PortfolioBalance() {
           </tbody>
         )}
       </table>
-      {!loading && error && (
+      {!isLoading && error && (
         <div className="flex items-center justify-center py-20 flex-col text-gray-500">
           <FontAwesomeIcon icon={faSadTear} size="2x" className="mb-3" />
           <span>There was an error while loading your assets</span>
-          <b className="my-1">{error}</b>
+          <b className="my-1">{error.message}</b>
           <span>Please try again later</span>
         </div>
       )}
-      {loading && (
+      {isLoading && (
         <div className="flex items-center justify-center py-24 flex-col text-gray-500">
           <FontAwesomeIcon icon={faSpinner} spin size="2x" className="mb-3 " />
           <span className="">Loading Assets...</span>

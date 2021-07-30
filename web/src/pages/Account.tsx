@@ -11,12 +11,12 @@ import ky from "ky";
 import { ChangeEvent, useEffect, useReducer, useState } from "react";
 import ReactDOM from "react-dom";
 import { Path, useForm, UseFormRegister } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useParams } from "react-router";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { Symbol, SymbolType, SymbolTypeLabels } from "../models/symbol";
+import { TransactionForm } from "../form/TransactionForm";
+import { Symbol, SymbolTypeLabels } from "../models/symbol";
 import { Transaction } from "../models/transaction";
-import { accountByIdSelector } from "../state/accountState";
-import { transactionsState } from "../state/transactionState";
+import * as api from "../util/api";
 import { formatDate, formatMoney, formatTime } from "../util/formatter";
 
 type AccountParams = {
@@ -24,29 +24,16 @@ type AccountParams = {
 };
 
 export function Account() {
-  const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useRecoilState(transactionsState);
   const [creating, setCreating] = useState(false);
 
   const { accountId } = useParams<AccountParams>();
-  const account = useRecoilValue(accountByIdSelector(accountId));
-
-  useEffect(() => {
-    const loadTransactions = async () => {
-      try {
-        const response = await ky.get(
-          "/api/account/" + accountId + "/transaction"
-        );
-        const transactions: Transaction[] = await response.json();
-        setTransactions(transactions);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadTransactions();
-  }, [accountId, setTransactions]);
+  const { data: account } = useQuery(["account", accountId], () =>
+    api.getAccount(accountId)
+  );
+  const { data: transactions, isLoading } = useQuery(
+    ["account", accountId, "transactions"],
+    () => api.getTransactions(accountId)
+  );
 
   return (
     <div className="container mx-auto pt-10">
@@ -75,7 +62,7 @@ export function Account() {
             </tr>
           </thead>
           <tbody>
-            {!loading &&
+            {!isLoading &&
               transactions?.map((transaction) => (
                 <tr
                   className="border-b border-gray-200"
@@ -111,7 +98,7 @@ export function Account() {
                   </td>
                 </tr>
               ))}
-            {loading && (
+            {isLoading && (
               <>
                 <TransactionRowLoadingIndicator />
                 <TransactionRowLoadingIndicator />
@@ -121,7 +108,7 @@ export function Account() {
             )}
           </tbody>
         </table>
-        {!loading && transactions.length === 0 && (
+        {!isLoading && transactions?.length === 0 && (
           <div className="text-center mt-4">
             You have no transactions.{" "}
             <button className="text-blue-700" onClick={() => setCreating(true)}>
@@ -129,7 +116,7 @@ export function Account() {
             </button>
           </div>
         )}
-        {!loading && transactions.length > 0 && (
+        {!isLoading && transactions && transactions.length > 0 && (
           <div className="flex justify-end mt-4">
             <div className="bg-white rounded shadow p-2 text-gray-900">
               <button className="px-2 text-blue-700">
@@ -201,49 +188,41 @@ type CreateTransactionModalProps = {
   accountId: string;
 };
 
-type CreateTransactionForm = {
-  symbol: string;
-  type: SymbolType;
-  transactionProvider: string;
-  price: string;
-  date: string;
-  amount: string;
-  side: "buy" | "sell";
-};
-
 function CreateTransactionModal({
   close,
   accountId,
 }: CreateTransactionModalProps) {
   const { register, handleSubmit, formState, setValue } =
-    useForm<CreateTransactionForm>();
+    useForm<TransactionForm>();
   const [error, setError] = useState<string>();
-  const [, setTransactions] = useRecoilState(transactionsState);
+  const queryClient = useQueryClient();
 
-  const onSubmit = async (values: CreateTransactionForm) => {
-    const date = new Date(values.date);
-    try {
-      const response = await ky.post(
-        "/api/account/" + accountId + "/transaction",
-        {
-          json: {
-            ...values,
-            date: date.toISOString(),
-            amount: parseFloat(values.amount),
-            price: parseFloat(values.price),
-            transactionProvider: "binance",
-          },
+  const createTransactionMutation = useMutation<
+    Transaction,
+    ky.HTTPError,
+    TransactionForm
+  >((values) => api.postTransaction(accountId, values), {
+    onError: async (error) => {
+      const json = await error.response.json();
+      setError(json.message);
+    },
+    onSuccess: (transaction) => {
+      queryClient.setQueryData<Transaction[]>(
+        ["account", accountId, "transactions"],
+        (transactions) => {
+          if (transactions) {
+            return [...transactions, transaction];
+          }
+          return [transaction];
         }
       );
-      const transaction: Transaction = await response.json();
-      setTransactions((transactions) => [...transactions, transaction]);
+      queryClient.invalidateQueries("balance");
       close();
-    } catch (error) {
-      if (error instanceof ky.HTTPError) {
-        const json = await error.response.json();
-        setError(json.message);
-      }
-    }
+    },
+  });
+
+  const onSubmit = async (values: TransactionForm) => {
+    createTransactionMutation.mutate(values);
   };
 
   return (
