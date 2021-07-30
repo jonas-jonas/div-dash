@@ -26,3 +26,7 @@ export function formatPercent(percent: number) {
     maximumFractionDigits: 2,
   }).format(percent);
 }
+
+export function formatAmount(amount: number, precision: number = 4) {
+  return amount.toFixed(precision);
+}

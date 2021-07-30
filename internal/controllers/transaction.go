@@ -13,18 +13,19 @@ import (
 )
 
 type transactionResponse struct {
-	ID                  string          `json:"transactionId"`
-	Symbol              string          `json:"symbol"`
-	Type                string          `json:"type"`
-	TransactionProvider string          `json:"transactionProvider"`
-	Price               float64         `json:"price"`
-	Date                time.Time       `json:"date"`
-	Amount              decimal.Decimal `json:"amount"`
-	AccountId           string          `json:"accountId"`
-	Side                string          `json:"side"`
+	ID                  string    `json:"transactionId"`
+	Symbol              string    `json:"symbol"`
+	Type                string    `json:"type"`
+	TransactionProvider string    `json:"transactionProvider"`
+	Price               float64   `json:"price"`
+	Date                time.Time `json:"date"`
+	Amount              float64   `json:"amount"`
+	AccountId           string    `json:"accountId"`
+	Side                string    `json:"side"`
 }
 
 func marshalTransactionResponse(transaction db.Transaction) transactionResponse {
+	amount, _ := transaction.Amount.Float64()
 	return transactionResponse{
 		ID:                  transaction.ID,
 		Symbol:              transaction.Symbol,
@@ -32,7 +33,7 @@ func marshalTransactionResponse(transaction db.Transaction) transactionResponse 
 		TransactionProvider: string(transaction.TransactionProvider),
 		Price:               money.New(transaction.Price, "EUR").AsMajorUnits(),
 		Date:                transaction.Date,
-		Amount:              transaction.Amount,
+		Amount:              amount,
 		AccountId:           transaction.AccountID,
 		Side:                transaction.Side,
 	}
@@ -54,6 +55,7 @@ func GetTransaction(c *gin.Context) {
 		c.Error(err)
 		return
 	}
+	decimal.MarshalJSONWithoutQuotes = true
 
 	resp := marshalTransactionResponse(transaction)
 

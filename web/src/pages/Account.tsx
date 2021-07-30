@@ -1,9 +1,10 @@
 import {
   faChevronLeft,
   faChevronRight,
-  faPencilAlt, faSpinner,
+  faPencilAlt,
+  faSpinner,
   faTimes,
-  faTrash
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
@@ -17,7 +18,7 @@ import { TransactionForm } from "../form/TransactionForm";
 import { Symbol, SymbolTypeLabels } from "../models/symbol";
 import { Transaction } from "../models/transaction";
 import * as api from "../util/api";
-import { formatDate, formatMoney, formatTime } from "../util/formatter";
+import { formatAmount, formatDate, formatMoney, formatTime } from "../util/formatter";
 
 type AccountParams = {
   accountId: string;
@@ -93,7 +94,9 @@ export function Account() {
                     <td className="py-3 px-2 capitalize">
                       {SymbolTypeLabels[transaction.type]}
                     </td>
-                    <td className="py-3 px-2">{transaction.amount}</td>
+                    <td className="py-3 px-2">
+                      {formatAmount(transaction.amount)}
+                    </td>
                     <td className="py-3 px-2">
                       {formatMoney(transaction.price)}
                     </td>
