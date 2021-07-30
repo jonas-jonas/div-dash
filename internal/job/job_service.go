@@ -15,13 +15,6 @@ type JobService struct {
 	nowFunc func() time.Time
 }
 
-type IJobService interface {
-	HasLastSuccessfulJobExpired(ctx context.Context, name string, duration time.Duration) (bool, error)
-	StartJob(ctx context.Context, name string) (db.StartJobRow, error)
-	FinishJob(ctx context.Context, id int32) error
-	FailJob(ctx context.Context, id int32, message string) error
-}
-
 func New(queries *db.Queries, logger *log.Logger) *JobService {
 	return &JobService{
 		queries: queries,
@@ -30,7 +23,7 @@ func New(queries *db.Queries, logger *log.Logger) *JobService {
 	}
 }
 
-func (j *JobService) HasLastSuccessfulJobExpired(ctx context.Context, name string, duration time.Duration) (bool, error) {
+func (j *JobService) hasLastSuccessfulJobExpired(ctx context.Context, name string, duration time.Duration) (bool, error) {
 	lastJob, err := j.queries.GetLastJobByName(ctx, name)
 	if err != nil {
 		return true, err
@@ -45,10 +38,12 @@ func (j *JobService) HasLastSuccessfulJobExpired(ctx context.Context, name strin
 		lastJobTimestamp = time.Unix(lastJob.Started, 0)
 	}
 
+	log.Printf("x %s, %f", lastJobTimestamp.Format("dd.MM.YYYY HH:mm:ss"), duration.Seconds())
+
 	return lastJobTimestamp.Add(duration).Before(j.nowFunc()), nil
 }
 
-func (j *JobService) StartJob(ctx context.Context, name string) (db.StartJobRow, error) {
+func (j *JobService) startJob(ctx context.Context, name string) (db.StartJobRow, error) {
 	job, err := j.queries.StartJob(ctx, db.StartJobParams{
 		Name:    name,
 		Started: j.nowFunc().Unix(),
@@ -61,7 +56,7 @@ func (j *JobService) StartJob(ctx context.Context, name string) (db.StartJobRow,
 	return job, err
 }
 
-func (j *JobService) FinishJob(ctx context.Context, id int32) error {
+func (j *JobService) finishJob(ctx context.Context, id int32) error {
 	job, err := j.queries.FinishJob(ctx, db.FinishJobParams{
 		ID: id,
 		Finished: sql.NullInt64{
@@ -79,7 +74,7 @@ func (j *JobService) FinishJob(ctx context.Context, id int32) error {
 	return nil
 }
 
-func (j *JobService) FailJob(ctx context.Context, id int32, message string) error {
+func (j *JobService) failJob(ctx context.Context, id int32, message string) error {
 	job, err := j.queries.FinishJob(ctx, db.FinishJobParams{
 		ID: id,
 		Finished: sql.NullInt64{
@@ -98,4 +93,39 @@ func (j *JobService) FailJob(ctx context.Context, id int32, message string) erro
 
 	j.logger.Printf("Job %s#%d failed in %ds", job.Name, job.ID, (job.Finished.Int64 - job.Started))
 	return nil
+}
+
+type JobRunner func(context.Context) error
+type JobDefinition struct {
+	Key      string
+	Validity time.Duration
+}
+
+func (j *JobService) RunJob(job JobDefinition, fn JobRunner) {
+
+	ctx := context.Background()
+	expired, err := j.hasLastSuccessfulJobExpired(ctx, job.Key, time.Duration(job.Validity))
+	if err != nil && err != sql.ErrNoRows {
+		j.logger.Printf("Could not check for expiration of job %s: %e", job.Key, err)
+		return
+	}
+	if !expired {
+		j.logger.Printf("Last execution of job %s is not expired, skipping...", job.Key)
+		return
+	}
+
+	startedJob, err := j.startJob(ctx, job.Key)
+	if err != nil {
+		j.logger.Printf("Could not start job %s: %e", job.Key, err)
+		return
+	}
+
+	err = fn(ctx)
+
+	if err != nil {
+		j.failJob(ctx, startedJob.ID, err.Error())
+		return
+	}
+
+	j.finishJob(ctx, startedJob.ID)
 }

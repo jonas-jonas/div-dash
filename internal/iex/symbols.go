@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"div-dash/internal/config"
 	"div-dash/internal/db"
+	"div-dash/internal/job"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -67,16 +67,12 @@ func (i *IEXService) getSymbolsByRegion(region string) ([]Symbol, error) {
 	// return symbols, nil
 }
 
-const IEX_IMPORT_JOB_NAME = "import-iex-symbols"
+var IEXImportSymbolsJob job.JobDefinition = job.JobDefinition{
+	Key:      "import-iex-symbols",
+	Validity: 24 * 7 * time.Hour,
+}
 
-func (i *IEXService) SaveSymbols() error {
-	// TODO: Get all Exchanges and collect all regions
-	ctx := context.Background()
-	week := 60 * 60 * 24 * 7
-	expired, err := i.jobService.HasLastSuccessfulJobExpired(ctx, IEX_IMPORT_JOB_NAME, time.Duration(week))
-	if !expired || err == nil {
-		return errors.New("import-iex-symbols: last successful import was less than a week ago")
-	}
+func (i *IEXService) SaveSymbols(ctx context.Context) error {
 
 	symbols, err := i.getSymbolsByRegion("de")
 	if err != nil {
@@ -91,11 +87,6 @@ func (i *IEXService) SaveSymbols() error {
 	}
 
 	queries := i.queries.WithTx(tx)
-
-	job, err := i.jobService.StartJob(ctx, IEX_IMPORT_JOB_NAME)
-	if err != nil {
-		return err
-	}
 
 	for _, symbol := range symbols {
 		symbolId := symbol.Symbol
@@ -128,11 +119,5 @@ func (i *IEXService) SaveSymbols() error {
 			continue
 		}
 	}
-	err = tx.Commit()
-	if err != nil {
-		i.jobService.FailJob(ctx, job.ID, err.Error())
-		return err
-	}
-	i.jobService.FinishJob(ctx, job.ID)
-	return nil
+	return tx.Commit()
 }

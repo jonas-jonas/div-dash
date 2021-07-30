@@ -1,7 +1,6 @@
 package price
 
 import (
-	"div-dash/internal/binance"
 	"div-dash/internal/db"
 	"div-dash/internal/iex"
 	"div-dash/internal/model"
@@ -29,14 +28,12 @@ type IChartService interface {
 	GetChart(asset db.Symbol, span int) (model.Chart, error)
 }
 
-func New(binance *binance.BinanceService, iex *iex.IEXService) *PriceService {
+func New(iex *iex.IEXService) *PriceService {
 	priceServices := map[string]IPriceService{
-		"binance": binance,
-		"iex":     iex,
+		"iex": iex,
 	}
 	detailServices := map[string]IDetailService{
-		"binance": binance,
-		"iex":     iex,
+		"iex": iex,
 	}
 	chartServices := map[string]IChartService{
 		"iex": iex,

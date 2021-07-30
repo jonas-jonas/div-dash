@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"div-dash/internal/config"
 	"div-dash/internal/db"
-	"div-dash/internal/job"
 	"div-dash/internal/model"
 	"encoding/json"
 	"errors"
@@ -22,20 +21,19 @@ type IEXService struct {
 	client     *resty.Client
 	queries    *db.Queries
 	db         *sql.DB
-	jobService job.IJobService
 	quoteCache *zcache.Cache
 	token      string
 	baseUrl    string
 }
 
-func New(queries *db.Queries, db *sql.DB, jobService job.IJobService, iexConfig config.IEXConfiguration) *IEXService {
+func New(queries *db.Queries, db *sql.DB, iexConfig config.IEXConfiguration) *IEXService {
 	client := resty.New()
 	quoteCache := zcache.New(zcache.NoExpiration, -1)
 	token := iexConfig.Token
 	baseUrl := iexConfig.BaseUrl
 	client.SetHostURL(baseUrl)
 	client.SetQueryParam("token", token)
-	return &IEXService{client, queries, db, jobService, quoteCache, token, baseUrl}
+	return &IEXService{client, queries, db, quoteCache, token, baseUrl}
 }
 
 var exchangeWeights = map[string]int{

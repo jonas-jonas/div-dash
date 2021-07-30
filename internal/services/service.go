@@ -1,7 +1,6 @@
 package services
 
 import (
-	"div-dash/internal/binance"
 	"div-dash/internal/config"
 	"div-dash/internal/id"
 	"div-dash/internal/iex"
@@ -15,23 +14,21 @@ import (
 )
 
 var services struct {
-	TokenService   *token.TokenService
-	MailService    *mail.MailService
-	IdService      *id.IdService
-	BinanceService *binance.BinanceService
-	PriceService   *price.PriceService
-	JobService     *job.JobService
-	IEXService     *iex.IEXService
+	TokenService *token.TokenService
+	MailService  *mail.MailService
+	IdService    *id.IdService
+	PriceService *price.PriceService
+	JobService   *job.JobService
+	IEXService   *iex.IEXService
 }
 
 var (
-	onceTokenService   sync.Once
-	onceMailService    sync.Once
-	onceIdService      sync.Once
-	onceBinanceService sync.Once
-	oncePriceService   sync.Once
-	onceJobService     sync.Once
-	onceIEXService     sync.Once
+	onceTokenService sync.Once
+	onceMailService  sync.Once
+	onceIdService    sync.Once
+	oncePriceService sync.Once
+	onceJobService   sync.Once
+	onceIEXService   sync.Once
 )
 
 func initTokenService() {
@@ -65,17 +62,8 @@ func IdService() *id.IdService {
 	return services.IdService
 }
 
-func initBinanceService() {
-	services.BinanceService = binance.New(JobService(), config.DB(), config.Queries())
-}
-
-func BinanceService() *binance.BinanceService {
-	onceBinanceService.Do(initBinanceService)
-	return services.BinanceService
-}
-
 func initPriceService() {
-	services.PriceService = price.New(BinanceService(), IEXService())
+	services.PriceService = price.New(IEXService())
 }
 
 func PriceService() *price.PriceService {
@@ -93,7 +81,7 @@ func JobService() *job.JobService {
 }
 
 func initIEXService() {
-	services.IEXService = iex.New(config.Queries(), config.DB(), JobService(), config.Config().IEX)
+	services.IEXService = iex.New(config.Queries(), config.DB(), config.Config().IEX)
 }
 
 func IEXService() *iex.IEXService {

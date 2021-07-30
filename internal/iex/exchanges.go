@@ -4,8 +4,8 @@ import (
 	"context"
 	"div-dash/internal/config"
 	"div-dash/internal/db"
+	"div-dash/internal/job"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 )
@@ -44,22 +44,12 @@ func (i *IEXService) getExchanges() ([]Exchanges, error) {
 	return exchanges, nil
 }
 
-const IEX_IMPORT_EXCHANGES_JOB_NAME = "iex-import-exchanges"
+var IEXExchangesImportJob job.JobDefinition = job.JobDefinition{
+	Key:      "iex-import-exchanges",
+	Validity: 24 * 7 * time.Hour,
+}
 
-func (i *IEXService) SaveExchanges() error {
-
-	ctx := context.Background()
-	week := 60 * 60 * 24 * 7
-	expired, err := i.jobService.HasLastSuccessfulJobExpired(ctx, IEX_IMPORT_EXCHANGES_JOB_NAME, time.Duration(week))
-
-	if !expired || err == nil {
-		return errors.New("import-iex-exchanges: last successful exchange import was less than a week ago")
-	}
-
-	job, err := i.jobService.StartJob(ctx, IEX_IMPORT_EXCHANGES_JOB_NAME)
-	if err != nil {
-		return err
-	}
+func (i *IEXService) SaveExchanges(ctx context.Context) error {
 
 	exchanges, err := i.getExchanges()
 
@@ -84,11 +74,5 @@ func (i *IEXService) SaveExchanges() error {
 			continue
 		}
 	}
-	err = tx.Commit()
-	if err != nil {
-		i.jobService.FailJob(ctx, job.ID, err.Error())
-		return err
-	}
-	i.jobService.FinishJob(ctx, job.ID)
-	return nil
+	return tx.Commit()
 }
