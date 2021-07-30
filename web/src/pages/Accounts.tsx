@@ -1,10 +1,7 @@
 import {
-  faArrowRight,
   faChartLine,
-  faEllipsisH,
-  faPlus,
   faSpinner,
-  faTimes
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ky from "ky";
@@ -15,6 +12,7 @@ import { Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import { Account } from "../models/account";
 import { accountsState } from "../state/accountState";
+import { formatMoney } from "../util/formatter";
 
 export function Accounts() {
   const [loading, setLoading] = useState(true);
@@ -40,51 +38,32 @@ export function Accounts() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between mb-8">
-        <h1 className="text-3xl">Accounts</h1>
+        <h1 className="text-3xl">Your Accounts</h1>
         <button className="bg-gray-900 text-white py-2 px-4 rounded shadow">
-          +
+          + Account
         </button>
       </div>
-      <div className="grid grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {!loading &&
           accounts.map((account) => (
             <Link
-              className="bg-white rounded-lg shadow px-6 py-4 transition-shadow group"
+              className="bg-white rounded px-6 py-4 transition-all border border-transparent hover:border-blue-600 hover:shadow"
               to={"/account/" + account.id}
               key={account.id}
             >
-              <div className="flex mb-4 items-center w-full justify-between">
-                <div className="flex items-center">
-                  <FontAwesomeIcon icon={faChartLine} size="lg" />
-                  <div className="flex flex-col ml-4 items-start">
-                    <h2 className="text-lg font-semibold capitalize">
-                      {account.name}
-                    </h2>
-                    <h3 className="text-gray-700 bg-gray-300 rounded-full px-2 text-sm">
-                      Crypto
-                    </h3>
-                  </div>
+              <div className="flex flex-col mb-4 items-center w-full justify-between">
+                <div>
+                  <FontAwesomeIcon icon={faChartLine} size="7x" />
                 </div>
-                <button>
-                  <FontAwesomeIcon icon={faEllipsisH} />
-                </button>
+                <h2 className="text-lg font-bold">{account.name}</h2>
+                <span className="text-gray-700 text-sm mb-5">Stocks, ETFs</span>
+                <h3 className="font-bold">{formatMoney(4232.23)}</h3>
               </div>
-              <div className="flex justify-end">
-                <button className="text-blue-700">
-                  <span className="mr-2 group-hover:underline">Details</span>
-                  <FontAwesomeIcon icon={faArrowRight} size="sm" />
-                </button>
+              <div className="flex justify-center mt-5">
+                <button className="font-bold">View Account</button>
               </div>
             </Link>
           ))}
-        {!loading && (
-          <button
-            className="rounded-lg shadow p-6 border border-gray-200 flex items-center justify-center text-gray-400"
-            onClick={() => setCreating(true)}
-          >
-            <FontAwesomeIcon icon={faPlus} size="2x" />
-          </button>
-        )}
         {loading && (
           <>
             <AccountCardLoadingIndicator />
@@ -108,12 +87,12 @@ export function Accounts() {
 
 function AccountCardLoadingIndicator() {
   return (
-    <div className="bg-white rounded-lg shadow p-6 border border-gray-200 hover:shadow-lg transition-shadow animate-pulse">
-      <div className="flex justify-between mb-4 items-center">
-        <span className="bg-blue-100 uppercase font-bold text-xs rounded w-8 h-6"></span>
-        <span className="bg-blue-100 uppercase font-bold text-xs rounded h-4 w-16"></span>
-      </div>
-      <div className="h-6 bg-blue-100"></div>
+    <div className="bg-white rounded p-6 animate-pulse flex flex-col items-center px-6 py-4">
+      <div className="bg-blue-100 w-24 h-24 mb-4"></div>
+      <div className="bg-blue-100 w-20 h-5 mb-2"></div>
+      <div className="bg-blue-100 w-16 h-4 mb-5"></div>
+      <div className="bg-blue-100 w-24 h-6 mb-5"></div>
+      <div className="bg-blue-100 w-28 h-5 mb-4"></div>
     </div>
   );
 }
