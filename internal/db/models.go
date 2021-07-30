@@ -43,6 +43,8 @@ type Symbol struct {
 	Source     string         `json:"source"`
 	Precision  int32          `json:"precision"`
 	SymbolName sql.NullString `json:"symbolName"`
+	Isin       sql.NullString `json:"isin"`
+	Wkn        sql.NullString `json:"wkn"`
 }
 
 type Transaction struct {

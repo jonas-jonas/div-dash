@@ -4,6 +4,8 @@ export type Symbol = {
   type: SymbolType;
   source: string;
   precision: number;
+  isin: string;
+  wkn: string;
 };
 
 export type SymbolType =

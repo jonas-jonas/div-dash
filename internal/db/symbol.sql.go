@@ -8,6 +8,23 @@ import (
 	"database/sql"
 )
 
+const addISINAndWKN = `-- name: AddISINAndWKN :exec
+UPDATE "symbol"
+SET isin = $1, wkn = $2
+WHERE symbol_id = $3
+`
+
+type AddISINAndWKNParams struct {
+	Isin     sql.NullString `json:"isin"`
+	Wkn      sql.NullString `json:"wkn"`
+	SymbolID string         `json:"symbolID"`
+}
+
+func (q *Queries) AddISINAndWKN(ctx context.Context, arg AddISINAndWKNParams) error {
+	_, err := q.exec(ctx, q.addISINAndWKNStmt, addISINAndWKN, arg.Isin, arg.Wkn, arg.SymbolID)
+	return err
+}
+
 const addSymbol = `-- name: AddSymbol :exec
 INSERT INTO "symbol" (symbol_id, type, source, precision, symbol_name)
 VALUES ($1, $2, $3, $4, $5)
@@ -49,7 +66,7 @@ func (q *Queries) ConnectSymbolWithExchange(ctx context.Context, arg ConnectSymb
 }
 
 const getSymbol = `-- name: GetSymbol :one
-SELECT symbol_id, type, source, precision, symbol_name
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn
 FROM "symbol"
 WHERE symbol_id = $1
 `
@@ -63,12 +80,14 @@ func (q *Queries) GetSymbol(ctx context.Context, symbolID string) (Symbol, error
 		&i.Source,
 		&i.Precision,
 		&i.SymbolName,
+		&i.Isin,
+		&i.Wkn,
 	)
 	return i, err
 }
 
 const searchSymbol = `-- name: SearchSymbol :many
-SELECT symbol_id, type, source, precision, symbol_name
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn
 FROM "symbol"
 WHERE symbol_id LIKE $1 OR symbol_name LIKE $1
 LIMIT $2
@@ -94,6 +113,8 @@ func (q *Queries) SearchSymbol(ctx context.Context, arg SearchSymbolParams) ([]S
 			&i.Source,
 			&i.Precision,
 			&i.SymbolName,
+			&i.Isin,
+			&i.Wkn,
 		); err != nil {
 			return nil, err
 		}

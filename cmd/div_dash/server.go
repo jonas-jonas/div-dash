@@ -18,6 +18,7 @@ func main() {
 
 	services.JobService().RunJob(iex.IEXImportSymbolsJob, services.IEXService().SaveSymbols)
 	services.JobService().RunJob(iex.IEXExchangesImportJob, services.IEXService().SaveExchanges)
+	services.JobService().RunJob(iex.ISINAndWKNImportJob, services.IEXService().ImportISINAndWKN)
 
 	controllers.RegisterRoutes(r)
 	port := viper.GetString("server.port")

@@ -30,13 +30,7 @@ func SearchSymbol(c *gin.Context) {
 	resp := []symbolResponse{}
 
 	for _, symbol := range symbols {
-		resp = append(resp, symbolResponse{
-			SymbolID:   symbol.SymbolID,
-			Type:       symbol.Type,
-			Source:     symbol.Source,
-			Precision:  symbol.Precision,
-			SymbolName: symbol.SymbolName.String,
-		})
+		resp = append(resp, makeSymbolResponse(symbol))
 	}
 
 	c.JSON(http.StatusOK, resp)

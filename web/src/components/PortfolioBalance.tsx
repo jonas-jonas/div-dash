@@ -1,4 +1,8 @@
-import { faSadTear, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCopy,
+  faSadTear,
+  faSpinner,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import ky from "ky";
@@ -35,6 +39,13 @@ export function PortfolioBalance() {
               >
                 <td className="py-3 px-2 flex items-center">
                   <div className="flex flex-col">
+                    <div className="text-gray-600 text-xs mb-1">
+                      <CopyElement value={balanceItem.symbol.symbolID} />
+                      <span className="mx-2">·</span>
+                      <CopyElement value={balanceItem.symbol.isin} />
+                      <span className="mx-2">·</span>
+                      <CopyElement value={balanceItem.symbol.wkn} />
+                    </div>
                     <Link
                       className="font-bold hover:underline"
                       to={"/symbol/" + balanceItem.symbol.symbolID}
@@ -107,5 +118,30 @@ export function PortfolioBalance() {
         </div>
       )}
     </div>
+  );
+}
+
+type CopyElementProps = {
+  value: string;
+};
+
+function CopyElement({ value }: CopyElementProps) {
+  const handleClick = () => {
+    const textField = document.createElement("textarea");
+    textField.innerText = value;
+    document.body.appendChild(textField);
+    textField.select();
+    document.execCommand("copy");
+    textField.remove();
+  };
+
+  return (
+    <button
+      className="focus:outline-none hover:text-gray-900"
+      onClick={handleClick}
+    >
+      <FontAwesomeIcon icon={faCopy} className="mr-1" />
+      {value}
+    </button>
   );
 }

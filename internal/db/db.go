@@ -25,6 +25,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.activateUserStmt, err = db.PrepareContext(ctx, activateUser); err != nil {
 		return nil, fmt.Errorf("error preparing query ActivateUser: %w", err)
 	}
+	if q.addISINAndWKNStmt, err = db.PrepareContext(ctx, addISINAndWKN); err != nil {
+		return nil, fmt.Errorf("error preparing query AddISINAndWKN: %w", err)
+	}
 	if q.addSymbolStmt, err = db.PrepareContext(ctx, addSymbol); err != nil {
 		return nil, fmt.Errorf("error preparing query AddSymbol: %w", err)
 	}
@@ -132,6 +135,11 @@ func (q *Queries) Close() error {
 	if q.activateUserStmt != nil {
 		if cerr := q.activateUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing activateUserStmt: %w", cerr)
+		}
+	}
+	if q.addISINAndWKNStmt != nil {
+		if cerr := q.addISINAndWKNStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing addISINAndWKNStmt: %w", cerr)
 		}
 	}
 	if q.addSymbolStmt != nil {
@@ -339,6 +347,7 @@ type Queries struct {
 	db                              DBTX
 	tx                              *sql.Tx
 	activateUserStmt                *sql.Stmt
+	addISINAndWKNStmt               *sql.Stmt
 	addSymbolStmt                   *sql.Stmt
 	connectSymbolWithExchangeStmt   *sql.Stmt
 	countByEmailStmt                *sql.Stmt
@@ -379,6 +388,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                              tx,
 		tx:                              tx,
 		activateUserStmt:                q.activateUserStmt,
+		addISINAndWKNStmt:               q.addISINAndWKNStmt,
 		addSymbolStmt:                   q.addSymbolStmt,
 		connectSymbolWithExchangeStmt:   q.connectSymbolWithExchangeStmt,
 		countByEmailStmt:                q.countByEmailStmt,

@@ -16,6 +16,8 @@ type symbolResponse struct {
 	Source     string `json:"source"`
 	Precision  int32  `json:"precision"`
 	SymbolName string `json:"symbolName"`
+	ISIN       string `json:"isin"`
+	WKN        string `json:"wkn"`
 }
 
 func makeSymbolResponse(symbol db.Symbol) symbolResponse {
@@ -25,6 +27,8 @@ func makeSymbolResponse(symbol db.Symbol) symbolResponse {
 		Source:     symbol.Source,
 		Precision:  symbol.Precision,
 		SymbolName: symbol.SymbolName.String,
+		ISIN:       symbol.Isin.String,
+		WKN:        symbol.Wkn.String,
 	}
 }
 

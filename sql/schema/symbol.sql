@@ -23,3 +23,8 @@ SELECT *
 FROM "symbol"
 WHERE symbol_id LIKE @search OR symbol_name LIKE @search
 LIMIT @count;
+
+-- name: AddISINAndWKN :exec
+UPDATE "symbol"
+SET isin = $1, wkn = $2
+WHERE symbol_id = $3;
