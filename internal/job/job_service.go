@@ -38,8 +38,6 @@ func (j *JobService) hasLastSuccessfulJobExpired(ctx context.Context, name strin
 		lastJobTimestamp = time.Unix(lastJob.Started, 0)
 	}
 
-	log.Printf("x %s, %f", lastJobTimestamp.Format("dd.MM.YYYY HH:mm:ss"), duration.Seconds())
-
 	return lastJobTimestamp.Add(duration).Before(j.nowFunc()), nil
 }
 
