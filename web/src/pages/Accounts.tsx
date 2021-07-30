@@ -1,11 +1,11 @@
 import {
   faChartLine,
   faSpinner,
-  faTimes
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ky from "ky";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -122,40 +122,72 @@ function CreateAccountModal({ close }: CreateAccountModalProps) {
   const onSubmit = async (values: AccountForm) => {
     createAccountMutation.mutate(values);
   };
+
+  useEffect(() => {
+    const escKeyListener = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        close();
+      }
+    };
+
+    document.addEventListener("keyup", escKeyListener);
+
+    return () => {
+      document.removeEventListener("keyup", escKeyListener);
+    };
+  }, [close]);
+
   return (
     <div className="top-0 fixed">
       <form
         className="w-96 mx-auto bg-white rounded fixed top-1/4 transform z-10 left-1/2 -translate-x-1/2 shadow"
         onSubmit={handleSubmit(onSubmit)}
       >
-        <div className="border-b border-gray-200 px-8 py-4 flex justify-between">
-          <h2 className="text-xl">New Account</h2>
-          <button onClick={close}>
+        <div className="px-8 pt-8 flex justify-between items-start">
+          <div className="mr-2">
+            <h2 className="text-2xl font-bold">New Account</h2>
+            <h3 className="text-gray-500">Lorem ipsum, dolor sit </h3>
+          </div>
+          <button
+            onClick={close}
+            className="flex flex-col items-center text-gray-500 hover:text-gray-900 transition-colors"
+          >
             <FontAwesomeIcon icon={faTimes} />
+            <span className="text-xs">ESC</span>
           </button>
         </div>
-        <div className="px-8 py-4">
-          <label className="block mb-4">
-            <span className="text-xs text-gray-600 ml-3">Name</span>
+        <div className="px-8 py-8">
+          <label className="block mb-8">
+            <span>Name</span>
             <input
               type="text"
-              className="bg-gray-100 block w-full px-3 py-2 focus:outline-none rounded-md border border-gray-400 focus:border-blue-700 transition-colors"
+              className="bg-gray-50 block w-full px-3 py-2 focus:outline-none rounded border border-transparent focus:border-blue-700 transition-colors"
+              placeholder="Enter account name"
               {...register("name", { required: true })}
             />
           </label>
-          <button
-            className="mx-auto block bg-gray-900 text-white rounded px-6 py-2 shadow hover:bg-gray-600 transition-colors focus:outline-none"
-            type="submit"
-          >
-            {formState.isSubmitting ? (
-              <FontAwesomeIcon icon={faSpinner} spin />
-            ) : (
-              "Create"
-            )}
-          </button>
+          <div className="flex justify-items-stretch">
+            <button
+              className="bg-transparent text-gray-900 rounded py-2 hover:bg-gray-50 transition-colors focus:outline-none border border-gray-900 flex-1 mr-2"
+              onClick={close}
+              type="reset"
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-gray-900 text-white rounded py-2 hover:bg-gray-600 transition-colors focus:outline-none flex-1 ml-2 border border-gray-900"
+              type="submit"
+            >
+              {formState.isSubmitting ? (
+                <FontAwesomeIcon icon={faSpinner} spin />
+              ) : (
+                "Create Account"
+              )}
+            </button>
+          </div>
         </div>
       </form>
-      <div className="bg-gray-600 opacity-40 fixed w-full h-full top-0 z-0"></div>
+      <div className="fixed w-full h-full top-0 z-0 backdrop-filter backdrop-blur-sm backdrop-opacity-45 backdrop-brightness-50"></div>
     </div>
   );
 }
