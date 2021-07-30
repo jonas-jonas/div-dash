@@ -1,9 +1,7 @@
 import {
   faChevronLeft,
   faChevronRight,
-  faPencilAlt,
-  faPlaceOfWorship,
-  faSpinner,
+  faPencilAlt, faSpinner,
   faTimes,
   faTrash
 } from "@fortawesome/free-solid-svg-icons";
@@ -16,7 +14,6 @@ import { Path, useForm, UseFormRegister } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useParams } from "react-router";
 import { TransactionForm } from "../form/TransactionForm";
-import { AccountPosition } from "../models/account";
 import { Symbol, SymbolTypeLabels } from "../models/symbol";
 import { Transaction } from "../models/transaction";
 import * as api from "../util/api";
@@ -52,7 +49,6 @@ export function Account() {
       </div>
       <div className="w-full flex">
         <div className="flex-grow">
-          <div className="w-full bg-white py-60 mb-5 text-center">Graph</div>
           <table className="table w-full text-left">
             <thead className="bg-white">
               <tr className="shadow">
@@ -163,17 +159,6 @@ export function Account() {
             </div>
           )}
         </div>
-        <div className="pl-6">
-          <h2 className="font-bold mb-3">Current Positions (123)</h2>
-          {account?.positions?.map((position) => {
-            return (
-              <AccountPositionCard
-                position={position}
-                key={position.symbol.symbolID}
-              />
-            );
-          })}
-        </div>
       </div>
       {creating &&
         ReactDOM.createPortal(
@@ -183,37 +168,6 @@ export function Account() {
           />,
           document.body
         )}
-    </div>
-  );
-}
-
-type AccountPositionCardProps = {
-  position: AccountPosition;
-};
-
-function AccountPositionCard({ position }: AccountPositionCardProps) {
-  return (
-    <div className="bg-white rounded border-l-4 border-green-600 flex items-center py-6 px-5 shadow">
-      <div className="mr-4">
-        <FontAwesomeIcon icon={faPlaceOfWorship} size="3x" />
-      </div>
-      <div className="mr-6">
-        <div className="flex flex-nowrap items-center mb-2">
-          <h4 className="font-bold">{position.symbol.symbolName}</h4>
-          <span className="ml-1 bg-gray-900 text-white rounded px-1 text-sm">
-            {position.symbol.symbolID}
-          </span>
-        </div>
-        <div className="text-sm font-bold">
-          {position.amount}@{formatMoney(position.buyIn)}
-        </div>
-      </div>
-      <div className="flex flex-col items-end">
-        <span className="font-bold">
-          {position.currentPrice * position.amount}
-        </span>
-        <span className="text-sm">{position.pnlRelative}%</span>
-      </div>
     </div>
   );
 }
