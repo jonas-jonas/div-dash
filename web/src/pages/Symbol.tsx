@@ -72,7 +72,10 @@ export function SymbolPage() {
               {symbolDetails.tags.map((tag) => {
                 if (tag.type === "CHIP") {
                   return (
-                    <span className="rounded-full bg-gray-300 text-gray-700 text-sm shadow px-4 py-1 mr-2">
+                    <span
+                      className="rounded-full bg-gray-300 text-gray-700 text-sm shadow px-4 py-1 mr-2"
+                      key={tag.label}
+                    >
                       {tag.label}
                     </span>
                   );
@@ -83,6 +86,7 @@ export function SymbolPage() {
                       target="_blank"
                       rel="noreferrer noopener"
                       className="rounded-full bg-gray-300 text-gray-700 text-sm shadow px-4 py-1 hover:bg-gray-500 hover:text-white transition-colors"
+                      key={tag.link}
                     >
                       <FontAwesomeIcon
                         icon={faLink}
