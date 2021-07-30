@@ -70,7 +70,7 @@ func (q *Queries) GetSymbol(ctx context.Context, symbolID string) (Symbol, error
 const searchSymbol = `-- name: SearchSymbol :many
 SELECT symbol_id, type, source, precision, symbol_name
 FROM "symbol"
-WHERE symbol_id LIKE $1 OR symbol_name LIKE $1 
+WHERE symbol_id LIKE $1 OR symbol_name LIKE $1
 LIMIT $2
 `
 

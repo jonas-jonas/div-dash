@@ -26,7 +26,7 @@ export function PortfolioComposition() {
     return balance?.symbols.map((balanceItem) => {
       return {
         symbol: balanceItem.symbol.symbolID,
-        total: balanceItem.fiatValue,
+        total: balanceItem.fiatAssetPrice * balanceItem.amount,
       };
     });
   }, [balance?.symbols]);

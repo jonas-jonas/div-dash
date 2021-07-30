@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"div-dash/internal/config"
+	"div-dash/internal/db"
 	"div-dash/internal/services"
 	"net/http"
 
@@ -17,12 +18,21 @@ type symbolResponse struct {
 	SymbolName string `json:"symbolName"`
 }
 
+func makeSymbolResponse(symbol db.Symbol) symbolResponse {
+	return symbolResponse{
+		SymbolID:   symbol.SymbolID,
+		Type:       symbol.Type,
+		Source:     symbol.Source,
+		Precision:  symbol.Precision,
+		SymbolName: symbol.SymbolName.String,
+	}
+}
+
 type balanceItemResponse struct {
 	Symbol         symbolResponse `json:"symbol"`
 	Amount         float64        `json:"amount"`
 	CostBasis      float64        `json:"costBasis"`
 	FiatAssetPrice float64        `json:"fiatAssetPrice"`
-	FiatValue      float64        `json:"fiatValue"`
 	PNL            pnlResponse    `json:"pnl"`
 }
 
@@ -50,7 +60,7 @@ func GetBalance(c *gin.Context) {
 	resp := balanceResponse{}
 
 	for _, entry := range balances {
-		costBasis := money.New(int64(entry.CostBasis), "EUR").AsMajorUnits()
+		costBasis := money.New(int64(entry.CostBasis/entry.Amount), "EUR").AsMajorUnits()
 		symbol, err := config.Queries().GetSymbol(c, entry.Symbol)
 		if err != nil {
 			config.Logger().Printf("Could not find asset for symbol %s: %s. Skipping balance entry... ", entry.Symbol, err.Error())
@@ -59,30 +69,23 @@ func GetBalance(c *gin.Context) {
 		currentPrice, err := services.PriceService().GetPriceOfAsset(symbol)
 		if err != nil {
 			config.Logger().Printf("Could not get current price for asset %s: %s.", entry.Symbol, err.Error())
-			currentPrice = -0.0
-		}
-		fiatValue := currentPrice * entry.Amount
-		plAbsolute := fiatValue - costBasis
-		plPercent := plAbsolute / costBasis
-		symbolResponse := symbolResponse{
-			SymbolID:   symbol.SymbolID,
-			Type:       symbol.Type,
-			Source:     symbol.Source,
-			Precision:  symbol.Precision,
-			SymbolName: symbol.SymbolName.String,
+			currentPrice = 0.0
 		}
 
-		resp.CostBasis += costBasis
-		resp.FiatValue += fiatValue
+		currentFiatValue := currentPrice * entry.Amount
+		plAbsolute := currentPrice - costBasis
+		plPercent := plAbsolute / costBasis
+
+		resp.CostBasis += costBasis * entry.Amount
+		resp.FiatValue += currentFiatValue
 
 		resp.Symbols = append(resp.Symbols, balanceItemResponse{
-			Symbol:         symbolResponse,
+			Symbol:         makeSymbolResponse(symbol),
 			Amount:         entry.Amount,
 			CostBasis:      costBasis,
 			FiatAssetPrice: currentPrice,
-			FiatValue:      fiatValue,
 			PNL: pnlResponse{
-				PNL:        plAbsolute,
+				PNL:        plAbsolute * entry.Amount,
 				PNLPercent: plPercent,
 			},
 		})

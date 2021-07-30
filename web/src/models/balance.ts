@@ -5,7 +5,6 @@ export type BalanceItem = {
   amount: number;
   costBasis: number;
   fiatAssetPrice: number;
-  fiatValue: number;
   pnl: PNL;
 }
 

@@ -69,14 +69,25 @@ export function PortfolioBalance() {
                 </td>
                 <td className="py-3 px-2">
                   <div className="flex flex-col">
-                    <span>{formatMoney(balanceItem.fiatAssetPrice)}</span>
+                    <span>
+                      {formatMoney(
+                        balanceItem.fiatAssetPrice * balanceItem.amount
+                      )}
+                    </span>
                     <span className="text-sm text-gray-600">
-                      {formatMoney(balanceItem.fiatValue)}
+                      {formatMoney(balanceItem.fiatAssetPrice)}
                     </span>
                   </div>
                 </td>
                 <td className="py-3 px-2">
-                  <span>{formatMoney(balanceItem.costBasis)}</span>
+                  <div className="flex flex-col">
+                    <span>
+                      {formatMoney(balanceItem.costBasis * balanceItem.amount)}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {formatMoney(balanceItem.costBasis)}
+                    </span>
+                  </div>
                 </td>
                 <td>
                   <div className="flex flex-col items-start">
