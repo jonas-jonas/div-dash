@@ -1,9 +1,11 @@
 import {
   faChevronLeft,
   faChevronRight,
-  faPlus,
+  faPencilAlt,
+  faPlaceOfWorship,
   faSpinner,
   faTimes,
+  faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
@@ -14,6 +16,7 @@ import { Path, useForm, UseFormRegister } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useParams } from "react-router";
 import { TransactionForm } from "../form/TransactionForm";
+import { AccountPosition } from "../models/account";
 import { Symbol, SymbolTypeLabels } from "../models/symbol";
 import { Transaction } from "../models/transaction";
 import * as api from "../util/api";
@@ -35,106 +38,142 @@ export function Account() {
     () => api.getTransactions(accountId)
   );
 
+  const getTransactionSideClasses = (side: "buy" | "sell") => {
+    return classNames("font-bold py-3 pl-4 uppercase", {
+      "text-green-600": side === "buy",
+      "text-red-600": side === "sell",
+    });
+  };
+
   return (
     <div className="container mx-auto pt-10">
       <div className="flex justify-between mb-4">
         <h1 className="text-2xl pl-4">{account?.name}</h1>
-        <button
-          className="bg-gray-900 text-white py-2 px-3 rounded shadow"
-          onClick={() => setCreating(true)}
-        >
-          <FontAwesomeIcon icon={faPlus} />
-        </button>
       </div>
-      <div className="w-full">
-        <table className="table w-full text-left">
-          <thead className="bg-white">
-            <tr className="shadow">
-              <th className="rounded-l py-3 pl-4">Id</th>
-              <th className="py-3 px-2">Date</th>
-              <th className="py-3 px-2">Symbol</th>
-              <th className="py-3 px-2">Type</th>
-              <th className="py-3 px-2">Price</th>
-              <th className="py-3 px-2">Amount</th>
-              <th className="py-3 px-2">Total</th>
-              <th className="py-3 px-2">Side</th>
-              <th className="rounded-r py-3 px-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {!isLoading &&
-              transactions?.map((transaction) => (
-                <tr
-                  className="border-b border-gray-200"
-                  key={transaction.transactionId}
-                >
-                  <td className="py-3 px-2">
-                    <span className="font-mono font-bold tracking-wider text-blue-700">
-                      {transaction.transactionId}
-                    </span>
-                  </td>
-                  <td className="py-3 px-2 flex flex-col">
-                    <span className="text-sm">
-                      {formatDate(transaction.date)}
-                    </span>
-                    <span className="text-xs text-gray-700">
-                      {formatTime(transaction.date)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-2">{transaction.symbol}</td>
-                  <td className="py-3 px-2 capitalize">
-                    {SymbolTypeLabels[transaction.type]}
-                  </td>
-                  <td className="py-3 px-2">
-                    {formatMoney(transaction.price)}
-                  </td>
-                  <td className="py-3 px-2">{transaction.amount}</td>
-                  <td className="py-3 px-2">
-                    {formatMoney(transaction.amount * transaction.price)}
-                  </td>
-                  <td className="py-3 px-2 uppercase">{transaction.side}</td>
-                  <td className="py-3 px-2">
-                    <button className="text-blue-700 font-bold">Details</button>
-                  </td>
-                </tr>
-              ))}
-            {isLoading && (
-              <>
-                <TransactionRowLoadingIndicator />
-                <TransactionRowLoadingIndicator />
-                <TransactionRowLoadingIndicator />
-                <TransactionRowLoadingIndicator />
-              </>
-            )}
-          </tbody>
-        </table>
-        {!isLoading && transactions?.length === 0 && (
-          <div className="text-center mt-4">
-            You have no transactions.{" "}
-            <button className="text-blue-700" onClick={() => setCreating(true)}>
-              Create one now
-            </button>
-          </div>
-        )}
-        {!isLoading && transactions && transactions.length > 0 && (
-          <div className="flex justify-end mt-4">
-            <div className="bg-white rounded shadow p-2 text-gray-900">
-              <button className="px-2 text-blue-700">
-                <FontAwesomeIcon icon={faChevronLeft} size="sm" />
-              </button>
-              <button className="px-2 border border-blue-700 text-blue-700 rounded font-bold">
-                1
-              </button>
-              <button className="px-2">2</button>
-              <button className="px-2">3</button>
-              <button className="px-2">...</button>
-              <button className="px-2">22</button>
-              <button className="px-2 text-blue-700">
-                <FontAwesomeIcon icon={faChevronRight} size="sm" />
+      <div className="w-full flex">
+        <div className="flex-grow">
+          <div className="w-full bg-white py-60 mb-5 text-center">Graph</div>
+          <table className="table w-full text-left">
+            <thead className="bg-white">
+              <tr className="shadow">
+                <th className="rounded-l py-3 pl-4">Direction</th>
+                <th className="py-3 px-2">ID</th>
+                <th className="py-3 px-2">Name</th>
+                <th className="py-3 px-2">Type</th>
+                <th className="py-3 px-2">Amount</th>
+                <th className="py-3 px-2">Price</th>
+                <th className="py-3 px-2">Total</th>
+                <th className="py-3 px-2">Date</th>
+                <th className="rounded-r py-3 px-3 text-right">
+                  <button
+                    className="bg-gray-900 text-white py-1 px-3 rounded "
+                    onClick={() => setCreating(true)}
+                  >
+                    + Transaction
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {!isLoading &&
+                transactions?.map((transaction) => (
+                  <tr className="group" key={transaction.transactionId}>
+                    <td className={getTransactionSideClasses(transaction.side)}>
+                      {transaction.side}
+                    </td>
+                    <td className="py-3 px-2">
+                      <span className="font-mono font-bold tracking-wider">
+                        {transaction.transactionId}
+                      </span>
+                    </td>
+                    <td className="py-3 px-2">
+                      <div className=" flex items-center">
+                        <span className="font-bold">{transaction.symbol}</span>
+                        <span className="ml-1 bg-gray-900 text-white rounded px-1 text-sm">
+                          {transaction.symbol}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-2 capitalize">
+                      {SymbolTypeLabels[transaction.type]}
+                    </td>
+                    <td className="py-3 px-2">{transaction.amount}</td>
+                    <td className="py-3 px-2">
+                      {formatMoney(transaction.price)}
+                    </td>
+                    <td className="py-3 px-2">
+                      {formatMoney(transaction.amount * transaction.price)}
+                    </td>
+                    <td className="py-3 px-2 flex flex-col">
+                      <span className="text-sm">
+                        {formatDate(transaction.date)}
+                      </span>
+                      <span className="text-xs text-gray-700">
+                        {formatTime(transaction.date)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <button className="text-gray-700 opacity-0 group-hover:opacity-100 px-2">
+                        <FontAwesomeIcon icon={faPencilAlt} />
+                      </button>
+                      <button className="text-gray-700 opacity-0 group-hover:opacity-100 px-2">
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              {isLoading && (
+                <>
+                  <TransactionRowLoadingIndicator />
+                  <TransactionRowLoadingIndicator />
+                  <TransactionRowLoadingIndicator />
+                  <TransactionRowLoadingIndicator />
+                </>
+              )}
+            </tbody>
+          </table>
+          {!isLoading && transactions?.length === 0 && (
+            <div className="text-center mt-4">
+              You have no transactions.{" "}
+              <button
+                className="text-blue-700"
+                onClick={() => setCreating(true)}
+              >
+                Create one now
               </button>
             </div>
-          </div>
-        )}
+          )}
+          {!isLoading && transactions && transactions.length > 0 && (
+            <div className="flex justify-end mt-4">
+              <div className="bg-white rounded shadow p-2 text-gray-900">
+                <button className="px-2 text-blue-700">
+                  <FontAwesomeIcon icon={faChevronLeft} size="sm" />
+                </button>
+                <button className="px-2 border border-blue-700 text-blue-700 rounded font-bold">
+                  1
+                </button>
+                <button className="px-2">2</button>
+                <button className="px-2">3</button>
+                <button className="px-2">...</button>
+                <button className="px-2">22</button>
+                <button className="px-2 text-blue-700">
+                  <FontAwesomeIcon icon={faChevronRight} size="sm" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="pl-6">
+          <h2 className="font-bold mb-3">Current Positions (123)</h2>
+          {account?.positions?.map((position) => {
+            return (
+              <AccountPositionCard
+                position={position}
+                key={position.symbol.symbolID}
+              />
+            );
+          })}
+        </div>
       </div>
       {creating &&
         ReactDOM.createPortal(
@@ -144,6 +183,37 @@ export function Account() {
           />,
           document.body
         )}
+    </div>
+  );
+}
+
+type AccountPositionCardProps = {
+  position: AccountPosition;
+};
+
+function AccountPositionCard({ position }: AccountPositionCardProps) {
+  return (
+    <div className="bg-white rounded border-l-4 border-green-600 flex items-center py-6 px-5 shadow">
+      <div className="mr-4">
+        <FontAwesomeIcon icon={faPlaceOfWorship} size="3x" />
+      </div>
+      <div className="mr-6">
+        <div className="flex flex-nowrap items-center mb-2">
+          <h4 className="font-bold">{position.symbol.symbolName}</h4>
+          <span className="ml-1 bg-gray-900 text-white rounded px-1 text-sm">
+            {position.symbol.symbolID}
+          </span>
+        </div>
+        <div className="text-sm font-bold">
+          {position.amount}@{formatMoney(position.buyIn)}
+        </div>
+      </div>
+      <div className="flex flex-col items-end">
+        <span className="font-bold">
+          {position.currentPrice * position.amount}
+        </span>
+        <span className="text-sm">{position.pnlRelative}%</span>
+      </div>
     </div>
   );
 }
