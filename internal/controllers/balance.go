@@ -51,7 +51,7 @@ type balanceResponse struct {
 func GetBalance(c *gin.Context) {
 	userId := c.GetString("userId")
 
-	balances, err := config.Queries().GetBalance(c, userId)
+	balances, err := config.Queries().GetBalanceByUser(c, userId)
 	if err != nil {
 		c.Error(err)
 		return

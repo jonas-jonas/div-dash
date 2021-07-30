@@ -7,7 +7,7 @@ import (
 	"context"
 )
 
-const getBalance = `-- name: GetBalance :many
+const getBalanceByUser = `-- name: GetBalanceByUser :many
 WITH ordered_in AS (
     SELECT 
         t.id, t.symbol, t.type, t.transaction_provider, t.price, t.date, t.amount, t.account_id, t.user_id, t.side,
@@ -19,7 +19,7 @@ WITH ordered_in AS (
     FROM ordered_in
     WHERE rn = 1
     UNION ALL
-    SELECT rt.symbol,oi.amount,oi.price,rt.total + oi.amount,rt.total,oi.rn
+    SELECT rt.symbol, oi.amount, oi.price, rt.total + oi.amount, rt.total, oi.rn
     FROM
         running_totals rt
             INNER JOIN
@@ -50,21 +50,21 @@ WHERE
 GROUP BY rt.symbol
 `
 
-type GetBalanceRow struct {
+type GetBalanceByUserRow struct {
 	Symbol    string  `json:"symbol"`
 	CostBasis float64 `json:"costBasis"`
 	Amount    float64 `json:"amount"`
 }
 
-func (q *Queries) GetBalance(ctx context.Context, userID string) ([]GetBalanceRow, error) {
-	rows, err := q.query(ctx, q.getBalanceStmt, getBalance, userID)
+func (q *Queries) GetBalanceByUser(ctx context.Context, userID string) ([]GetBalanceByUserRow, error) {
+	rows, err := q.query(ctx, q.getBalanceByUserStmt, getBalanceByUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetBalanceRow
+	var items []GetBalanceByUserRow
 	for rows.Next() {
-		var i GetBalanceRow
+		var i GetBalanceByUserRow
 		if err := rows.Scan(&i.Symbol, &i.CostBasis, &i.Amount); err != nil {
 			return nil, err
 		}

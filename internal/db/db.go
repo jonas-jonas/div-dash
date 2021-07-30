@@ -70,8 +70,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getAccountStmt, err = db.PrepareContext(ctx, getAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAccount: %w", err)
 	}
-	if q.getBalanceStmt, err = db.PrepareContext(ctx, getBalance); err != nil {
-		return nil, fmt.Errorf("error preparing query GetBalance: %w", err)
+	if q.getBalanceByUserStmt, err = db.PrepareContext(ctx, getBalanceByUser); err != nil {
+		return nil, fmt.Errorf("error preparing query GetBalanceByUser: %w", err)
 	}
 	if q.getExchangesOfAssetStmt, err = db.PrepareContext(ctx, getExchangesOfAsset); err != nil {
 		return nil, fmt.Errorf("error preparing query GetExchangesOfAsset: %w", err)
@@ -209,9 +209,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getAccountStmt: %w", cerr)
 		}
 	}
-	if q.getBalanceStmt != nil {
-		if cerr := q.getBalanceStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getBalanceStmt: %w", cerr)
+	if q.getBalanceByUserStmt != nil {
+		if cerr := q.getBalanceByUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getBalanceByUserStmt: %w", cerr)
 		}
 	}
 	if q.getExchangesOfAssetStmt != nil {
@@ -354,7 +354,7 @@ type Queries struct {
 	findByEmailStmt                 *sql.Stmt
 	finishJobStmt                   *sql.Stmt
 	getAccountStmt                  *sql.Stmt
-	getBalanceStmt                  *sql.Stmt
+	getBalanceByUserStmt            *sql.Stmt
 	getExchangesOfAssetStmt         *sql.Stmt
 	getJobStmt                      *sql.Stmt
 	getJobsByNameStmt               *sql.Stmt
@@ -394,7 +394,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findByEmailStmt:                 q.findByEmailStmt,
 		finishJobStmt:                   q.finishJobStmt,
 		getAccountStmt:                  q.getAccountStmt,
-		getBalanceStmt:                  q.getBalanceStmt,
+		getBalanceByUserStmt:            q.getBalanceByUserStmt,
 		getExchangesOfAssetStmt:         q.getExchangesOfAssetStmt,
 		getJobStmt:                      q.getJobStmt,
 		getJobsByNameStmt:               q.getJobsByNameStmt,

@@ -1,4 +1,4 @@
--- name: GetBalance :many
+-- name: GetBalanceByUser :many
 WITH ordered_in AS (
     SELECT 
         t.*,
@@ -10,7 +10,7 @@ WITH ordered_in AS (
     FROM ordered_in
     WHERE rn = 1
     UNION ALL
-    SELECT rt.symbol,oi.amount,oi.price,rt.total + oi.amount,rt.total,oi.rn
+    SELECT rt.symbol, oi.amount, oi.price, rt.total + oi.amount, rt.total, oi.rn
     FROM
         running_totals rt
             INNER JOIN
@@ -39,13 +39,3 @@ FROM
 WHERE
     rt.total > COALESCE(out.amount, 0) 
 GROUP BY rt.symbol;
-
-SELECT 
-    symbol,
-    CAST(SUM(CASE 
-            WHEN t.side = 'buy' THEN t.amount
-            ELSE t.amount * -1
-        END
-    ) AS DOUBLE PRECISION) AS total
-FROM "transaction" as t
-GROUP BY symbol;
