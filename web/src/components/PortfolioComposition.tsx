@@ -8,25 +8,31 @@ import {
   Legend,
   Pie,
   PieChart,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from "recharts";
 import * as api from "../util/api";
 import { formatMoney } from "../util/formatter";
 
-const COLORS: { [key: string]: string } = {
-  BTC: "#f2a900",
-  ETH: "#3c3c3d",
-  NANO: "#589ae5",
-};
+const chartColors = [
+  "001219",
+  "005f73",
+  "0a9396",
+  "94d2bd",
+  "e9d8a6",
+  "ee9b00",
+  "ca6702",
+  "bb3e03",
+  "ae2012",
+  "9b2226",
+];
 
 export function PortfolioComposition() {
-
   const { data: balance } = useQuery("balance", api.getBalance);
 
   const chartData = useMemo(() => {
     return balance?.symbols.map((balanceItem) => {
       return {
-        symbol: balanceItem.symbol.symbolID,
+        symbol: balanceItem.symbol.symbolName,
         total: balanceItem.fiatAssetPrice * balanceItem.amount,
       };
     });
@@ -58,11 +64,11 @@ export function PortfolioComposition() {
               paddingAngle={2}
               dataKey="total"
             >
-              {chartData?.map((entry) => (
+              {chartData?.map((entry, i) => (
                 <Cell
                   key={entry.total}
                   name={entry.symbol}
-                  fill={COLORS[entry.symbol]}
+                  fill={"#" + chartColors[i % chartColors.length]}
                 />
               ))}
 
@@ -78,7 +84,7 @@ export function PortfolioComposition() {
                 {formatMoney(balance?.fiatValue!)}
               </Label>
             </Pie>
-            <Legend></Legend>
+            <Legend align="left"></Legend>
           </PieChart>
         </ResponsiveContainer>
       </div>
