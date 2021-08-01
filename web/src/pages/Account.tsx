@@ -4,12 +4,16 @@ import {
   faPencilAlt,
   faSpinner,
   faTimes,
-  faTrash,
+  faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import ky from "ky";
-import { ChangeEvent, useEffect, useReducer, useState } from "react";
+import {
+  ChangeEvent, useEffect,
+  useReducer,
+  useState
+} from "react";
 import ReactDOM from "react-dom";
 import { Path, useForm, UseFormRegister } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -18,7 +22,12 @@ import { TransactionForm } from "../form/TransactionForm";
 import { Symbol, SymbolTypeLabels } from "../models/symbol";
 import { Transaction } from "../models/transaction";
 import * as api from "../util/api";
-import { formatAmount, formatDate, formatMoney, formatTime } from "../util/formatter";
+import {
+  formatAmount,
+  formatDate,
+  formatMoney,
+  formatTime
+} from "../util/formatter";
 
 type AccountParams = {
   accountId: string;
@@ -220,7 +229,9 @@ function CreateTransactionModal({
   accountId,
 }: CreateTransactionModalProps) {
   const { register, handleSubmit, formState, setValue } =
-    useForm<TransactionForm>();
+    useForm<TransactionForm>({
+      defaultValues: { side: "buy" },
+    });
   const [error, setError] = useState<string>();
   const queryClient = useQueryClient();
 
@@ -255,34 +266,42 @@ function CreateTransactionModal({
   return (
     <div className="top-0 fixed">
       <form
-        className="w-1/2 mx-auto bg-gray-50 rounded fixed top-1/4 transform z-10 left-1/2 -translate-x-1/2 shadow"
+        className="w-96 mx-auto bg-white rounded fixed top-1/4 transform z-10 left-1/2 -translate-x-1/2 shadow"
         onSubmit={handleSubmit(onSubmit)}
       >
-        <div className="border-b border-gray-200 px-8 py-4 flex justify-between">
-          <h2 className="text-xl">New Transaction</h2>
-          <button onClick={close} className="px-2">
+        <div className="px-8 pt-8 flex justify-between items-start">
+          <div className="mr-2">
+            <h2 className="text-2xl font-bold">New Transaction</h2>
+            <h3 className="text-gray-500">Lorem ipsum, dolor sit </h3>
+          </div>
+          <button
+            onClick={close}
+            className="flex flex-col items-center text-gray-500 hover:text-gray-900 transition-colors"
+            type="reset"
+          >
             <FontAwesomeIcon icon={faTimes} />
+            <span className="text-xs">ESC</span>
           </button>
         </div>
-        <div className="px-8 py-4">
-          <div className="rounded bg-white shadow w-full flex mb-4">
-            <label className="w-full text-center cursor-pointer hover:bg-green-50 py-3 transition-colors">
-              Buy
+        <div className="px-8 pt-4 pb-8">
+          <div className="w-full flex mb-4 justify-around">
+            <label className="text-center cursor-pointer hover:bg-green-50 py-3 transition-colors w-36 bg-gray-50 flex flex-col items-center">
               <input
                 type="radio"
                 value="buy"
                 {...register("side", { required: true })}
-                className="ml-3"
+                className="mb-1"
               />
+              <span>Buy</span>
             </label>
-            <label className="w-full text-center cursor-pointer hover:bg-red-50 py-3 transition-colors">
-              Sell
+            <label className="text-center cursor-pointer hover:bg-red-50 py-3 transition-colors w-36 bg-gray-50 flex flex-col items-center">
               <input
                 type="radio"
                 value="sell"
                 {...register("side", { required: true })}
-                className="ml-3"
+                className="mb-1"
               />
+              <span>Sell</span>
             </label>
           </div>
           <label className="block mb-4">
@@ -305,7 +324,7 @@ function CreateTransactionModal({
             </span>
             <select
               {...register("type", { required: true })}
-              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
+              className="block w-full px-4 py-2 focus:border-blue-700 transition-colors bg-gray-50 rounded"
             >
               {Object.entries(SymbolTypeLabels).map(([key, label]) => {
                 return (
@@ -316,35 +335,37 @@ function CreateTransactionModal({
               })}
             </select>
           </label>
-          <label className="block mb-4">
-            <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
-              Amount
-            </span>
-            <input
-              type="number"
-              step="0.00001"
-              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
-              {...register("amount", { required: true })}
-            />
-          </label>
-          <label className="block mb-4">
-            <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
-              Price
-            </span>
-            <input
-              type="number"
-              step="0.00001"
-              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
-              {...register("price", { required: true })}
-            />
-          </label>
+          <div className="flex items-center justify-center">
+            <label className="block mb-4 mr-2">
+              <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
+                Amount
+              </span>
+              <input
+                type="number"
+                step="0.00001"
+                className="block w-full px-4 py-2 focus:border-blue-700 transition-colors bg-gray-50 rounded"
+                {...register("amount", { required: true })}
+              />
+            </label>
+            <label className="block mb-4 ml-2">
+              <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
+                Price
+              </span>
+              <input
+                type="number"
+                step="0.00001"
+                className="block w-full px-4 py-2 focus:border-blue-700 transition-colors bg-gray-50 rounded"
+                {...register("price", { required: true })}
+              />
+            </label>
+          </div>
           <label className="block mb-4">
             <span className="text-xs text-gray-700 ml-4 font-bold tracking-wider">
               Date
             </span>
             <input
               type="datetime-local"
-              className="block w-full px-4 py-2 focus:bg-white rounded shadow focus:border-blue-700 transition-colors"
+              className="block w-full px-4 py-2 focus:border-blue-700 transition-colors bg-gray-50 rounded"
               {...register("date", { required: true })}
             />
           </label>
@@ -353,19 +374,28 @@ function CreateTransactionModal({
               {error}
             </div>
           )}
-          <button
-            className="mx-auto block bg-gray-900 text-white rounded px-6 py-2 shadow hover:bg-gray-600 transition-colors focus:outline-none"
-            type="submit"
-          >
-            {formState.isSubmitting ? (
-              <FontAwesomeIcon icon={faSpinner} spin />
-            ) : (
-              "Create"
-            )}
-          </button>
+          <div className="flex justify-items-stretch mt-8">
+            <button
+              className="bg-transparent text-gray-900 rounded py-2 hover:bg-gray-50 transition-colors focus:outline-none border border-gray-900 flex-1 mr-2"
+              onClick={close}
+              type="reset"
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-gray-900 text-white rounded py-2 hover:bg-gray-600 transition-colors focus:outline-none flex-1 ml-2 border border-gray-900"
+              type="submit"
+            >
+              {formState.isSubmitting ? (
+                <FontAwesomeIcon icon={faSpinner} spin />
+              ) : (
+                "Create"
+              )}
+            </button>
+          </div>
         </div>
       </form>
-      <div className="bg-gray-600 opacity-40 fixed w-full h-full top-0 z-0"></div>
+      <div className="fixed w-full h-full top-0 z-0 backdrop-filter backdrop-blur-sm backdrop-opacity-45 backdrop-brightness-50"></div>
     </div>
   );
 }
@@ -453,6 +483,7 @@ function TypeAheadSymbolInput<T>({
     show: false,
     searchResults: [],
   });
+  const [selectedEntry, setSelectedEntry] = useState(0);
 
   const onSymbolChange = async (evt: ChangeEvent<HTMLInputElement>) => {
     if (searchDebounce >= 0) {
@@ -481,67 +512,72 @@ function TypeAheadSymbolInput<T>({
   };
 
   const setValue = (result: any) => () => {
-    close(result);
     dispatch({ type: "HIDE" });
+    close(result);
   };
 
   useEffect(() => {
-    function clickListener(e: MouseEvent) {
-      if (
-        e.target &&
-        "id" in e.target &&
-        (e.target as Element).id === "typeahead-symbol-input"
-      ) {
-        return;
+    function keyListener(e: KeyboardEvent) {
+      switch (e.key) {
+        case "ArrowUp":
+          setSelectedEntry((selectedEntry) => selectedEntry - 1);
+          break;
+        case "ArrowDown":
+          setSelectedEntry((selectedEntry) => selectedEntry + 1);
+          break;
+        case "Escape":
+          dispatch({ type: "HIDE" });
+          break;
       }
-      dispatch({ type: "HIDE" });
     }
-    document.addEventListener("click", clickListener);
+    document.addEventListener("keyup", keyListener);
     return () => {
-      document.removeEventListener("click", clickListener);
+      document.removeEventListener("keyup", keyListener);
     };
-  }, []);
-
-  const show = () => {
-    dispatch({ type: "SHOW" });
-  };
+  }, [state.searchResults, close, selectedEntry]);
 
   return (
     <div className="relative">
       <input
         type="text"
-        placeholder="BTC"
+        placeholder="Search..."
         className={classNames(
-          "block w-full px-4 py-2 focus:bg-white shadow focus:border-blue-700 transition-colors",
-          { "shadow-xl rounded-t": state.show, rounded: !state.show }
+          "block w-full px-4 py-2 focus:border-blue-700 transition-colors bg-gray-50 rounded"
         )}
         {...register(formKey)}
         onChange={onSymbolChange}
-        onClick={show}
         id="typeahead-symbol-input"
         {...rest}
       />
       {state.show && (
-        <div className="absolute bg-white w-full shadow-xl rounded-b border-t px-2 py-3">
-          {state.searchResults.map((result) => (
+        <div className="absolute bg-white w-full shadow-xl mt-1">
+          {state.searchResults.map((result, i) => (
             <button
-              className="px-2 py-2 flex justify-start items-center hover:bg-gray-100 w-full text-left rounded-lg transition-colors duration-75"
+              className={classNames(
+                "px-2 py-1 flex justify-start items-center hover:bg-gray-50 w-full text-left transition-colors duration-75 hover:border-blue-700 border-l-4 border-transparent",
+                { "bg-gray-100": selectedEntry === i }
+              )}
               key={result.symbolID}
               onClick={setValue(result)}
             >
-              <span className="rounded px-1 bg-gray-300 text-sm font-bold mr-2 whitespace-nowrap">
-                {SymbolTypeLabels[result.type]}
-              </span>
-              <span className="flex-shrink">
-                {result.symbolID} - {result.symbolName}
+              <span className="flex-shrink">{result.symbolName}</span>
+              <span className="ml-1 bg-gray-900 text-white rounded px-1 text-sm">
+                {result.symbolID}
               </span>
             </button>
           ))}
           {state.loading && (
-            <div>
+            <div className="text-center py-2">
               <FontAwesomeIcon icon={faSpinner} spin />
             </div>
           )}
+          <button
+            onClick={() => dispatch({ type: "HIDE" })}
+            className="w-full text-center font-bold mt-2 py-1"
+          >
+            <FontAwesomeIcon icon={faTimes} className="mr-2" />
+            Close
+          </button>
         </div>
       )}
     </div>
