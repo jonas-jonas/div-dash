@@ -73,21 +73,58 @@ export function PortfolioComposition() {
               ))}
 
               <Label
-                textAnchor="top"
-                dominantBaseline="middle"
-                x={200}
-                position="centerBottom"
-                offset={2000}
-                fontWeight="bold"
-                fontSize={20}
-              >
-                {formatMoney(balance?.fiatValue!)}
-              </Label>
+                width={30}
+                position="center"
+                content={
+                  <CustomLabel
+                    value={balance?.fiatValue!}
+                    costBasis={balance?.costBasis!}
+                  />
+                }
+              ></Label>
             </Pie>
             <Legend align="left"></Legend>
           </PieChart>
         </ResponsiveContainer>
       </div>
     </div>
+  );
+}
+
+type CustomLabelProps = {
+  viewBox?: { cx: number; cy: number };
+  value: number;
+  costBasis: number;
+};
+
+function CustomLabel({ viewBox, value, costBasis }: CustomLabelProps) {
+  const { cx, cy } = viewBox!;
+  const pnl = value - costBasis;
+  return (
+    <>
+      <text
+        x={cx}
+        y={cy - 5}
+        fill="rgba(0, 0, 0, 0.87)"
+        className="recharts-text recharts-label"
+        textAnchor="middle"
+        dominantBaseline="central"
+      >
+        <tspan alignmentBaseline="middle" fontSize="24px" fontWeight="bold">
+          {formatMoney(value)}
+        </tspan>
+      </text>
+      <text
+        x={cx}
+        y={cy + 16}
+        className="recharts-text recharts-label"
+        textAnchor="middle"
+        dominantBaseline="central"
+      >
+        <tspan fontSize="14px">
+          {pnl > 0 ? "+" + formatMoney(pnl) : "-" + formatMoney(pnl)}
+        </tspan>
+      </text>
+    </>
   );
 }
