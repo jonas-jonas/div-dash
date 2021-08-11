@@ -4,6 +4,7 @@ import (
 	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/services"
+	"log"
 	"net/http"
 
 	"github.com/Rhymond/go-money"
@@ -67,12 +68,12 @@ func GetBalance(c *gin.Context) {
 		costBasis := money.New(int64(entry.CostBasis/entry.Amount), "EUR").AsMajorUnits()
 		symbol, err := config.Queries().GetSymbol(c, entry.Symbol)
 		if err != nil {
-			config.Logger().Printf("Could not find asset for symbol %s: %s. Skipping balance entry... ", entry.Symbol, err.Error())
+			log.Printf("Could not find asset for symbol %s: %s. Skipping balance entry... ", entry.Symbol, err.Error())
 			continue
 		}
 		currentPrice, err := services.PriceService().GetPriceOfAsset(symbol)
 		if err != nil {
-			config.Logger().Printf("Could not get current price for asset %s: %s.", entry.Symbol, err.Error())
+			log.Printf("Could not get current price for asset %s: %s.", entry.Symbol, err.Error())
 			currentPrice = 0.0
 		}
 

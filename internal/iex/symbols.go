@@ -3,11 +3,11 @@ package iex
 import (
 	"context"
 	"database/sql"
-	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"strings"
 	"time"
 )
@@ -80,7 +80,7 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 	}
 
 	count := len(symbols)
-	config.Logger().Printf("Importing %v IEX Assets...", count)
+	log.Printf("Importing %v IEX Assets...", count)
 	tx, err := i.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 		})
 
 		if err != nil {
-			config.Logger().Printf("Could not save iex symbol %s: %s", symbol.Symbol, err.Error())
+			log.Printf("Could not save iex symbol %s: %s", symbol.Symbol, err.Error())
 			continue
 		}
 		err = queries.ConnectSymbolWithExchange(ctx, db.ConnectSymbolWithExchangeParams{
@@ -115,7 +115,7 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 		})
 
 		if err != nil {
-			config.Logger().Printf("Could not save iex symbol %s: %s", symbol.Symbol, err.Error())
+			log.Printf("Could not save iex symbol %s: %s", symbol.Symbol, err.Error())
 			continue
 		}
 	}

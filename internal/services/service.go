@@ -72,7 +72,7 @@ func PriceService() *price.PriceService {
 }
 
 func initJobService() {
-	services.JobService = job.New(config.Queries(), config.Logger())
+	services.JobService = job.New(config.Queries())
 }
 
 func JobService() *job.JobService {

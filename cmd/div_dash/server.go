@@ -5,12 +5,15 @@ import (
 	"div-dash/internal/controllers"
 	"div-dash/internal/iex"
 	"div-dash/internal/services"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
 
 func main() {
+
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	config.ReadConfig()
 	config.InitDB()
 	r := gin.Default()

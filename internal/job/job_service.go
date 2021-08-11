@@ -11,14 +11,12 @@ import (
 
 type JobService struct {
 	queries *db.Queries
-	logger  *log.Logger
 	nowFunc func() time.Time
 }
 
-func New(queries *db.Queries, logger *log.Logger) *JobService {
+func New(queries *db.Queries) *JobService {
 	return &JobService{
 		queries: queries,
-		logger:  logger,
 		nowFunc: time.Now,
 	}
 }
@@ -47,10 +45,10 @@ func (j *JobService) startJob(ctx context.Context, name string) (db.StartJobRow,
 		Started: j.nowFunc().Unix(),
 	})
 	if err != nil {
-		j.logger.Printf("Could not start job '%s': %s", name, err.Error())
+		log.Printf("Could not start job '%s': %s", name, err.Error())
 		return job, err
 	}
-	j.logger.Printf("Starting job '%s' with id %d...", name, job.ID)
+	log.Printf("Starting job '%s' with id %d...", name, job.ID)
 	return job, err
 }
 
@@ -64,11 +62,11 @@ func (j *JobService) finishJob(ctx context.Context, id int32) error {
 	})
 
 	if err != nil {
-		j.logger.Printf("Could not finish job #%d: %s", id, err.Error())
+		log.Printf("Could not finish job #%d: %s", id, err.Error())
 		return err
 	}
 
-	j.logger.Printf("Job %s#%d succeded in '%d'ms", job.Name, job.ID, (job.Finished.Int64 - job.Started))
+	log.Printf("Job %s#%d succeded in '%d'ms", job.Name, job.ID, (job.Finished.Int64 - job.Started))
 	return nil
 }
 
@@ -85,11 +83,11 @@ func (j *JobService) failJob(ctx context.Context, id int32, message string) erro
 		},
 	})
 	if err != nil {
-		j.logger.Printf("Could not fail job #%d: %s", id, err.Error())
+		log.Printf("Could not fail job #%d: %s", id, err.Error())
 		return err
 	}
 
-	j.logger.Printf("Job %s#%d failed in %ds", job.Name, job.ID, (job.Finished.Int64 - job.Started))
+	log.Printf("Job %s#%d failed in %ds", job.Name, job.ID, (job.Finished.Int64 - job.Started))
 	return nil
 }
 
@@ -104,17 +102,17 @@ func (j *JobService) RunJob(job JobDefinition, fn JobRunner) {
 	ctx := context.Background()
 	expired, err := j.hasLastSuccessfulJobExpired(ctx, job.Key, time.Duration(job.Validity))
 	if err != nil && err != sql.ErrNoRows {
-		j.logger.Printf("Could not check for expiration of job %s: %e", job.Key, err)
+		log.Printf("Could not check for expiration of job %s: %e", job.Key, err)
 		return
 	}
 	if !expired {
-		j.logger.Printf("Last execution of job %s is not expired, skipping...", job.Key)
+		log.Printf("Last execution of job %s is not expired, skipping...", job.Key)
 		return
 	}
 
 	startedJob, err := j.startJob(ctx, job.Key)
 	if err != nil {
-		j.logger.Printf("Could not start job %s: %e", job.Key, err)
+		log.Printf("Could not start job %s: %e", job.Key, err)
 		return
 	}
 

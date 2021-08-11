@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"div-dash/internal/db"
 	"fmt"
+	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -18,7 +19,7 @@ func InitDB() {
 	loc := Config().Database.Loc
 
 	source := fmt.Sprintf("file:%s?cache=%s&mode=%s&_loc=%s&parseTime=true", file, cache, mode, loc)
-	Logger().Printf("connecting with string: %s", source)
+	log.Printf("connecting with string: %s", source)
 	sdb, err := sql.Open("sqlite3", source)
 	if err != nil {
 		fmt.Print("err" + err.Error())

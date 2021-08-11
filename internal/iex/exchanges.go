@@ -2,11 +2,11 @@ package iex
 
 import (
 	"context"
-	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -58,7 +58,7 @@ func (i *IEXService) SaveExchanges(ctx context.Context) error {
 	}
 
 	count := len(exchanges)
-	config.Logger().Printf("Importing %v IEX Exchanges...", count)
+	log.Printf("Importing %v IEX Exchanges...", count)
 	tx, err := i.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (i *IEXService) SaveExchanges(ctx context.Context) error {
 
 		err = queries.CreateExchange(ctx, db.CreateExchangeParams(exchange))
 		if err != nil {
-			config.Logger().Printf("Could not save iex exchange %s: %s", exchange.Exchange, err.Error())
+			log.Printf("Could not save iex exchange %s: %s", exchange.Exchange, err.Error())
 			continue
 		}
 	}
