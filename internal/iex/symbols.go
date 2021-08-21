@@ -94,20 +94,45 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 			parts := strings.Split(symbol.Symbol, "-")
 			symbolId = parts[0]
 		}
-		err = queries.AddSymbol(ctx, db.AddSymbolParams{
-			SymbolID: symbolId,
-			SymbolName: sql.NullString{
-				Valid:  true,
-				String: symbol.Name,
-			},
-			Source:    "iex",
-			Type:      symbol.Type,
-			Precision: 4,
-		})
 
+		exists, err := queries.SymbolExists(ctx, symbolId)
 		if err != nil {
-			log.Printf("Could not save iex symbol %s: %s", symbol.Symbol, err.Error())
-			continue
+			log.Printf("Could not check if symbol %s exists: %s", symbolId, err.Error())
+			return err
+		}
+
+		if exists {
+			err = queries.UpdateSymbol(ctx, db.UpdateSymbolParams{
+				SymbolID: symbolId,
+				SymbolName: sql.NullString{
+					Valid:  true,
+					String: symbol.Name,
+				},
+				Source:    "iex",
+				Type:      symbol.Type,
+				Precision: 4,
+			})
+			if err != nil {
+				log.Printf("Could not update iex symbol %s: %s", symbol.Symbol, err.Error())
+				continue
+			}
+
+		} else {
+			err = queries.AddSymbol(ctx, db.AddSymbolParams{
+				SymbolID: symbolId,
+				SymbolName: sql.NullString{
+					Valid:  true,
+					String: symbol.Name,
+				},
+				Source:    "iex",
+				Type:      symbol.Type,
+				Precision: 4,
+			})
+
+			if err != nil {
+				log.Printf("Could not save iex symbol %s: %s", symbol.Symbol, err.Error())
+				continue
+			}
 		}
 		err = queries.ConnectSymbolWithExchange(ctx, db.ConnectSymbolWithExchangeParams{
 			Symbol:   symbolId,

@@ -10,13 +10,19 @@ ON CONFLICT DO NOTHING;
 
 -- name: ConnectSymbolWithExchange :exec
 INSERT INTO "asset_exchange" (symbol, exchange)
-VALUES ($1, $2);
+VALUES ($1, $2)
+ON CONFLICT DO NOTHING;
 
 -- name: SymbolExists :one
 SELECT EXISTS(
   SELECT 1 FROM "symbol"
   WHERE symbol_id = $1
 );
+
+-- name: UpdateSymbol :exec
+UPDATE "symbol"
+SET type = $2, source = $3, precision = $4, symbol_name = $5
+WHERE symbol_id = $1;
 
 -- name: SearchSymbol :many
 SELECT *

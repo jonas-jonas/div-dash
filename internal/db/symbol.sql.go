@@ -53,6 +53,7 @@ func (q *Queries) AddSymbol(ctx context.Context, arg AddSymbolParams) error {
 const connectSymbolWithExchange = `-- name: ConnectSymbolWithExchange :exec
 INSERT INTO "asset_exchange" (symbol, exchange)
 VALUES ($1, $2)
+ON CONFLICT DO NOTHING
 `
 
 type ConnectSymbolWithExchangeParams struct {
@@ -141,4 +142,29 @@ func (q *Queries) SymbolExists(ctx context.Context, symbolID string) (bool, erro
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const updateSymbol = `-- name: UpdateSymbol :exec
+UPDATE "symbol"
+SET type = $2, source = $3, precision = $4, symbol_name = $5
+WHERE symbol_id = $1
+`
+
+type UpdateSymbolParams struct {
+	SymbolID   string         `json:"symbolID"`
+	Type       string         `json:"type"`
+	Source     string         `json:"source"`
+	Precision  int32          `json:"precision"`
+	SymbolName sql.NullString `json:"symbolName"`
+}
+
+func (q *Queries) UpdateSymbol(ctx context.Context, arg UpdateSymbolParams) error {
+	_, err := q.exec(ctx, q.updateSymbolStmt, updateSymbol,
+		arg.SymbolID,
+		arg.Type,
+		arg.Source,
+		arg.Precision,
+		arg.SymbolName,
+	)
+	return err
 }

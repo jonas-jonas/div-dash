@@ -127,6 +127,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.updateAccountStmt, err = db.PrepareContext(ctx, updateAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateAccount: %w", err)
 	}
+	if q.updateSymbolStmt, err = db.PrepareContext(ctx, updateSymbol); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateSymbol: %w", err)
+	}
 	return &q, nil
 }
 
@@ -307,6 +310,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing updateAccountStmt: %w", cerr)
 		}
 	}
+	if q.updateSymbolStmt != nil {
+		if cerr := q.updateSymbolStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateSymbolStmt: %w", cerr)
+		}
+	}
 	return err
 }
 
@@ -381,6 +389,7 @@ type Queries struct {
 	startJobStmt                    *sql.Stmt
 	symbolExistsStmt                *sql.Stmt
 	updateAccountStmt               *sql.Stmt
+	updateSymbolStmt                *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -422,5 +431,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		startJobStmt:                    q.startJobStmt,
 		symbolExistsStmt:                q.symbolExistsStmt,
 		updateAccountStmt:               q.updateAccountStmt,
+		updateSymbolStmt:                q.updateSymbolStmt,
 	}
 }
