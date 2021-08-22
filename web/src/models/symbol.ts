@@ -59,7 +59,11 @@ type SymbolIndicator = {
   label: string;
   format: string;
   value: number;
-}
+};
+
+type SymbolImages = {
+  thumb: string;
+};
 
 export type SymbolDetails = {
   type: SymbolType;
@@ -68,6 +72,7 @@ export type SymbolDetails = {
   indicators: SymbolIndicator[];
   description: string;
   dates: SymbolDate[];
+  images?: SymbolImages;
 };
 
 export type SymbolChartEntry = {

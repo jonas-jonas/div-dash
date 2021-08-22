@@ -80,7 +80,10 @@ func (c *CoingeckoService) GetDetails(asset db.Symbol) (model.SymbolDetails, err
 		Description: result.Description.En,
 		Tags:        tags,
 		Indicators:  assembleIndicators(result),
-		Dates:       []model.SymbolDate{},
+		Images: model.SymbolImages{
+			Thumb: result.Image.Thumb,
+		},
+		Dates: []model.SymbolDate{},
 	}, nil
 
 }

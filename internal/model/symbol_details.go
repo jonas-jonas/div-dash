@@ -17,6 +17,10 @@ type SymbolIndicator struct {
 	Value  float64 `json:"value"`
 }
 
+type SymbolImages struct {
+	Thumb string `json:"thumb"`
+}
+
 type SymbolDetails struct {
 	Type        string            `json:"type"`
 	Name        string            `json:"name"`
@@ -24,4 +28,5 @@ type SymbolDetails struct {
 	Indicators  []SymbolIndicator `json:"indicators"`
 	Description string            `json:"description"`
 	Dates       []SymbolDate      `json:"dates"`
+	Images      SymbolImages      `json:"images"`
 }

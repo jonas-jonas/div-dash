@@ -72,8 +72,15 @@ export function SymbolPage() {
           </div>
           <div className="flex justify-between border-b pb-8">
             <div>
-              <h2 className="text-4xl font-bold text-gray-800 mb-4">
-                {symbolDetails.name}
+              <h2 className="text-4xl font-bold text-gray-800 mb-4 flex items-center">
+                {symbolDetails.images && (
+                  <img
+                    src={symbolDetails.images?.thumb}
+                    alt={symbolDetails.name + "Logo"}
+                    className="mr-4"
+                  />
+                )}
+                <span>{symbolDetails.name}</span>
               </h2>
               {symbolDetails.tags.map((tag) => {
                 if (tag.type === "CHIP") {
