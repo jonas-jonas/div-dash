@@ -41,10 +41,18 @@ export function PortfolioBalance() {
                   <div className="flex flex-col">
                     <div className="text-gray-600 text-xs mb-1">
                       <CopyElement value={balanceItem.symbol.symbolID} />
-                      <span className="mx-2">·</span>
-                      <CopyElement value={balanceItem.symbol.isin} />
-                      <span className="mx-2">·</span>
-                      <CopyElement value={balanceItem.symbol.wkn} />
+                      {balanceItem.symbol.isin && (
+                        <>
+                          <span className="mx-2">·</span>
+                          <CopyElement value={balanceItem.symbol.isin} />
+                        </>
+                      )}
+                      {balanceItem.symbol.wkn && (
+                        <>
+                          <span className="mx-2">·</span>
+                          <CopyElement value={balanceItem.symbol.wkn} />
+                        </>
+                      )}
                     </div>
                     <Link
                       className="font-bold hover:underline"
