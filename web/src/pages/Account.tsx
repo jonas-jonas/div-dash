@@ -342,7 +342,7 @@ function CreateTransactionModal({
               </span>
               <input
                 type="number"
-                step="0.00001"
+                step="0.000000001"
                 className="block w-full px-4 py-2 focus:border-blue-700 transition-colors bg-gray-50 rounded"
                 {...register("amount", { required: true })}
               />
@@ -353,7 +353,7 @@ function CreateTransactionModal({
               </span>
               <input
                 type="number"
-                step="0.00001"
+                step="0.000000001"
                 className="block w-full px-4 py-2 focus:border-blue-700 transition-colors bg-gray-50 rounded"
                 {...register("price", { required: true })}
               />

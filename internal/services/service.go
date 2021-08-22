@@ -1,6 +1,7 @@
 package services
 
 import (
+	"div-dash/internal/coingecko"
 	"div-dash/internal/config"
 	"div-dash/internal/id"
 	"div-dash/internal/iex"
@@ -14,21 +15,23 @@ import (
 )
 
 var services struct {
-	TokenService *token.TokenService
-	MailService  *mail.MailService
-	IdService    *id.IdService
-	PriceService *price.PriceService
-	JobService   *job.JobService
-	IEXService   *iex.IEXService
+	TokenService     *token.TokenService
+	MailService      *mail.MailService
+	IdService        *id.IdService
+	PriceService     *price.PriceService
+	JobService       *job.JobService
+	IEXService       *iex.IEXService
+	CoingeckoService *coingecko.CoingeckoService
 }
 
 var (
-	onceTokenService sync.Once
-	onceMailService  sync.Once
-	onceIdService    sync.Once
-	oncePriceService sync.Once
-	onceJobService   sync.Once
-	onceIEXService   sync.Once
+	onceTokenService     sync.Once
+	onceMailService      sync.Once
+	onceIdService        sync.Once
+	oncePriceService     sync.Once
+	onceJobService       sync.Once
+	onceIEXService       sync.Once
+	onceCoingeckoService sync.Once
 )
 
 func initTokenService() {
@@ -63,7 +66,7 @@ func IdService() *id.IdService {
 }
 
 func initPriceService() {
-	services.PriceService = price.New(IEXService())
+	services.PriceService = price.New(IEXService(), CoingeckoService())
 }
 
 func PriceService() *price.PriceService {
@@ -87,4 +90,13 @@ func initIEXService() {
 func IEXService() *iex.IEXService {
 	onceIEXService.Do(initIEXService)
 	return services.IEXService
+}
+
+func initCoingeckoService() {
+	services.CoingeckoService = coingecko.New(config.Queries(), config.DB())
+}
+
+func CoingeckoService() *coingecko.CoingeckoService {
+	onceCoingeckoService.Do(initCoingeckoService)
+	return services.CoingeckoService
 }

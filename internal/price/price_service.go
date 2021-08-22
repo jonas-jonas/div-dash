@@ -1,6 +1,7 @@
 package price
 
 import (
+	"div-dash/internal/coingecko"
 	"div-dash/internal/db"
 	"div-dash/internal/iex"
 	"div-dash/internal/model"
@@ -28,9 +29,10 @@ type IChartService interface {
 	GetChart(asset db.Symbol, span int) (model.Chart, error)
 }
 
-func New(iex *iex.IEXService) *PriceService {
+func New(iex *iex.IEXService, coingecko *coingecko.CoingeckoService) *PriceService {
 	priceServices := map[string]IPriceService{
-		"iex": iex,
+		"iex":       iex,
+		"coingecko": coingecko,
 	}
 	detailServices := map[string]IDetailService{
 		"iex": iex,
