@@ -5,6 +5,7 @@ import (
 	"div-dash/internal/db"
 	"div-dash/internal/iex"
 	"div-dash/internal/model"
+	"fmt"
 	"time"
 
 	"zgo.at/zcache"
@@ -35,7 +36,8 @@ func New(iex *iex.IEXService, coingecko *coingecko.CoingeckoService) *PriceServi
 		"coingecko": coingecko,
 	}
 	detailServices := map[string]IDetailService{
-		"iex": iex,
+		"iex":       iex,
+		"coingecko": coingecko,
 	}
 	chartServices := map[string]IChartService{
 		"iex": iex,
@@ -70,7 +72,10 @@ func (p *PriceService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) 
 }
 
 func (p *PriceService) GetChart(asset db.Symbol, span int) (model.Chart, error) {
-	chartService := p.chartService[asset.Source]
+	if chartService, ok := p.chartService[asset.Source]; ok {
+		return chartService.GetChart(asset, span)
 
-	return chartService.GetChart(asset, span)
+	}
+	return model.Chart{}, fmt.Errorf("no chart service registered for source %s", asset.Source)
+
 }

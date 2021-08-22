@@ -29,11 +29,17 @@ export function SymbolPage() {
 
   const { data: symbolDetails, isLoading: loadingSymbol } = useQuery(
     ["symbol", symbolId, "details"],
-    () => api.getSymbolDetails(symbolId)
+    () => api.getSymbolDetails(symbolId),
+    {
+      retry: false
+    }
   );
   const { data: chart, isLoading: loadingChart } = useQuery(
     ["symbol", symbolId, "chart"],
-    () => api.getSymbolChart(symbolId)
+    () => api.getSymbolChart(symbolId),
+    {
+      retry: false
+    }
   );
 
   return (
@@ -120,7 +126,7 @@ export function SymbolPage() {
           </div>
           <div className="grid grid-cols-3 gap-6 py-8">
             <div className="col-span-2 row-span-2 flex flex-col">
-              <div className="flex bg-white rounded shadow text-gray-700 py-3 justify-evenly">
+              {symbolDetails.type !== "crypto" && <div className="flex bg-white rounded shadow text-gray-700 py-3 justify-evenly">
                 <div className="px-6 flex flex-col items-center">
                   <span className="text-3xl font-bold flex items-center">
                     {numeral(symbolDetails.marketCap).format("$0.00 a")}
@@ -145,7 +151,7 @@ export function SymbolPage() {
                   </span>
                   <span className="text-gray-400">EPS</span>
                 </div>
-              </div>
+              </div>}
               <div className="flex-grow-1 py-8 h-1/2">
                 {loadingChart && (
                   <div className="flex items-center justify-center h-full">
