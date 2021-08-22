@@ -164,3 +164,7 @@ type CoingeckoDetails struct {
 		TargetCoinID           string      `json:"target_coin_id,omitempty"`
 	} `json:"tickers"`
 }
+
+type CoingeckoChart struct {
+	Prices [][]float64
+}

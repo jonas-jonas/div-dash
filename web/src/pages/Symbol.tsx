@@ -31,14 +31,14 @@ export function SymbolPage() {
     ["symbol", symbolId, "details"],
     () => api.getSymbolDetails(symbolId),
     {
-      retry: false
+      retry: false,
     }
   );
   const { data: chart, isLoading: loadingChart } = useQuery(
     ["symbol", symbolId, "chart"],
     () => api.getSymbolChart(symbolId),
     {
-      retry: false
+      retry: false,
     }
   );
 
@@ -126,32 +126,34 @@ export function SymbolPage() {
           </div>
           <div className="grid grid-cols-3 gap-6 py-8">
             <div className="col-span-2 row-span-2 flex flex-col">
-              {symbolDetails.type !== "crypto" && <div className="flex bg-white rounded shadow text-gray-700 py-3 justify-evenly">
-                <div className="px-6 flex flex-col items-center">
-                  <span className="text-3xl font-bold flex items-center">
-                    {numeral(symbolDetails.marketCap).format("$0.00 a")}
-                  </span>
-                  <span className="text-gray-400">Market Cap</span>
+              {symbolDetails.type !== "crypto" && (
+                <div className="flex bg-white rounded shadow text-gray-700 py-3 justify-evenly">
+                  <div className="px-6 flex flex-col items-center">
+                    <span className="text-3xl font-bold flex items-center">
+                      {numeral(symbolDetails.marketCap).format("$0.00 a")}
+                    </span>
+                    <span className="text-gray-400">Market Cap</span>
+                  </div>
+                  <div className="px-6 flex flex-col items-center">
+                    <span className="text-3xl font-bold flex items-center">
+                      {numeral(symbolDetails.peRatio).format("0.00")}
+                    </span>
+                    <span className="text-gray-400">PE Ratio</span>
+                  </div>
+                  <div className="px-6 flex flex-col items-center">
+                    <span className="text-3xl font-bold flex items-center">
+                      {numeral(symbolDetails.dividendYield).format("0.00%")}
+                    </span>
+                    <span className="text-gray-400">Dividend Yield</span>
+                  </div>
+                  <div className="px-6 flex flex-col items-center">
+                    <span className="text-3xl font-bold flex items-center">
+                      {numeral(symbolDetails.eps).format("$0.00")}
+                    </span>
+                    <span className="text-gray-400">EPS</span>
+                  </div>
                 </div>
-                <div className="px-6 flex flex-col items-center">
-                  <span className="text-3xl font-bold flex items-center">
-                    {numeral(symbolDetails.peRatio).format("0.00")}
-                  </span>
-                  <span className="text-gray-400">PE Ratio</span>
-                </div>
-                <div className="px-6 flex flex-col items-center">
-                  <span className="text-3xl font-bold flex items-center">
-                    {numeral(symbolDetails.dividendYield).format("0.00%")}
-                  </span>
-                  <span className="text-gray-400">Dividend Yield</span>
-                </div>
-                <div className="px-6 flex flex-col items-center">
-                  <span className="text-3xl font-bold flex items-center">
-                    {numeral(symbolDetails.eps).format("$0.00")}
-                  </span>
-                  <span className="text-gray-400">EPS</span>
-                </div>
-              </div>}
+              )}
               <div className="flex-grow-1 py-8 h-1/2">
                 {loadingChart && (
                   <div className="flex items-center justify-center h-full">
@@ -225,7 +227,11 @@ export function SymbolPage() {
                 <h3 className="text-2xl font-bold mb-4 text-gray-800">
                   Company Summary
                 </h3>
-                {symbolDetails.description}
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: symbolDetails.description,
+                  }}
+                ></div>
               </div>
               <div className="bg-white rounded p-8 shadow text-justify">
                 <h3 className="text-2xl font-bold mb-2 text-gray-800">

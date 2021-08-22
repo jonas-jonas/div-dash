@@ -40,7 +40,8 @@ func New(iex *iex.IEXService, coingecko *coingecko.CoingeckoService) *PriceServi
 		"coingecko": coingecko,
 	}
 	chartServices := map[string]IChartService{
-		"iex": iex,
+		"iex":       iex,
+		"coingecko": coingecko,
 	}
 	cache := zcache.New(5*time.Minute, 10*time.Minute)
 	return &PriceService{cache, priceServices, detailServices, chartServices}
