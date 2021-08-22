@@ -11,14 +11,17 @@ type SymbolDate struct {
 	Date  string `json:"date"`
 }
 
+type SymbolIndicator struct {
+	Label  string  `json:"label"`
+	Format string  `json:"format"`
+	Value  float64 `json:"value"`
+}
+
 type SymbolDetails struct {
-	Type          string       `json:"type"`
-	Name          string       `json:"name"`
-	Tags          []SymbolTag  `json:"tags"`
-	MarketCap     int64        `json:"marketCap"`
-	PERatio       float64      `json:"peRatio"`
-	DividendYield float64      `json:"dividendYield"`
-	EPS           float64      `json:"eps"`
-	Description   string       `json:"description"`
-	Dates         []SymbolDate `json:"dates"`
+	Type        string            `json:"type"`
+	Name        string            `json:"name"`
+	Tags        []SymbolTag       `json:"tags"`
+	Indicators  []SymbolIndicator `json:"indicators"`
+	Description string            `json:"description"`
+	Dates       []SymbolDate      `json:"dates"`
 }

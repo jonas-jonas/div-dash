@@ -126,34 +126,23 @@ export function SymbolPage() {
           </div>
           <div className="grid grid-cols-3 gap-6 py-8">
             <div className="col-span-2 row-span-2 flex flex-col">
-              {symbolDetails.type !== "crypto" && (
-                <div className="flex bg-white rounded shadow text-gray-700 py-3 justify-evenly">
-                  <div className="px-6 flex flex-col items-center">
-                    <span className="text-3xl font-bold flex items-center">
-                      {numeral(symbolDetails.marketCap).format("$0.00 a")}
-                    </span>
-                    <span className="text-gray-400">Market Cap</span>
-                  </div>
-                  <div className="px-6 flex flex-col items-center">
-                    <span className="text-3xl font-bold flex items-center">
-                      {numeral(symbolDetails.peRatio).format("0.00")}
-                    </span>
-                    <span className="text-gray-400">PE Ratio</span>
-                  </div>
-                  <div className="px-6 flex flex-col items-center">
-                    <span className="text-3xl font-bold flex items-center">
-                      {numeral(symbolDetails.dividendYield).format("0.00%")}
-                    </span>
-                    <span className="text-gray-400">Dividend Yield</span>
-                  </div>
-                  <div className="px-6 flex flex-col items-center">
-                    <span className="text-3xl font-bold flex items-center">
-                      {numeral(symbolDetails.eps).format("$0.00")}
-                    </span>
-                    <span className="text-gray-400">EPS</span>
-                  </div>
-                </div>
-              )}
+              <div className="flex bg-white rounded shadow text-gray-700 py-3 justify-evenly">
+                {symbolDetails.indicators
+                  .filter((indicator) => indicator.value > 0)
+                  .map((indicator) => {
+                    return (
+                      <div
+                        className="px-6 flex flex-col items-center"
+                        key={indicator.label}
+                      >
+                        <span className="text-3xl font-bold flex items-center">
+                          {numeral(indicator.value).format(indicator.format)}
+                        </span>
+                        <span className="text-gray-400">{indicator.label}</span>
+                      </div>
+                    );
+                  })}
+              </div>
               <div className="flex-grow-1 py-8 h-1/2">
                 {loadingChart && (
                   <div className="flex items-center justify-center h-full">

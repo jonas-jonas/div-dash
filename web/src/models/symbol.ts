@@ -55,14 +55,17 @@ type SymbolDate = {
   date: string;
 };
 
+type SymbolIndicator = {
+  label: string;
+  format: string;
+  value: number;
+}
+
 export type SymbolDetails = {
   type: SymbolType;
   name: string;
   tags: SymbolTag[];
-  marketCap: number;
-  peRatio: number;
-  dividendYield: number;
-  eps: number;
+  indicators: SymbolIndicator[];
   description: string;
   dates: SymbolDate[];
 };

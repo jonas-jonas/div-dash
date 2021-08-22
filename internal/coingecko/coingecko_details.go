@@ -8,6 +8,31 @@ import (
 	"net/http"
 )
 
+func assembleIndicators(details CoingeckoDetails) []model.SymbolIndicator {
+	return []model.SymbolIndicator{
+		{
+			Label:  "Market Cap",
+			Format: "$0.00 a",
+			Value:  float64(details.MarketData.MarketCap.Usd),
+		},
+		{
+			Label:  "Circulating Supply",
+			Format: "0.00 a",
+			Value:  details.MarketData.CirculatingSupply,
+		},
+		{
+			Label:  "Max Supply",
+			Format: "0.00 a",
+			Value:  details.MarketData.MaxSupply,
+		},
+		{
+			Label:  "Total Supply",
+			Format: "0.00 a",
+			Value:  details.MarketData.TotalSupply,
+		},
+	}
+}
+
 func (c *CoingeckoService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) {
 	resp, err := c.client.R().
 		SetPathParam("coin", asset.SymbolID).
@@ -30,7 +55,7 @@ func (c *CoingeckoService) GetDetails(asset db.Symbol) (model.SymbolDetails, err
 
 	tags := []model.SymbolTag{
 		{
-			Label: fmt.Sprintf("#%d Market Cap", result.MarketCapRank),
+			Label: fmt.Sprintf("Rank #%d", result.MarketCapRank),
 			Type:  "CHIP",
 		},
 	}
@@ -54,6 +79,7 @@ func (c *CoingeckoService) GetDetails(asset db.Symbol) (model.SymbolDetails, err
 		Name:        result.Name,
 		Description: result.Description.En,
 		Tags:        tags,
+		Indicators:  assembleIndicators(result),
 		Dates:       []model.SymbolDate{},
 	}, nil
 

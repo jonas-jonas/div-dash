@@ -209,6 +209,31 @@ func assembleTags(companyDetails CompanyDetails) []model.SymbolTag {
 	return tags
 }
 
+func assembleIndicators(companyKeyStats CompanyKeyStats) []model.SymbolIndicator {
+	return []model.SymbolIndicator{
+		{
+			Label:  "Market Cap",
+			Format: "$0.00 a",
+			Value:  float64(companyKeyStats.Marketcap),
+		},
+		{
+			Label:  "PE Ratio",
+			Format: "0.00",
+			Value:  companyKeyStats.PeRatio,
+		},
+		{
+			Label:  "Dividend Yield",
+			Format: "0.00%",
+			Value:  companyKeyStats.DividendYield,
+		},
+		{
+			Label:  "EPS",
+			Format: "$0.00",
+			Value:  companyKeyStats.TtmEPS,
+		},
+	}
+}
+
 func (i *IEXService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) {
 
 	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
@@ -237,15 +262,12 @@ func (i *IEXService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) {
 	}
 
 	return model.SymbolDetails{
-		Type:          "cs",
-		Name:          companyDetails.CompanyName,
-		Description:   companyDetails.Description,
-		Tags:          assembleTags(companyDetails),
-		MarketCap:     companyKeyStats.Marketcap,
-		PERatio:       companyKeyStats.PeRatio,
-		DividendYield: companyKeyStats.DividendYield,
-		EPS:           companyKeyStats.TtmEPS,
-		Dates:         []model.SymbolDate{},
+		Type:        asset.Type,
+		Name:        companyDetails.CompanyName,
+		Description: companyDetails.Description,
+		Tags:        assembleTags(companyDetails),
+		Indicators:  assembleIndicators(companyKeyStats),
+		Dates:       []model.SymbolDate{},
 	}, nil
 }
 

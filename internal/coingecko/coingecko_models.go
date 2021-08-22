@@ -131,7 +131,44 @@ type CoingeckoDetails struct {
 		BingMatches interface{} `json:"bing_matches"`
 	} `json:"public_interest_stats"`
 	LastUpdated time.Time `json:"last_updated"`
-	Tickers     []struct {
+	MarketData  struct {
+		CurrentPrice struct {
+			Eur float64 `json:"eur"`
+			Usd float64 `json:"usd"`
+		} `json:"current_price"`
+		Ath struct {
+			Eur float64 `json:"eur"`
+			Usd float64 `json:"usd"`
+		} `json:"ath"`
+		MarketCap struct {
+			Eur int `json:"eur"`
+			Usd int `json:"usd"`
+		} `json:"market_cap"`
+		MarketCapRank         int `json:"market_cap_rank"`
+		FullyDilutedValuation struct {
+			Eur int `json:"eur"`
+			Usd int `json:"usd"`
+		} `json:"fully_diluted_valuation"`
+		TotalVolume struct {
+			Eur int64 `json:"eur"`
+			Usd int64 `json:"usd"`
+		} `json:"total_volume"`
+		PriceChange24H               float64   `json:"price_change_24h"`
+		PriceChangePercentage24H     float64   `json:"price_change_percentage_24h"`
+		PriceChangePercentage7D      float64   `json:"price_change_percentage_7d"`
+		PriceChangePercentage14D     float64   `json:"price_change_percentage_14d"`
+		PriceChangePercentage30D     float64   `json:"price_change_percentage_30d"`
+		PriceChangePercentage60D     float64   `json:"price_change_percentage_60d"`
+		PriceChangePercentage200D    float64   `json:"price_change_percentage_200d"`
+		PriceChangePercentage1Y      float64   `json:"price_change_percentage_1y"`
+		MarketCapChange24H           float64   `json:"market_cap_change_24h"`
+		MarketCapChangePercentage24H float64   `json:"market_cap_change_percentage_24h"`
+		TotalSupply                  float64   `json:"total_supply"`
+		MaxSupply                    float64   `json:"max_supply"`
+		CirculatingSupply            float64   `json:"circulating_supply"`
+		LastUpdated                  time.Time `json:"last_updated"`
+	} `json:"market_data"`
+	Tickers []struct {
 		Base   string `json:"base"`
 		Target string `json:"target"`
 		Market struct {
@@ -151,6 +188,7 @@ type CoingeckoDetails struct {
 			Eth float64 `json:"eth"`
 			Usd float64 `json:"usd"`
 		} `json:"converted_volume"`
+
 		TrustScore             string      `json:"trust_score"`
 		BidAskSpreadPercentage float64     `json:"bid_ask_spread_percentage"`
 		Timestamp              time.Time   `json:"timestamp"`
