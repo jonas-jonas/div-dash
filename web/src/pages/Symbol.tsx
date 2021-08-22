@@ -73,7 +73,7 @@ export function SymbolPage() {
           <div className="flex justify-between border-b pb-8">
             <div>
               <h2 className="text-4xl font-bold text-gray-800 mb-4 flex items-center">
-                {symbolDetails.images && (
+                {symbolDetails.images?.thumb && (
                   <img
                     src={symbolDetails.images?.thumb}
                     alt={symbolDetails.name + "Logo"}
