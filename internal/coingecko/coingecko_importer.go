@@ -13,7 +13,7 @@ import (
 
 func (c *CoingeckoService) getSymbols() ([]CoingeckoCoin, error) {
 
-	file, err := ioutil.ReadFile("data/coingecko/coins-list.json")
+	file, err := ioutil.ReadFile("data/coingecko/coins-markets.json")
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +46,14 @@ func (c *CoingeckoService) ImportCryptoSymbols(ctx context.Context) error {
 
 	for _, symbol := range symbols {
 
-		exists, err := queries.SymbolExists(ctx, symbol.CoingeckoID)
+		exists, err := queries.SymbolExists(ctx, symbol.ID)
 		if err != nil {
-			return fmt.Errorf("could not check if symbol %s exists: %w", symbol.CoingeckoID, err)
+			return fmt.Errorf("could not check if symbol %s exists: %w", symbol.ID, err)
 		}
 
 		if exists {
 			err = queries.UpdateSymbol(ctx, db.UpdateSymbolParams{
-				SymbolID:  symbol.CoingeckoID,
+				SymbolID:  symbol.ID,
 				Type:      "crypto",
 				Source:    "coingecko",
 				Precision: 8,
@@ -63,11 +63,11 @@ func (c *CoingeckoService) ImportCryptoSymbols(ctx context.Context) error {
 				},
 			})
 			if err != nil {
-				return fmt.Errorf("could not update coingecko coin %s: %w", symbol.CoingeckoID, err)
+				return fmt.Errorf("could not update coingecko coin %s: %w", symbol.ID, err)
 			}
 		} else {
 			err = queries.AddSymbol(ctx, db.AddSymbolParams{
-				SymbolID:  symbol.CoingeckoID,
+				SymbolID:  symbol.ID,
 				Type:      "crypto",
 				Source:    "coingecko",
 				Precision: 8,
@@ -77,7 +77,7 @@ func (c *CoingeckoService) ImportCryptoSymbols(ctx context.Context) error {
 				},
 			})
 			if err != nil {
-				return fmt.Errorf("could not save coingecko coin %s: %w", symbol.CoingeckoID, err)
+				return fmt.Errorf("could not save coingecko coin %s: %w", symbol.ID, err)
 			}
 		}
 	}
