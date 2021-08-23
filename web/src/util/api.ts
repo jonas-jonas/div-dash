@@ -4,7 +4,7 @@ import { LoginForm } from "../form/LoginForm";
 import { TransactionForm } from "../form/TransactionForm";
 import { Account } from "../models/account";
 import { Balance } from "../models/balance";
-import { SymbolChartEntry, SymbolDetails } from "../models/symbol";
+import { PaginatedSymbols, SymbolChartEntry, SymbolDetails } from "../models/symbol";
 import { Transaction } from "../models/transaction";
 import { User } from "../models/user";
 
@@ -78,5 +78,15 @@ export async function getSymbolChart(
   symbolId: string
 ): Promise<SymbolChartEntry[]> {
   const response = await ky.get("/api/symbol/chart/" + symbolId);
+  return await response.json();
+}
+
+export async function getSymbols(
+  count: number,
+  type: string
+): Promise<PaginatedSymbols> {
+  const response = await ky.get("/api/symbols", {
+    searchParams: { count, type },
+  });
   return await response.json();
 }

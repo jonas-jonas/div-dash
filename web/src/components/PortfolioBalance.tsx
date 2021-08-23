@@ -1,7 +1,6 @@
 import {
-  faCopy,
   faSadTear,
-  faSpinner,
+  faSpinner
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
@@ -11,6 +10,7 @@ import { Link } from "react-router-dom";
 import { Balance } from "../models/balance";
 import * as api from "../util/api";
 import { formatMoney, formatPercent } from "../util/formatter";
+import { CopyElement } from "./CopyElement";
 
 export function PortfolioBalance() {
   const {
@@ -126,30 +126,5 @@ export function PortfolioBalance() {
         </div>
       )}
     </div>
-  );
-}
-
-type CopyElementProps = {
-  value: string;
-};
-
-function CopyElement({ value }: CopyElementProps) {
-  const handleClick = () => {
-    const textField = document.createElement("textarea");
-    textField.innerText = value;
-    document.body.appendChild(textField);
-    textField.select();
-    document.execCommand("copy");
-    textField.remove();
-  };
-
-  return (
-    <button
-      className="focus:outline-none hover:text-gray-900"
-      onClick={handleClick}
-    >
-      <FontAwesomeIcon icon={faCopy} className="mr-1" />
-      {value}
-    </button>
   );
 }

@@ -7,6 +7,7 @@ import { Accounts } from "./pages/Accounts";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { SymbolPage } from "./pages/Symbol";
+import { SymbolListPage } from "./pages/SymbolList";
 import { getIdentity } from "./util/api";
 
 function App() {
@@ -25,11 +26,14 @@ function App() {
           <Route path="/accounts" exact>
             <Accounts></Accounts>
           </Route>
-          <Route path="/account/:accountId" exact>
+          <Route path="/accounts/:accountId" exact>
             <Account></Account>
           </Route>
           <Route path="/symbol/:symbolId" exact>
             <SymbolPage></SymbolPage>
+          </Route>
+          <Route path="/symbols/:type" exact>
+            <SymbolListPage />
           </Route>
           <Route path="/" exact>
             <Home></Home>

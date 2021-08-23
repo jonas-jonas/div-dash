@@ -3,6 +3,26 @@ SELECT *
 FROM "symbol"
 WHERE symbol_id = $1;
 
+-- name: GetSymbolsByType :many
+SELECT *
+FROM "symbol" s
+WHERE s.type = $1
+LIMIT $2;
+
+-- name: GetSymbols :many
+SELECT *
+FROM "symbol"
+LIMIT $1;
+
+-- name: GetSymbolCount :one
+SELECT COUNT(*)
+FROM "symbol";
+
+-- name: GetSymbolCountByType :one
+SELECT COUNT(*)
+FROM "symbol" s
+WHERE s.type = @symbolType;
+
 -- name: AddSymbol :exec
 INSERT INTO "symbol" (symbol_id, type, source, precision, symbol_name)
 VALUES ($1, $2, $3, $4, $5)

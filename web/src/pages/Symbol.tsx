@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import numeral from "numeral";
 import { useQuery } from "react-query";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   CartesianGrid,
   Line,
@@ -17,6 +17,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { SymbolTypeLabels } from "../models/symbol";
 import * as api from "../util/api";
 import { formatMoney } from "../util/formatter";
 
@@ -34,6 +35,7 @@ export function SymbolPage() {
       retry: false,
     }
   );
+
   const { data: chart, isLoading: loadingChart } = useQuery(
     ["symbol", symbolId, "chart"],
     () => api.getSymbolChart(symbolId),
@@ -60,9 +62,9 @@ export function SymbolPage() {
               className="mr-2 ml-2"
               size="xs"
             />
-            <a href="/assets/common-stock" className="">
-              Common Stock
-            </a>
+            <Link to={"/symbols/" + symbolDetails.type} className="">
+              {SymbolTypeLabels[symbolDetails.type]}
+            </Link>
             <FontAwesomeIcon
               icon={faChevronRight}
               className="mr-2 ml-2"

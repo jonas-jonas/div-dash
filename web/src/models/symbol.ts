@@ -79,3 +79,10 @@ export type SymbolChartEntry = {
   date: string;
   price: number;
 };
+
+export type PaginatedSymbols = {
+  symbols: Symbol[];
+  totalCount: number;
+  pages: number;
+  activePage: number;
+}

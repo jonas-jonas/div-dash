@@ -91,6 +91,18 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getSymbolStmt, err = db.PrepareContext(ctx, getSymbol); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSymbol: %w", err)
 	}
+	if q.getSymbolCountStmt, err = db.PrepareContext(ctx, getSymbolCount); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSymbolCount: %w", err)
+	}
+	if q.getSymbolCountByTypeStmt, err = db.PrepareContext(ctx, getSymbolCountByType); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSymbolCountByType: %w", err)
+	}
+	if q.getSymbolsStmt, err = db.PrepareContext(ctx, getSymbols); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSymbols: %w", err)
+	}
+	if q.getSymbolsByTypeStmt, err = db.PrepareContext(ctx, getSymbolsByType); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSymbolsByType: %w", err)
+	}
 	if q.getTransactionStmt, err = db.PrepareContext(ctx, getTransaction); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTransaction: %w", err)
 	}
@@ -250,6 +262,26 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getSymbolStmt: %w", cerr)
 		}
 	}
+	if q.getSymbolCountStmt != nil {
+		if cerr := q.getSymbolCountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSymbolCountStmt: %w", cerr)
+		}
+	}
+	if q.getSymbolCountByTypeStmt != nil {
+		if cerr := q.getSymbolCountByTypeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSymbolCountByTypeStmt: %w", cerr)
+		}
+	}
+	if q.getSymbolsStmt != nil {
+		if cerr := q.getSymbolsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSymbolsStmt: %w", cerr)
+		}
+	}
+	if q.getSymbolsByTypeStmt != nil {
+		if cerr := q.getSymbolsByTypeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSymbolsByTypeStmt: %w", cerr)
+		}
+	}
 	if q.getTransactionStmt != nil {
 		if cerr := q.getTransactionStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getTransactionStmt: %w", cerr)
@@ -377,6 +409,10 @@ type Queries struct {
 	getJobsByNameStmt               *sql.Stmt
 	getLastJobByNameStmt            *sql.Stmt
 	getSymbolStmt                   *sql.Stmt
+	getSymbolCountStmt              *sql.Stmt
+	getSymbolCountByTypeStmt        *sql.Stmt
+	getSymbolsStmt                  *sql.Stmt
+	getSymbolsByTypeStmt            *sql.Stmt
 	getTransactionStmt              *sql.Stmt
 	getUserStmt                     *sql.Stmt
 	getUserRegistrationStmt         *sql.Stmt
@@ -419,6 +455,10 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getJobsByNameStmt:               q.getJobsByNameStmt,
 		getLastJobByNameStmt:            q.getLastJobByNameStmt,
 		getSymbolStmt:                   q.getSymbolStmt,
+		getSymbolCountStmt:              q.getSymbolCountStmt,
+		getSymbolCountByTypeStmt:        q.getSymbolCountByTypeStmt,
+		getSymbolsStmt:                  q.getSymbolsStmt,
+		getSymbolsByTypeStmt:            q.getSymbolsByTypeStmt,
 		getTransactionStmt:              q.getTransactionStmt,
 		getUserStmt:                     q.getUserStmt,
 		getUserRegistrationStmt:         q.getUserRegistrationStmt,

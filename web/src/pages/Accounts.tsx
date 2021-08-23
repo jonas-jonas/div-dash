@@ -40,7 +40,7 @@ export function Accounts() {
           accounts.map((account) => (
             <Link
               className="bg-white rounded px-6 py-4 transition-all border border-transparent hover:border-blue-600 hover:shadow"
-              to={"/account/" + account.id}
+              to={"/accounts/" + account.id}
               key={account.id}
             >
               <div className="flex flex-col mb-4 items-center w-full justify-between">

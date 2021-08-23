@@ -87,6 +87,111 @@ func (q *Queries) GetSymbol(ctx context.Context, symbolID string) (Symbol, error
 	return i, err
 }
 
+const getSymbolCount = `-- name: GetSymbolCount :one
+SELECT COUNT(*)
+FROM "symbol"
+`
+
+func (q *Queries) GetSymbolCount(ctx context.Context) (int64, error) {
+	row := q.queryRow(ctx, q.getSymbolCountStmt, getSymbolCount)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getSymbolCountByType = `-- name: GetSymbolCountByType :one
+SELECT COUNT(*)
+FROM "symbol" s
+WHERE s.type = $1
+`
+
+func (q *Queries) GetSymbolCountByType(ctx context.Context, symboltype string) (int64, error) {
+	row := q.queryRow(ctx, q.getSymbolCountByTypeStmt, getSymbolCountByType, symboltype)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getSymbols = `-- name: GetSymbols :many
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn
+FROM "symbol"
+LIMIT $1
+`
+
+func (q *Queries) GetSymbols(ctx context.Context, limit int32) ([]Symbol, error) {
+	rows, err := q.query(ctx, q.getSymbolsStmt, getSymbols, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Symbol
+	for rows.Next() {
+		var i Symbol
+		if err := rows.Scan(
+			&i.SymbolID,
+			&i.Type,
+			&i.Source,
+			&i.Precision,
+			&i.SymbolName,
+			&i.Isin,
+			&i.Wkn,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSymbolsByType = `-- name: GetSymbolsByType :many
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn
+FROM "symbol" s
+WHERE s.type = $1
+LIMIT $2
+`
+
+type GetSymbolsByTypeParams struct {
+	Type  string `json:"type"`
+	Limit int32  `json:"limit"`
+}
+
+func (q *Queries) GetSymbolsByType(ctx context.Context, arg GetSymbolsByTypeParams) ([]Symbol, error) {
+	rows, err := q.query(ctx, q.getSymbolsByTypeStmt, getSymbolsByType, arg.Type, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Symbol
+	for rows.Next() {
+		var i Symbol
+		if err := rows.Scan(
+			&i.SymbolID,
+			&i.Type,
+			&i.Source,
+			&i.Precision,
+			&i.SymbolName,
+			&i.Isin,
+			&i.Wkn,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchSymbol = `-- name: SearchSymbol :many
 SELECT symbol_id, type, source, precision, symbol_name, isin, wkn
 FROM "symbol"

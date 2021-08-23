@@ -1,4 +1,5 @@
-import { faFileInvoice, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faBitcoin } from "@fortawesome/free-brands-svg-icons";
+import { faFileInvoice, faFileInvoiceDollar, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import ky from "ky";
@@ -24,10 +25,11 @@ export function Navigation() {
 
   const navItemClasses = (pathName: string) => {
     return classNames(
-      "ml-20 h-full flex items-center border-b-4 border-transparent pt-1 px-3 transition-colors font-bold",
+      "ml-4 h-full flex items-center border-b-4 border-transparent pt-1 px-3 transition-colors font-bold",
       {
-        "border-gray-50 text-white": location.pathname === pathName,
-        "hover:border-gray-400 text-gray-500": location.pathname !== pathName,
+        "border-gray-50 text-white": location.pathname.startsWith(pathName),
+        "hover:border-gray-400 text-gray-500":
+          !location.pathname.startsWith(pathName),
       }
     );
   };
@@ -40,12 +42,20 @@ export function Navigation() {
     >
       <div className="container mx-auto flex justify-between items-stretch">
         <div className="flex items-center">
-          <Link className="navbar-item" to="/">
+          <Link className="navbar-item mr-16" to="/">
             <img src="/logo-white@2x.png" alt="Logo" width="112" height="28" />
           </Link>
           <Link className={navItemClasses("/accounts")} to="/accounts">
             <FontAwesomeIcon icon={faFileInvoice} className="mr-3" />
             <span className="tracking-wider">Accounts</span>
+          </Link>
+          <Link className={navItemClasses("/symbols/cs")} to="/symbols/cs">
+            <FontAwesomeIcon icon={faFileInvoiceDollar} className="mr-3" />
+            <span className="tracking-wider">Stocks</span>
+          </Link>
+          <Link className={navItemClasses("/symbols/crypto")} to="/symbols/crypto">
+            <FontAwesomeIcon icon={faBitcoin} className="mr-3" />
+            <span className="tracking-wider">Cryptocurrencies</span>
           </Link>
         </div>
         <div className="flex items-center">
