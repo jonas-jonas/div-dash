@@ -29,11 +29,11 @@ function App() {
           <Route path="/accounts/:accountId" exact>
             <Account></Account>
           </Route>
-          <Route path="/symbol/:symbolId" exact>
-            <SymbolPage></SymbolPage>
-          </Route>
           <Route path="/symbols/:type" exact>
             <SymbolListPage />
+          </Route>
+          <Route path="/symbols/:type/:symbolId" exact>
+            <SymbolPage></SymbolPage>
           </Route>
           <Route path="/" exact>
             <Home></Home>

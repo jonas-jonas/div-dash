@@ -1,7 +1,4 @@
-import {
-  faSadTear,
-  faSpinner
-} from "@fortawesome/free-solid-svg-icons";
+import { faSadTear, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import ky from "ky";
@@ -40,7 +37,9 @@ export function PortfolioBalance() {
                 <td className="py-3 px-2 flex items-center">
                   <div className="flex flex-col">
                     <div className="text-gray-600 text-xs mb-1">
-                      <CopyElement value={balanceItem.symbol.symbolID.toUpperCase()} />
+                      <CopyElement
+                        value={balanceItem.symbol.symbolID.toUpperCase()}
+                      />
                       {balanceItem.symbol.isin && (
                         <>
                           <span className="mx-2">·</span>
@@ -56,7 +55,12 @@ export function PortfolioBalance() {
                     </div>
                     <Link
                       className="font-bold hover:underline"
-                      to={"/symbol/" + balanceItem.symbol.symbolID}
+                      to={
+                        "/symbols/" +
+                        balanceItem.symbol.type +
+                        "/" +
+                        balanceItem.symbol.symbolID
+                      }
                     >
                       {balanceItem.symbol.symbolName ||
                         balanceItem.symbol.symbolID}

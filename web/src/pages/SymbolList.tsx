@@ -2,7 +2,7 @@ import {
   faChevronLeft,
   faChevronRight,
   faSadTear,
-  faSpinner
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ky from "ky";
@@ -85,7 +85,7 @@ export function SymbolListPage() {
                         </div>
                         <Link
                           className="font-bold hover:underline"
-                          to={"/symbol/" + symbol.symbolID}
+                          to={"/symbols/" + symbol.type + "/" + symbol.symbolID}
                         >
                           {symbol.symbolName}
                         </Link>
