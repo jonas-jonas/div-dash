@@ -1,15 +1,29 @@
 package coingecko
 
 import (
+	"context"
 	"div-dash/internal/db"
 	"encoding/json"
 	"fmt"
 )
 
-func (c *CoingeckoService) GetPrice(asset db.Symbol) (float64, error) {
+func (c *CoingeckoService) GetPrice(ctx context.Context, asset db.Symbol) (float64, error) {
+
+	symbol, err := c.queries.GetSymbolOfSymbolAndExchange(ctx, db.GetSymbolOfSymbolAndExchangeParams{
+		SymbolID: asset.SymbolID,
+		Exchange: "coingecko",
+	})
+
+	if err != nil {
+		return -1, fmt.Errorf("could not get exchanges of asset %s: %w", asset.SymbolID, err)
+	}
+
+	if !symbol.Valid {
+		return -1, fmt.Errorf("no symbol found for symbol %s on exchange %s", asset.SymbolID, "coingecko")
+	}
 
 	resp, err := c.client.R().
-		SetQueryParam("ids", asset.SymbolID).
+		SetQueryParam("ids", symbol.String).
 		SetQueryParam("vs_currencies", "EUR").
 		Get("/simple/price")
 
@@ -29,5 +43,5 @@ func (c *CoingeckoService) GetPrice(asset db.Symbol) (float64, error) {
 		return -1, fmt.Errorf("could not unmarshal price response: %w", err)
 	}
 
-	return priceResponse[asset.SymbolID]["eur"], nil
+	return priceResponse[symbol.String]["eur"], nil
 }

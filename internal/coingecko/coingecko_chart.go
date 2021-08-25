@@ -1,6 +1,7 @@
 package coingecko
 
 import (
+	"context"
 	"div-dash/internal/db"
 	"div-dash/internal/model"
 	"encoding/json"
@@ -8,9 +9,23 @@ import (
 	"time"
 )
 
-func (c *CoingeckoService) GetChart(asset db.Symbol, span int) (model.Chart, error) {
+func (c *CoingeckoService) GetChart(ctx context.Context, asset db.Symbol, span int) (model.Chart, error) {
+
+	symbol, err := c.queries.GetSymbolOfSymbolAndExchange(ctx, db.GetSymbolOfSymbolAndExchangeParams{
+		SymbolID: asset.SymbolID,
+		Exchange: "coingecko",
+	})
+
+	if err != nil {
+		return model.Chart{}, fmt.Errorf("could not get exchanges of asset %s: %w", asset.SymbolID, err)
+	}
+
+	if !symbol.Valid {
+		return model.Chart{}, fmt.Errorf("no symbol found for symbol %s on exchange %s", asset.SymbolID, "coingecko")
+	}
+
 	resp, err := c.client.R().
-		SetPathParam("coin", asset.SymbolID).
+		SetPathParam("coin", symbol.String).
 		SetQueryParam("vs_currency", "eur").
 		SetQueryParam("days", "365").
 		Get("/coins/{coin}/market_chart")

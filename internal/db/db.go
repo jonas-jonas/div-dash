@@ -97,6 +97,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getSymbolCountByTypeStmt, err = db.PrepareContext(ctx, getSymbolCountByType); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSymbolCountByType: %w", err)
 	}
+	if q.getSymbolOfSymbolAndExchangeStmt, err = db.PrepareContext(ctx, getSymbolOfSymbolAndExchange); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSymbolOfSymbolAndExchange: %w", err)
+	}
 	if q.getSymbolsStmt, err = db.PrepareContext(ctx, getSymbols); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSymbols: %w", err)
 	}
@@ -272,6 +275,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getSymbolCountByTypeStmt: %w", cerr)
 		}
 	}
+	if q.getSymbolOfSymbolAndExchangeStmt != nil {
+		if cerr := q.getSymbolOfSymbolAndExchangeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSymbolOfSymbolAndExchangeStmt: %w", cerr)
+		}
+	}
 	if q.getSymbolsStmt != nil {
 		if cerr := q.getSymbolsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getSymbolsStmt: %w", cerr)
@@ -384,93 +392,95 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                              DBTX
-	tx                              *sql.Tx
-	activateUserStmt                *sql.Stmt
-	addISINAndWKNStmt               *sql.Stmt
-	addSymbolStmt                   *sql.Stmt
-	connectSymbolWithExchangeStmt   *sql.Stmt
-	countByEmailStmt                *sql.Stmt
-	createAccountStmt               *sql.Stmt
-	createExchangeStmt              *sql.Stmt
-	createTransactionStmt           *sql.Stmt
-	createUserStmt                  *sql.Stmt
-	createUserRegistrationStmt      *sql.Stmt
-	deleteAccountStmt               *sql.Stmt
-	deleteTransactionStmt           *sql.Stmt
-	deleteUserStmt                  *sql.Stmt
-	existsByEmailStmt               *sql.Stmt
-	findByEmailStmt                 *sql.Stmt
-	finishJobStmt                   *sql.Stmt
-	getAccountStmt                  *sql.Stmt
-	getBalanceByUserStmt            *sql.Stmt
-	getExchangesOfAssetStmt         *sql.Stmt
-	getJobStmt                      *sql.Stmt
-	getJobsByNameStmt               *sql.Stmt
-	getLastJobByNameStmt            *sql.Stmt
-	getSymbolStmt                   *sql.Stmt
-	getSymbolCountStmt              *sql.Stmt
-	getSymbolCountByTypeStmt        *sql.Stmt
-	getSymbolsStmt                  *sql.Stmt
-	getSymbolsByTypeStmt            *sql.Stmt
-	getTransactionStmt              *sql.Stmt
-	getUserStmt                     *sql.Stmt
-	getUserRegistrationStmt         *sql.Stmt
-	getUserRegistrationByUserIdStmt *sql.Stmt
-	isUserActivatedStmt             *sql.Stmt
-	listAccountsStmt                *sql.Stmt
-	listTransactionsStmt            *sql.Stmt
-	listUsersStmt                   *sql.Stmt
-	searchSymbolStmt                *sql.Stmt
-	startJobStmt                    *sql.Stmt
-	symbolExistsStmt                *sql.Stmt
-	updateAccountStmt               *sql.Stmt
-	updateSymbolStmt                *sql.Stmt
+	db                               DBTX
+	tx                               *sql.Tx
+	activateUserStmt                 *sql.Stmt
+	addISINAndWKNStmt                *sql.Stmt
+	addSymbolStmt                    *sql.Stmt
+	connectSymbolWithExchangeStmt    *sql.Stmt
+	countByEmailStmt                 *sql.Stmt
+	createAccountStmt                *sql.Stmt
+	createExchangeStmt               *sql.Stmt
+	createTransactionStmt            *sql.Stmt
+	createUserStmt                   *sql.Stmt
+	createUserRegistrationStmt       *sql.Stmt
+	deleteAccountStmt                *sql.Stmt
+	deleteTransactionStmt            *sql.Stmt
+	deleteUserStmt                   *sql.Stmt
+	existsByEmailStmt                *sql.Stmt
+	findByEmailStmt                  *sql.Stmt
+	finishJobStmt                    *sql.Stmt
+	getAccountStmt                   *sql.Stmt
+	getBalanceByUserStmt             *sql.Stmt
+	getExchangesOfAssetStmt          *sql.Stmt
+	getJobStmt                       *sql.Stmt
+	getJobsByNameStmt                *sql.Stmt
+	getLastJobByNameStmt             *sql.Stmt
+	getSymbolStmt                    *sql.Stmt
+	getSymbolCountStmt               *sql.Stmt
+	getSymbolCountByTypeStmt         *sql.Stmt
+	getSymbolOfSymbolAndExchangeStmt *sql.Stmt
+	getSymbolsStmt                   *sql.Stmt
+	getSymbolsByTypeStmt             *sql.Stmt
+	getTransactionStmt               *sql.Stmt
+	getUserStmt                      *sql.Stmt
+	getUserRegistrationStmt          *sql.Stmt
+	getUserRegistrationByUserIdStmt  *sql.Stmt
+	isUserActivatedStmt              *sql.Stmt
+	listAccountsStmt                 *sql.Stmt
+	listTransactionsStmt             *sql.Stmt
+	listUsersStmt                    *sql.Stmt
+	searchSymbolStmt                 *sql.Stmt
+	startJobStmt                     *sql.Stmt
+	symbolExistsStmt                 *sql.Stmt
+	updateAccountStmt                *sql.Stmt
+	updateSymbolStmt                 *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                              tx,
-		tx:                              tx,
-		activateUserStmt:                q.activateUserStmt,
-		addISINAndWKNStmt:               q.addISINAndWKNStmt,
-		addSymbolStmt:                   q.addSymbolStmt,
-		connectSymbolWithExchangeStmt:   q.connectSymbolWithExchangeStmt,
-		countByEmailStmt:                q.countByEmailStmt,
-		createAccountStmt:               q.createAccountStmt,
-		createExchangeStmt:              q.createExchangeStmt,
-		createTransactionStmt:           q.createTransactionStmt,
-		createUserStmt:                  q.createUserStmt,
-		createUserRegistrationStmt:      q.createUserRegistrationStmt,
-		deleteAccountStmt:               q.deleteAccountStmt,
-		deleteTransactionStmt:           q.deleteTransactionStmt,
-		deleteUserStmt:                  q.deleteUserStmt,
-		existsByEmailStmt:               q.existsByEmailStmt,
-		findByEmailStmt:                 q.findByEmailStmt,
-		finishJobStmt:                   q.finishJobStmt,
-		getAccountStmt:                  q.getAccountStmt,
-		getBalanceByUserStmt:            q.getBalanceByUserStmt,
-		getExchangesOfAssetStmt:         q.getExchangesOfAssetStmt,
-		getJobStmt:                      q.getJobStmt,
-		getJobsByNameStmt:               q.getJobsByNameStmt,
-		getLastJobByNameStmt:            q.getLastJobByNameStmt,
-		getSymbolStmt:                   q.getSymbolStmt,
-		getSymbolCountStmt:              q.getSymbolCountStmt,
-		getSymbolCountByTypeStmt:        q.getSymbolCountByTypeStmt,
-		getSymbolsStmt:                  q.getSymbolsStmt,
-		getSymbolsByTypeStmt:            q.getSymbolsByTypeStmt,
-		getTransactionStmt:              q.getTransactionStmt,
-		getUserStmt:                     q.getUserStmt,
-		getUserRegistrationStmt:         q.getUserRegistrationStmt,
-		getUserRegistrationByUserIdStmt: q.getUserRegistrationByUserIdStmt,
-		isUserActivatedStmt:             q.isUserActivatedStmt,
-		listAccountsStmt:                q.listAccountsStmt,
-		listTransactionsStmt:            q.listTransactionsStmt,
-		listUsersStmt:                   q.listUsersStmt,
-		searchSymbolStmt:                q.searchSymbolStmt,
-		startJobStmt:                    q.startJobStmt,
-		symbolExistsStmt:                q.symbolExistsStmt,
-		updateAccountStmt:               q.updateAccountStmt,
-		updateSymbolStmt:                q.updateSymbolStmt,
+		db:                               tx,
+		tx:                               tx,
+		activateUserStmt:                 q.activateUserStmt,
+		addISINAndWKNStmt:                q.addISINAndWKNStmt,
+		addSymbolStmt:                    q.addSymbolStmt,
+		connectSymbolWithExchangeStmt:    q.connectSymbolWithExchangeStmt,
+		countByEmailStmt:                 q.countByEmailStmt,
+		createAccountStmt:                q.createAccountStmt,
+		createExchangeStmt:               q.createExchangeStmt,
+		createTransactionStmt:            q.createTransactionStmt,
+		createUserStmt:                   q.createUserStmt,
+		createUserRegistrationStmt:       q.createUserRegistrationStmt,
+		deleteAccountStmt:                q.deleteAccountStmt,
+		deleteTransactionStmt:            q.deleteTransactionStmt,
+		deleteUserStmt:                   q.deleteUserStmt,
+		existsByEmailStmt:                q.existsByEmailStmt,
+		findByEmailStmt:                  q.findByEmailStmt,
+		finishJobStmt:                    q.finishJobStmt,
+		getAccountStmt:                   q.getAccountStmt,
+		getBalanceByUserStmt:             q.getBalanceByUserStmt,
+		getExchangesOfAssetStmt:          q.getExchangesOfAssetStmt,
+		getJobStmt:                       q.getJobStmt,
+		getJobsByNameStmt:                q.getJobsByNameStmt,
+		getLastJobByNameStmt:             q.getLastJobByNameStmt,
+		getSymbolStmt:                    q.getSymbolStmt,
+		getSymbolCountStmt:               q.getSymbolCountStmt,
+		getSymbolCountByTypeStmt:         q.getSymbolCountByTypeStmt,
+		getSymbolOfSymbolAndExchangeStmt: q.getSymbolOfSymbolAndExchangeStmt,
+		getSymbolsStmt:                   q.getSymbolsStmt,
+		getSymbolsByTypeStmt:             q.getSymbolsByTypeStmt,
+		getTransactionStmt:               q.getTransactionStmt,
+		getUserStmt:                      q.getUserStmt,
+		getUserRegistrationStmt:          q.getUserRegistrationStmt,
+		getUserRegistrationByUserIdStmt:  q.getUserRegistrationByUserIdStmt,
+		isUserActivatedStmt:              q.isUserActivatedStmt,
+		listAccountsStmt:                 q.listAccountsStmt,
+		listTransactionsStmt:             q.listTransactionsStmt,
+		listUsersStmt:                    q.listUsersStmt,
+		searchSymbolStmt:                 q.searchSymbolStmt,
+		startJobStmt:                     q.startJobStmt,
+		symbolExistsStmt:                 q.symbolExistsStmt,
+		updateAccountStmt:                q.updateAccountStmt,
+		updateSymbolStmt:                 q.updateSymbolStmt,
 	}
 }

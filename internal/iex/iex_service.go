@@ -98,7 +98,7 @@ type Quote struct {
 	IsUSMarketOpen         bool    `json:"isUSMarketOpen"`
 }
 
-func (i *IEXService) GetPrice(asset db.Symbol) (float64, error) {
+func (i *IEXService) GetPrice(ctx context.Context, asset db.Symbol) (float64, error) {
 
 	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
 	if err != nil {
@@ -234,7 +234,7 @@ func assembleIndicators(companyKeyStats CompanyKeyStats) []model.SymbolIndicator
 	}
 }
 
-func (i *IEXService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) {
+func (i *IEXService) GetDetails(ctx context.Context, asset db.Symbol) (model.SymbolDetails, error) {
 
 	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
 	if err != nil {
@@ -271,7 +271,7 @@ func (i *IEXService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) {
 	}, nil
 }
 
-func (i *IEXService) GetChart(asset db.Symbol, span int) (model.Chart, error) {
+func (i *IEXService) GetChart(ctx context.Context, asset db.Symbol, span int) (model.Chart, error) {
 
 	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
 	if err != nil {

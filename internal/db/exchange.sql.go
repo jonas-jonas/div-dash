@@ -5,6 +5,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createExchange = `-- name: CreateExchange :exec
@@ -39,11 +40,11 @@ SELECT e.exchange, e.exchange_suffix, e.region, e.description, e.mic
 FROM "asset_exchange" ae
 JOIN "exchange" e
     ON ae.exchange = e.exchange
-WHERE ae.symbol = $1
+WHERE ae.symbol_id = $1
 `
 
-func (q *Queries) GetExchangesOfAsset(ctx context.Context, symbol string) ([]Exchange, error) {
-	rows, err := q.query(ctx, q.getExchangesOfAssetStmt, getExchangesOfAsset, symbol)
+func (q *Queries) GetExchangesOfAsset(ctx context.Context, symbolID string) ([]Exchange, error) {
+	rows, err := q.query(ctx, q.getExchangesOfAssetStmt, getExchangesOfAsset, symbolID)
 	if err != nil {
 		return nil, err
 	}
@@ -69,4 +70,22 @@ func (q *Queries) GetExchangesOfAsset(ctx context.Context, symbol string) ([]Exc
 		return nil, err
 	}
 	return items, nil
+}
+
+const getSymbolOfSymbolAndExchange = `-- name: GetSymbolOfSymbolAndExchange :one
+SELECT symbol
+FROM "asset_exchange"
+WHERE symbol_id = $1 AND exchange = $2
+`
+
+type GetSymbolOfSymbolAndExchangeParams struct {
+	SymbolID string `json:"symbolID"`
+	Exchange string `json:"exchange"`
+}
+
+func (q *Queries) GetSymbolOfSymbolAndExchange(ctx context.Context, arg GetSymbolOfSymbolAndExchangeParams) (sql.NullString, error) {
+	row := q.queryRow(ctx, q.getSymbolOfSymbolAndExchangeStmt, getSymbolOfSymbolAndExchange, arg.SymbolID, arg.Exchange)
+	var symbol sql.NullString
+	err := row.Scan(&symbol)
+	return symbol, err
 }

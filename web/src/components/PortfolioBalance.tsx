@@ -40,7 +40,7 @@ export function PortfolioBalance() {
                 <td className="py-3 px-2 flex items-center">
                   <div className="flex flex-col">
                     <div className="text-gray-600 text-xs mb-1">
-                      <CopyElement value={balanceItem.symbol.symbolID} />
+                      <CopyElement value={balanceItem.symbol.symbolID.toUpperCase()} />
                       {balanceItem.symbol.isin && (
                         <>
                           <span className="mx-2">·</span>

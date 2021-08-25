@@ -107,7 +107,7 @@ func GetSymbolDetails(c *gin.Context) {
 		return
 	}
 
-	details, err := services.PriceService().GetDetails(symbol)
+	details, err := services.PriceService().GetDetails(c, symbol)
 	if err != nil {
 		c.Error(err)
 		return
@@ -125,7 +125,7 @@ func GetSymbolChart(c *gin.Context) {
 		return
 	}
 
-	chart, err := services.PriceService().GetChart(symbol, 1)
+	chart, err := services.PriceService().GetChart(c, symbol, 1)
 	if err != nil {
 		c.Error(err)
 		return

@@ -29,9 +29,9 @@ VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT DO NOTHING;
 
 -- name: ConnectSymbolWithExchange :exec
-INSERT INTO "asset_exchange" (symbol, exchange)
-VALUES ($1, $2)
-ON CONFLICT DO NOTHING;
+INSERT INTO "asset_exchange" (symbol_id, exchange, symbol)
+VALUES ($1, $2, $3)
+ON CONFLICT DO UPDATE SET symbol = $3;
 
 -- name: SymbolExists :one
 SELECT EXISTS(

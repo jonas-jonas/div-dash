@@ -135,8 +135,12 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 			}
 		}
 		err = queries.ConnectSymbolWithExchange(ctx, db.ConnectSymbolWithExchangeParams{
-			Symbol:   symbolId,
+			SymbolID: symbolId,
 			Exchange: symbol.Exchange,
+			Symbol: sql.NullString{
+				String: symbolId + symbol.ExchangeSuffix,
+				Valid:  true,
+			},
 		})
 
 		if err != nil {

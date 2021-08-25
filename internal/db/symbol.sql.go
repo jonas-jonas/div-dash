@@ -51,18 +51,19 @@ func (q *Queries) AddSymbol(ctx context.Context, arg AddSymbolParams) error {
 }
 
 const connectSymbolWithExchange = `-- name: ConnectSymbolWithExchange :exec
-INSERT INTO "asset_exchange" (symbol, exchange)
-VALUES ($1, $2)
-ON CONFLICT DO NOTHING
+INSERT INTO "asset_exchange" (symbol_id, exchange, symbol)
+VALUES ($1, $2, $3)
+ON CONFLICT DO UPDATE SET symbol = $3
 `
 
 type ConnectSymbolWithExchangeParams struct {
-	Symbol   string `json:"symbol"`
-	Exchange string `json:"exchange"`
+	SymbolID string         `json:"symbolID"`
+	Exchange string         `json:"exchange"`
+	Symbol   sql.NullString `json:"symbol"`
 }
 
 func (q *Queries) ConnectSymbolWithExchange(ctx context.Context, arg ConnectSymbolWithExchangeParams) error {
-	_, err := q.exec(ctx, q.connectSymbolWithExchangeStmt, connectSymbolWithExchange, arg.Symbol, arg.Exchange)
+	_, err := q.exec(ctx, q.connectSymbolWithExchangeStmt, connectSymbolWithExchange, arg.SymbolID, arg.Exchange, arg.Symbol)
 	return err
 }
 

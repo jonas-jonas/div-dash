@@ -71,7 +71,7 @@ func GetBalance(c *gin.Context) {
 			log.Printf("Could not find asset for symbol %s: %s. Skipping balance entry... ", entry.Symbol, err.Error())
 			continue
 		}
-		currentPrice, err := services.PriceService().GetPriceOfAsset(symbol)
+		currentPrice, err := services.PriceService().GetPriceOfAsset(c, symbol)
 		if err != nil {
 			log.Printf("Could not get current price for asset %s: %s.", entry.Symbol, err.Error())
 			currentPrice = 0.0

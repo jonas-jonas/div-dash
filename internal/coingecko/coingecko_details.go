@@ -1,6 +1,7 @@
 package coingecko
 
 import (
+	"context"
 	"div-dash/internal/db"
 	"div-dash/internal/model"
 	"encoding/json"
@@ -33,9 +34,23 @@ func assembleIndicators(details CoingeckoDetails) []model.SymbolIndicator {
 	}
 }
 
-func (c *CoingeckoService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) {
+func (c *CoingeckoService) GetDetails(ctx context.Context, asset db.Symbol) (model.SymbolDetails, error) {
+
+	symbol, err := c.queries.GetSymbolOfSymbolAndExchange(ctx, db.GetSymbolOfSymbolAndExchangeParams{
+		SymbolID: asset.SymbolID,
+		Exchange: "coingecko",
+	})
+
+	if err != nil {
+		return model.SymbolDetails{}, fmt.Errorf("could not get exchanges of asset %s: %w", asset.SymbolID, err)
+	}
+
+	if !symbol.Valid {
+		return model.SymbolDetails{}, fmt.Errorf("no symbol found for symbol %s on exchange %s", asset.SymbolID, "coingecko")
+	}
+
 	resp, err := c.client.R().
-		SetPathParam("coin", asset.SymbolID).
+		SetPathParam("coin", symbol.String).
 		Get("/coins/{coin}")
 
 	if err != nil {

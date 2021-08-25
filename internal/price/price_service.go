@@ -1,6 +1,7 @@
 package price
 
 import (
+	"context"
 	"div-dash/internal/coingecko"
 	"div-dash/internal/db"
 	"div-dash/internal/iex"
@@ -19,15 +20,15 @@ type PriceService struct {
 }
 
 type IPriceService interface {
-	GetPrice(asset db.Symbol) (float64, error)
+	GetPrice(ctx context.Context, asset db.Symbol) (float64, error)
 }
 
 type IDetailService interface {
-	GetDetails(asset db.Symbol) (model.SymbolDetails, error)
+	GetDetails(ctx context.Context, asset db.Symbol) (model.SymbolDetails, error)
 }
 
 type IChartService interface {
-	GetChart(asset db.Symbol, span int) (model.Chart, error)
+	GetChart(ctx context.Context, asset db.Symbol, span int) (model.Chart, error)
 }
 
 func New(iex *iex.IEXService, coingecko *coingecko.CoingeckoService) *PriceService {
@@ -47,7 +48,7 @@ func New(iex *iex.IEXService, coingecko *coingecko.CoingeckoService) *PriceServi
 	return &PriceService{cache, priceServices, detailServices, chartServices}
 }
 
-func (p *PriceService) GetPriceOfAsset(asset db.Symbol) (float64, error) {
+func (p *PriceService) GetPriceOfAsset(ctx context.Context, asset db.Symbol) (float64, error) {
 
 	cacheKey := asset.Source + "/" + asset.SymbolID
 
@@ -57,7 +58,7 @@ func (p *PriceService) GetPriceOfAsset(asset db.Symbol) (float64, error) {
 
 	priceService := p.priceServices[asset.Source]
 
-	price, err := priceService.GetPrice(asset)
+	price, err := priceService.GetPrice(ctx, asset)
 	if err != nil {
 		return -1, err
 	}
@@ -66,15 +67,15 @@ func (p *PriceService) GetPriceOfAsset(asset db.Symbol) (float64, error) {
 	return price, nil
 }
 
-func (p *PriceService) GetDetails(asset db.Symbol) (model.SymbolDetails, error) {
+func (p *PriceService) GetDetails(ctx context.Context, asset db.Symbol) (model.SymbolDetails, error) {
 	detailService := p.detailServices[asset.Source]
 
-	return detailService.GetDetails(asset)
+	return detailService.GetDetails(ctx, asset)
 }
 
-func (p *PriceService) GetChart(asset db.Symbol, span int) (model.Chart, error) {
+func (p *PriceService) GetChart(ctx context.Context, asset db.Symbol, span int) (model.Chart, error) {
 	if chartService, ok := p.chartService[asset.Source]; ok {
-		return chartService.GetChart(asset, span)
+		return chartService.GetChart(ctx, asset, span)
 
 	}
 	return model.Chart{}, fmt.Errorf("no chart service registered for source %s", asset.Source)

@@ -10,4 +10,9 @@ SELECT e.*
 FROM "asset_exchange" ae
 JOIN "exchange" e
     ON ae.exchange = e.exchange
-WHERE ae.symbol = $1;
+WHERE ae.symbol_id = $1;
+
+-- name: GetSymbolOfSymbolAndExchange :one
+SELECT symbol
+FROM "asset_exchange"
+WHERE symbol_id = $1 AND exchange = $2;

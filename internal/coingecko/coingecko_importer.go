@@ -46,14 +46,14 @@ func (c *CoingeckoService) ImportCryptoSymbols(ctx context.Context) error {
 
 	for _, symbol := range symbols {
 
-		exists, err := queries.SymbolExists(ctx, symbol.ID)
+		exists, err := queries.SymbolExists(ctx, symbol.Symbol)
 		if err != nil {
-			return fmt.Errorf("could not check if symbol %s exists: %w", symbol.ID, err)
+			return fmt.Errorf("could not check if symbol %s exists: %w", symbol.Symbol, err)
 		}
 
 		if exists {
 			err = queries.UpdateSymbol(ctx, db.UpdateSymbolParams{
-				SymbolID:  symbol.ID,
+				SymbolID:  symbol.Symbol,
 				Type:      "crypto",
 				Source:    "coingecko",
 				Precision: 8,
@@ -63,11 +63,11 @@ func (c *CoingeckoService) ImportCryptoSymbols(ctx context.Context) error {
 				},
 			})
 			if err != nil {
-				return fmt.Errorf("could not update coingecko coin %s: %w", symbol.ID, err)
+				return fmt.Errorf("could not update coingecko coin %s: %w", symbol.Symbol, err)
 			}
 		} else {
 			err = queries.AddSymbol(ctx, db.AddSymbolParams{
-				SymbolID:  symbol.ID,
+				SymbolID:  symbol.Symbol,
 				Type:      "crypto",
 				Source:    "coingecko",
 				Precision: 8,
@@ -80,6 +80,15 @@ func (c *CoingeckoService) ImportCryptoSymbols(ctx context.Context) error {
 				return fmt.Errorf("could not save coingecko coin %s: %w", symbol.ID, err)
 			}
 		}
+
+		queries.ConnectSymbolWithExchange(ctx, db.ConnectSymbolWithExchangeParams{
+			SymbolID: symbol.Symbol,
+			Exchange: "coingecko",
+			Symbol: sql.NullString{
+				String: symbol.ID,
+				Valid:  true,
+			},
+		})
 	}
 	return tx.Commit()
 }
