@@ -97,6 +97,8 @@ function CreateAccountModal({ close }: CreateAccountModalProps) {
   const { register, handleSubmit, formState, setError } =
     useForm<AccountForm>();
 
+  const { data: accountTypes } = useQuery("accountTypes", api.getAccountTypes);
+
   const queryClient = useQueryClient();
 
   const createAccountMutation = useMutation<Account, ky.HTTPError, AccountForm>(
@@ -165,6 +167,24 @@ function CreateAccountModal({ close }: CreateAccountModalProps) {
               placeholder="Enter account name"
               {...register("name", { required: true })}
             />
+          </label>
+          <label className="block mb-8">
+            <span>Type</span>
+            <select
+              className="bg-gray-50 block w-full px-3 py-2 focus:outline-none rounded border border-transparent focus:border-blue-700 transition-colors"
+              placeholder="Enter account name"
+              {...register("accountType", { required: true })}
+            >
+              <option value="">None</option>
+              {accountTypes &&
+                accountTypes.map((accountType) => {
+                  return (
+                    <option value={accountType.accountType}>
+                      {accountType.label}
+                    </option>
+                  );
+                })}
+            </select>
           </label>
           <div className="flex justify-items-stretch">
             <button

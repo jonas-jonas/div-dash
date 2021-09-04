@@ -9,9 +9,9 @@ ORDER BY id;
 
 -- name: CreateAccount :one
 INSERT INTO account (
-  id, name, user_id
+  id, name, user_id, account_type
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 )
 RETURNING *;
 

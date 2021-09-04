@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/services"
@@ -27,6 +28,7 @@ func GetAccount(c *gin.Context) {
 
 type createAccountRequest struct {
 	Name string `json:"name" binding:"required"`
+	Type string `json:"accountType"`
 }
 
 func PostAccount(c *gin.Context) {
@@ -41,6 +43,10 @@ func PostAccount(c *gin.Context) {
 		ID:     "A" + services.IdService().NewId(4),
 		Name:   createAccountRequest.Name,
 		UserID: c.GetString("userId"),
+		AccountType: sql.NullString{
+			String: createAccountRequest.Type,
+			Valid:  true,
+		},
 	})
 
 	if err != nil {

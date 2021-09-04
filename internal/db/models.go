@@ -11,9 +11,15 @@ import (
 )
 
 type Account struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	UserID string `json:"userID"`
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	UserID      string         `json:"userID"`
+	AccountType sql.NullString `json:"accountType"`
+}
+
+type AccountType struct {
+	AccountType string `json:"accountType"`
+	Label       string `json:"label"`
 }
 
 type AssetExchange struct {

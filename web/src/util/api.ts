@@ -4,9 +4,14 @@ import { LoginForm } from "../form/LoginForm";
 import { TransactionForm } from "../form/TransactionForm";
 import { Account } from "../models/account";
 import { Balance } from "../models/balance";
-import { PaginatedSymbols, SymbolChartEntry, SymbolDetails } from "../models/symbol";
+import {
+  PaginatedSymbols,
+  SymbolChartEntry,
+  SymbolDetails,
+} from "../models/symbol";
 import { Transaction } from "../models/transaction";
 import { User } from "../models/user";
+import { AccountType } from "../models/accountType";
 
 export async function getIdentity(): Promise<User> {
   const response = await ky.get("/api/auth/identity");
@@ -28,6 +33,11 @@ export async function getBalance(): Promise<Balance> {
 
 export async function getAccounts(): Promise<Account[]> {
   const response = await ky.get("/api/account");
+  return await response.json();
+}
+
+export async function getAccountTypes(): Promise<AccountType[]> {
+  const response = await ky.get("/api/account-types");
   return await response.json();
 }
 
