@@ -63,6 +63,7 @@ func RegisterRoutes(r *gin.Engine) {
 		authorized.POST("/account/:accountId/transaction", PostTransaction)
 		authorized.GET("/account/:accountId/transaction", GetTransactions)
 		authorized.GET("/account/:accountId/transaction/:transactionId", GetTransaction)
+		authorized.POST("/account/:accountId/transaction-import", PostAccountTransactionImport)
 
 		authorized.GET("/account-types", GetAccountTypes)
 

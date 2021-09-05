@@ -4,16 +4,13 @@ import {
   faPencilAlt,
   faSpinner,
   faTimes,
-  faTrash
+  faTrash,
+  faUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import ky from "ky";
-import {
-  ChangeEvent, useEffect,
-  useReducer,
-  useState
-} from "react";
+import { ChangeEvent, useEffect, useReducer, useState } from "react";
 import ReactDOM from "react-dom";
 import { Path, useForm, UseFormRegister } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -26,15 +23,21 @@ import {
   formatAmount,
   formatDate,
   formatMoney,
-  formatTime
+  formatTime,
 } from "../util/formatter";
 
 type AccountParams = {
   accountId: string;
 };
 
+type AccountImport = {
+  file: File;
+};
+
 export function Account() {
   const [creating, setCreating] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const { accountId } = useParams<AccountParams>();
   const { data: account } = useQuery(["account", accountId], () =>
@@ -45,6 +48,24 @@ export function Account() {
     () => api.getTransactions(accountId)
   );
 
+  const accountImportMutation = useMutation<
+    Transaction[],
+    ky.HTTPError,
+    AccountImport
+  >((values) => api.postAccountImport(accountId, values), {
+    onSuccess: (transactions) => {
+      queryClient.setQueryData<Transaction[]>(
+        ["account", accountId, "transactions"],
+        transactions
+      );
+      queryClient.invalidateQueries("balance");
+    },
+    onError: (error, vars, ctx) => {
+      // TODO: Add some kind of feedback here
+      console.error(error);
+    },
+  });
+
   const getTransactionSideClasses = (side: "buy" | "sell") => {
     return classNames("font-bold py-3 pl-4 uppercase", {
       "text-green-600": side === "buy",
@@ -52,10 +73,29 @@ export function Account() {
     });
   };
 
+  const handleImport = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      accountImportMutation.mutate({
+        file: e.target.files[0],
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto pt-10">
       <div className="flex justify-between mb-4">
         <h1 className="text-2xl pl-4">{account?.name}</h1>
+        <div>
+          <label className="p-2">
+            <FontAwesomeIcon icon={faUpload} />
+            <input
+              type="file"
+              className="hidden"
+              accept=".xls"
+              onChange={handleImport}
+            />
+          </label>
+        </div>
       </div>
       <div className="w-full flex">
         <div className="flex-grow">

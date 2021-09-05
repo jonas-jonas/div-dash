@@ -3,6 +3,11 @@ SELECT *
 FROM "symbol"
 WHERE symbol_id = $1;
 
+-- name: GetSymbolByWKN :one
+SELECT *
+FROM "symbol"
+WHERE wkn = $1;
+
 -- name: GetSymbolsByType :many
 SELECT *
 FROM "symbol" s

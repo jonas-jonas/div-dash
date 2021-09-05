@@ -91,6 +91,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getSymbolStmt, err = db.PrepareContext(ctx, getSymbol); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSymbol: %w", err)
 	}
+	if q.getSymbolByWKNStmt, err = db.PrepareContext(ctx, getSymbolByWKN); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSymbolByWKN: %w", err)
+	}
 	if q.getSymbolCountStmt, err = db.PrepareContext(ctx, getSymbolCount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetSymbolCount: %w", err)
 	}
@@ -141,6 +144,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.symbolExistsStmt, err = db.PrepareContext(ctx, symbolExists); err != nil {
 		return nil, fmt.Errorf("error preparing query SymbolExists: %w", err)
+	}
+	if q.transactionExistsStmt, err = db.PrepareContext(ctx, transactionExists); err != nil {
+		return nil, fmt.Errorf("error preparing query TransactionExists: %w", err)
 	}
 	if q.updateAccountStmt, err = db.PrepareContext(ctx, updateAccount); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateAccount: %w", err)
@@ -268,6 +274,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getSymbolStmt: %w", cerr)
 		}
 	}
+	if q.getSymbolByWKNStmt != nil {
+		if cerr := q.getSymbolByWKNStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSymbolByWKNStmt: %w", cerr)
+		}
+	}
 	if q.getSymbolCountStmt != nil {
 		if cerr := q.getSymbolCountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getSymbolCountStmt: %w", cerr)
@@ -353,6 +364,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing symbolExistsStmt: %w", cerr)
 		}
 	}
+	if q.transactionExistsStmt != nil {
+		if cerr := q.transactionExistsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing transactionExistsStmt: %w", cerr)
+		}
+	}
 	if q.updateAccountStmt != nil {
 		if cerr := q.updateAccountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateAccountStmt: %w", cerr)
@@ -425,6 +441,7 @@ type Queries struct {
 	getJobsByNameStmt                *sql.Stmt
 	getLastJobByNameStmt             *sql.Stmt
 	getSymbolStmt                    *sql.Stmt
+	getSymbolByWKNStmt               *sql.Stmt
 	getSymbolCountStmt               *sql.Stmt
 	getSymbolCountByTypeStmt         *sql.Stmt
 	getSymbolOfSymbolAndExchangeStmt *sql.Stmt
@@ -442,6 +459,7 @@ type Queries struct {
 	searchSymbolStmt                 *sql.Stmt
 	startJobStmt                     *sql.Stmt
 	symbolExistsStmt                 *sql.Stmt
+	transactionExistsStmt            *sql.Stmt
 	updateAccountStmt                *sql.Stmt
 	updateSymbolStmt                 *sql.Stmt
 }
@@ -473,6 +491,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getJobsByNameStmt:                q.getJobsByNameStmt,
 		getLastJobByNameStmt:             q.getLastJobByNameStmt,
 		getSymbolStmt:                    q.getSymbolStmt,
+		getSymbolByWKNStmt:               q.getSymbolByWKNStmt,
 		getSymbolCountStmt:               q.getSymbolCountStmt,
 		getSymbolCountByTypeStmt:         q.getSymbolCountByTypeStmt,
 		getSymbolOfSymbolAndExchangeStmt: q.getSymbolOfSymbolAndExchangeStmt,
@@ -490,6 +509,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		searchSymbolStmt:                 q.searchSymbolStmt,
 		startJobStmt:                     q.startJobStmt,
 		symbolExistsStmt:                 q.symbolExistsStmt,
+		transactionExistsStmt:            q.transactionExistsStmt,
 		updateAccountStmt:                q.updateAccountStmt,
 		updateSymbolStmt:                 q.updateSymbolStmt,
 	}

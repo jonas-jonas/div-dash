@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"database/sql"
+	"div-dash/internal/account_types/comdirect"
 	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/services"
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
@@ -110,4 +112,48 @@ func GetAccounts(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, accounts)
 
+}
+
+func PostAccountTransactionImport(c *gin.Context) {
+	userId := c.GetString("userId")
+	accountId := c.Param("accountId")
+
+	file, headers, err := c.Request.FormFile("file")
+
+	if err != nil {
+		AbortBadRequest(c, "file err "+err.Error())
+		return
+	}
+
+	if ext := filepath.Ext(headers.Filename); ext != ".xls" {
+		AbortBadRequest(c, "Unsupported file type: "+ext)
+		return
+	}
+
+	importer := comdirect.NewCsvImporter(config.Queries(), config.DB())
+
+	err = importer.ImportTransactionsXLS(c, file, accountId, userId)
+
+	if err != nil {
+		AbortBadRequest(c, "Could not parse file: "+err.Error())
+		return
+	}
+
+	transactions, err := config.Queries().ListTransactions(c, db.ListTransactionsParams{
+		AccountID: accountId,
+		UserID:    userId,
+	})
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	var response []transactionResponse
+
+	for _, transaction := range transactions {
+		response = append(response, marshalTransactionResponse(transaction))
+	}
+
+	c.JSON(http.StatusOK, response)
 }

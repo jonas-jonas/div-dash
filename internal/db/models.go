@@ -65,6 +65,7 @@ type Transaction struct {
 	AccountID           string          `json:"accountID"`
 	UserID              string          `json:"userID"`
 	Side                string          `json:"side"`
+	ExternalID          sql.NullString  `json:"externalID"`
 }
 
 type User struct {

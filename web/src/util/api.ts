@@ -77,6 +77,20 @@ export async function postTransaction(
   return await response.json();
 }
 
+export async function postAccountImport(
+  accountId: string,
+  data: { file: File }
+): Promise<Transaction[]> {
+  const formData = new FormData();
+  formData.append("file", data.file);
+
+  const response = await ky.post("/api/account/" + accountId + "/transaction-import", {
+    body: formData,
+  });
+  
+  return await response.json();
+}
+
 export async function getSymbolDetails(
   symbolId: string
 ): Promise<SymbolDetails> {

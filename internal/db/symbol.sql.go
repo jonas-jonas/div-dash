@@ -88,6 +88,27 @@ func (q *Queries) GetSymbol(ctx context.Context, symbolID string) (Symbol, error
 	return i, err
 }
 
+const getSymbolByWKN = `-- name: GetSymbolByWKN :one
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn
+FROM "symbol"
+WHERE wkn = $1
+`
+
+func (q *Queries) GetSymbolByWKN(ctx context.Context, wkn sql.NullString) (Symbol, error) {
+	row := q.queryRow(ctx, q.getSymbolByWKNStmt, getSymbolByWKN, wkn)
+	var i Symbol
+	err := row.Scan(
+		&i.SymbolID,
+		&i.Type,
+		&i.Source,
+		&i.Precision,
+		&i.SymbolName,
+		&i.Isin,
+		&i.Wkn,
+	)
+	return i, err
+}
+
 const getSymbolCount = `-- name: GetSymbolCount :one
 SELECT COUNT(*)
 FROM "symbol"

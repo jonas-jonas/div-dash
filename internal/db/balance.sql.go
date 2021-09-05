@@ -10,7 +10,7 @@ import (
 const getBalanceByUser = `-- name: GetBalanceByUser :many
 WITH ordered_in AS (
     SELECT 
-        t.id, t.symbol, t.type, t.transaction_provider, t.price, t.date, t.amount, t.account_id, t.user_id, t.side,
+        t.id, t.symbol, t.type, t.transaction_provider, t.price, t.date, t.amount, t.account_id, t.user_id, t.side, t.external_id,
         ROW_NUMBER() OVER (PARTITION BY t.symbol ORDER BY t.date) AS rn
     FROM "transaction" t
     WHERE t.side = 'buy' AND t.user_id = $1

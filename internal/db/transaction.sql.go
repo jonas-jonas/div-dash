@@ -5,6 +5,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -12,9 +13,9 @@ import (
 
 const createTransaction = `-- name: CreateTransaction :one
 INSERT INTO "transaction" (
-  id, symbol, type, "transaction_provider", price, "date", amount, account_id, user_id, side
+  id, symbol, type, "transaction_provider", price, "date", amount, account_id, user_id, side, external_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 )
 RETURNING id
 `
@@ -30,6 +31,7 @@ type CreateTransactionParams struct {
 	AccountID           string          `json:"accountID"`
 	UserID              string          `json:"userID"`
 	Side                string          `json:"side"`
+	ExternalID          sql.NullString  `json:"externalID"`
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (string, error) {
@@ -44,6 +46,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 		arg.AccountID,
 		arg.UserID,
 		arg.Side,
+		arg.ExternalID,
 	)
 	var id string
 	err := row.Scan(&id)
@@ -67,7 +70,7 @@ func (q *Queries) DeleteTransaction(ctx context.Context, arg DeleteTransactionPa
 }
 
 const getTransaction = `-- name: GetTransaction :one
-SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, user_id, side FROM "transaction"
+SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, user_id, side, external_id FROM "transaction"
 WHERE id = $1 AND account_id = $2 AND user_id = $3
 LIMIT 1
 `
@@ -92,12 +95,13 @@ func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) 
 		&i.AccountID,
 		&i.UserID,
 		&i.Side,
+		&i.ExternalID,
 	)
 	return i, err
 }
 
 const listTransactions = `-- name: ListTransactions :many
-SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, user_id, side FROM "transaction"
+SELECT id, symbol, type, transaction_provider, price, date, amount, account_id, user_id, side, external_id FROM "transaction"
 WHERE account_id = $1 AND user_id = $2
 ORDER BY date DESC
 `
@@ -127,6 +131,7 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 			&i.AccountID,
 			&i.UserID,
 			&i.Side,
+			&i.ExternalID,
 		); err != nil {
 			return nil, err
 		}
@@ -139,4 +144,19 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 		return nil, err
 	}
 	return items, nil
+}
+
+const transactionExists = `-- name: TransactionExists :one
+SELECT EXISTS (
+  SELECT id
+  FROM "transaction"
+  WHERE external_id = $1
+)
+`
+
+func (q *Queries) TransactionExists(ctx context.Context, externalID sql.NullString) (bool, error) {
+	row := q.queryRow(ctx, q.transactionExistsStmt, transactionExists, externalID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
