@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/Rhymond/go-money v1.0.2
+	github.com/elliotchance/pie v1.38.2 // indirect
 	github.com/extrame/ole2 v0.0.0-20160812065207-d69429661ad7 // indirect
 	github.com/extrame/xls v0.0.1
 	github.com/gin-contrib/static v0.0.1
