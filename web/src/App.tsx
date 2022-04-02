@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery } from "react-query";
-import { Redirect, Route, Switch } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import { Account } from "./pages/Account";
 import { Accounts } from "./pages/Accounts";
@@ -22,39 +22,23 @@ function App() {
     return (
       <div>
         <Navigation />
-        <Switch>
-          <Route path="/accounts" exact>
-            <Accounts></Accounts>
-          </Route>
-          <Route path="/accounts/:accountId" exact>
-            <Account></Account>
-          </Route>
-          <Route path="/symbols/:type" exact>
-            <SymbolListPage />
-          </Route>
-          <Route path="/symbols/:type/:symbolId" exact>
-            <SymbolPage></SymbolPage>
-          </Route>
-          <Route path="/" exact>
-            <Home></Home>
-          </Route>
-          <Route path="/">
-            <Redirect to="/" />
-          </Route>
-        </Switch>
+        <Routes>
+          <Route path="/accounts" element={<Accounts />} />
+          <Route path="/accounts/:accountId" element={<Account />} />
+          <Route path="/symbols/:type" element={<SymbolListPage />} />
+
+          <Route path="/symbols/:type/:symbolId" element={<SymbolPage />} />
+          <Route path="/" element={<Home />} />
+        </Routes>
       </div>
     );
   } else {
     return (
       <div className="h-full">
-        <Switch>
-          <Route path="/login" exact>
-            <Login />
-          </Route>
-          <Route>
-            <Redirect to="/login" />
-          </Route>
-        </Switch>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/*" element={<Login />} />
+        </Routes>
       </div>
     );
   }

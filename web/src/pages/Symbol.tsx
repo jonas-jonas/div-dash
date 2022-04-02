@@ -26,7 +26,7 @@ type SymbolPageParams = {
 };
 
 export function SymbolPage() {
-  const { symbolId } = useParams<SymbolPageParams>();
+  const { symbolId } = useParams<SymbolPageParams>() as SymbolPageParams;
 
   const { data: symbolDetails, isLoading: loadingSymbol } = useQuery(
     ["symbol", symbolId, "details"],

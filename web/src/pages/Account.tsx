@@ -14,7 +14,7 @@ import { ChangeEvent, useEffect, useReducer, useState } from "react";
 import ReactDOM from "react-dom";
 import { Path, useForm, UseFormRegister } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { useParams } from "react-router";
+import { useParams } from "react-router-dom";
 import { TransactionForm } from "../form/TransactionForm";
 import { Symbol, SymbolTypeLabels } from "../models/symbol";
 import { Transaction } from "../models/transaction";
@@ -39,7 +39,7 @@ export function Account() {
 
   const queryClient = useQueryClient();
 
-  const { accountId } = useParams<AccountParams>();
+  const { accountId } = useParams<AccountParams>() as AccountParams;
   const { data: account } = useQuery(["account", accountId], () =>
     api.getAccount(accountId)
   );
@@ -545,7 +545,9 @@ function TypeAheadSymbolInput<T>({
         const symbols: Symbol[] = await resp.json();
         dispatch({ type: "FINISHED", payload: symbols });
       } catch (error) {
-        dispatch({ type: "ERROR", error: error });
+        if (error instanceof ky.HTTPError) {
+          dispatch({ type: "ERROR", error: error.message });
+        }
       }
     }, 500);
     setSearchDebounce(debounceTimer);

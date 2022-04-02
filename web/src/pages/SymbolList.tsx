@@ -18,8 +18,7 @@ type SymbolListPageParams = {
 };
 
 export function SymbolListPage() {
-  const { type } = useParams<SymbolListPageParams>();
-
+  const { type } = useParams<SymbolListPageParams>() as SymbolListPageParams;
   const {
     data: symbolResp,
     isLoading,
