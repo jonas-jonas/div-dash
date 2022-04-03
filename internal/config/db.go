@@ -6,21 +6,24 @@ import (
 	"fmt"
 	"log"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 )
 
 var database *sql.DB
 var queries *db.Queries = new(db.Queries)
 
 func InitDB() {
-	file := Config().Database.File
-	cache := Config().Database.Cache
-	mode := Config().Database.Mode
-	loc := Config().Database.Loc
+	dbConfig := Config().Database
+	host := dbConfig.Host
+	port := dbConfig.Port
+	database := dbConfig.Database
+	username := dbConfig.Username
+	password := dbConfig.Password
 
-	source := fmt.Sprintf("file:%s?cache=%s&mode=%s&_loc=%s&parseTime=true", file, cache, mode, loc)
-	log.Printf("connecting with string: %s", source)
-	sdb, err := sql.Open("sqlite3", source)
+	connectionString := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=disable", host, port, database, username, password)
+
+	log.Printf("connecting with string: %s", connectionString)
+	sdb, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		fmt.Print("err" + err.Error())
 	}

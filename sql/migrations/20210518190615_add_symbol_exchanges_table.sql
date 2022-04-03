@@ -2,15 +2,12 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 CREATE TABLE "asset_exchange" (
-    symbol      TEXT,
-    exchange    TEXT,
-    PRIMARY KEY (symbol, exchange),
-    CONSTRAINT fk_asset_exchange_asset
-      FOREIGN KEY(symbol)
-        REFERENCES "asset"(assetName),
-    CONSTRAINT fk_asset_exchange_exchange
-      FOREIGN KEY(exchange)
-        REFERENCES "exchange"(exchange)
+    symbol_id   TEXT,
+    type        TEXT,
+    source      TEXT,
+    exchange    TEXT REFERENCES exchange,
+    primary key(symbol_id, type, source, exchange),
+    foreign key(symbol_id, type, source) references symbol(symbol_id, type, source)
 )
 -- +goose StatementEnd
 

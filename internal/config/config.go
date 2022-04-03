@@ -21,10 +21,11 @@ type ServerConfiguration struct {
 }
 
 type DatabaseConfiguration struct {
-	File  string
-	Cache string
-	Mode  string
-	Loc   string
+	Host     string
+	Port     int
+	Database string
+	Username string
+	Password string
 }
 
 type SmtpConfiguration struct {

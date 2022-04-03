@@ -1,21 +1,22 @@
 server:
-  port: 8080
+    port: 8080
 
 database:
-  file: div-dash.db
-  cache: shared
-  mode: rw
-  loc: UTC
+    host: localhost
+    port: 5432
+    database: postgres
+    username: postgres
+    password: postgres
 
 smtp:
-  server: localhost
-  port: 1025
-  password: pass
+    server: localhost
+    port: 1025
+    password: pass
 
 token:
-  key: YELLOW SUBMARINE, BLACK WIZARDRY
-  tokenValid: 24
+    key: YELLOW SUBMARINE, BLACK WIZARDRY
+    tokenValid: 24
 
 iex:
-  token: Tpk_dc884d96cdc34cd0bd17d035434e55ab
-  baseUrl: https://sandbox.iexapis.com/stable
+    token: Tpk_dc884d96cdc34cd0bd17d035434e55ab
+    baseUrl: https://sandbox.iexapis.com/stable
