@@ -253,12 +253,15 @@ func (i *IEXService) GetDetails(ctx context.Context, asset db.Symbol) (model.Sym
 			lastExchangeWeight = weight
 		}
 	}
-	companyDetails, err := i.getCompanyDetails(asset.SymbolID + exchange.ExchangeSuffix)
+
+	iexSymbolId := asset.SymbolID + "-" + exchange.ExchangeSuffix
+
+	companyDetails, err := i.getCompanyDetails(iexSymbolId)
 
 	if err != nil {
 		return model.SymbolDetails{}, err
 	}
-	companyKeyStats, err := i.getCompanyKeyStats(asset.SymbolID + exchange.ExchangeSuffix)
+	companyKeyStats, err := i.getCompanyKeyStats(iexSymbolId)
 	if err != nil {
 		return model.SymbolDetails{}, err
 	}
@@ -291,8 +294,10 @@ func (i *IEXService) GetChart(ctx context.Context, asset db.Symbol, span int) (m
 		}
 	}
 
+	iexSymbolId := asset.SymbolID + "-" + exchange.ExchangeSuffix
+
 	resp, err := i.client.R().
-		SetPathParam("symbol", asset.SymbolID+exchange.ExchangeSuffix).
+		SetPathParam("symbol", iexSymbolId).
 		SetPathParam("span", strconv.Itoa(span)+"y").
 		SetQueryParam("chartCloseOnly", "true").
 		Get("/stock/{symbol}/chart/{span}")
