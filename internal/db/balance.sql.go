@@ -8,14 +8,14 @@ import (
 )
 
 const getBalanceByUser = `-- name: GetBalanceByUser :many
-WITH ordered_in AS (
+WITH RECURSIVE ordered_in AS (
     SELECT 
         t.id, t.symbol, t.type, t.transaction_provider, t.price, t.date, t.amount, t.account_id, t.user_id, t.side, t.external_id,
         ROW_NUMBER() OVER (PARTITION BY t.symbol ORDER BY t.date) AS rn
     FROM "transaction" t
     WHERE t.side = 'buy' AND t.user_id = $1
 ), running_totals as (
-    SELECT symbol,amount,price,amount as total, 0 as prev_total, rn 
+    SELECT symbol,amount,price,amount::numeric as total, 0::numeric as prev_total, rn 
     FROM ordered_in
     WHERE rn = 1
     UNION ALL

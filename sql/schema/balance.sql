@@ -1,12 +1,12 @@
 -- name: GetBalanceByUser :many
-WITH ordered_in AS (
+WITH RECURSIVE ordered_in AS (
     SELECT 
         t.*,
         ROW_NUMBER() OVER (PARTITION BY t.symbol ORDER BY t.date) AS rn
     FROM "transaction" t
     WHERE t.side = 'buy' AND t.user_id = $1
 ), running_totals as (
-    SELECT symbol,amount,price,amount as total, 0 as prev_total, rn 
+    SELECT symbol,amount,price,amount::numeric as total, 0::numeric as prev_total, rn 
     FROM ordered_in
     WHERE rn = 1
     UNION ALL
