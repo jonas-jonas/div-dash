@@ -2,7 +2,6 @@ package coingecko
 
 import (
 	"context"
-	"database/sql"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
 	"encoding/json"
@@ -32,63 +31,115 @@ var CoingeckoImportCoinsJob job.JobDefinition = job.JobDefinition{
 	Validity: 24 * 7 * time.Hour,
 }
 
+const COINGECKO_EXCHANGE = "coingecko"
+
+func (c *CoingeckoService) ensureCoingeckoExchange(ctx context.Context) error {
+	exists, err := c.queries.DoesExchangeExist(ctx, COINGECKO_EXCHANGE)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+	err = c.queries.CreateExchange(ctx, db.CreateExchangeParams{
+		Exchange:       COINGECKO_EXCHANGE,
+		Region:         "", // TODO: Change to null
+		Description:    "Coingecko",
+		ExchangeSuffix: "",
+		Mic:            "",
+	})
+	return err
+}
+
 func (c *CoingeckoService) ImportCryptoSymbols(ctx context.Context) error {
 	symbols, err := c.getSymbols()
 	if err != nil {
 		return fmt.Errorf("could not retrieve coingecko symbols: %w", err)
 	}
 
+	err = c.ensureCoingeckoExchange(ctx)
+
+	if err != nil {
+		return fmt.Errorf("could not ensure that coingecko exchange exists %w", err)
+	}
+
+	const BATCH_SIZE = 1000
+
+	var symbolIDs []string
+	var types []string
+	var sources []string
+	var precisions []int32
+	var symbolNames []string
+
+	var exchanges []string
+	var exchangeSymbols []string
+
 	tx, err := c.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	queries := c.queries.WithTx(tx)
+	queries := c.queries
 
-	for _, symbol := range symbols {
+	for index, symbol := range symbols {
 
-		exists, err := queries.SymbolExists(ctx, symbol.Symbol)
-		if err != nil {
-			return fmt.Errorf("could not check if symbol %s exists: %w", symbol.Symbol, err)
-		}
+		symbolIDs = append(symbolIDs, symbol.ID)
+		types = append(types, "crypto")
+		sources = append(sources, "coingecko")
+		precisions = append(precisions, 4)
+		symbolNames = append(symbolNames, symbol.Name)
 
-		if exists {
-			err = queries.UpdateSymbol(ctx, db.UpdateSymbolParams{
-				SymbolID:  symbol.Symbol,
-				Type:      "crypto",
-				Source:    "coingecko",
-				Precision: 8,
-				SymbolName: sql.NullString{
-					String: symbol.Name,
-					Valid:  true,
-				},
-			})
-			if err != nil {
-				return fmt.Errorf("could not update coingecko coin %s: %w", symbol.Symbol, err)
+		exchanges = append(exchanges, "coingecko")
+		exchangeSymbols = append(exchangeSymbols, symbol.ID)
+
+		if index%BATCH_SIZE == 0 || index == len(symbols)-1 {
+
+			importParams := db.BulkImportSymbolParams{
+				SymbolIds:   symbolIDs,
+				Types:       types,
+				Sources:     sources,
+				Precisions:  precisions,
+				SymbolNames: symbolNames,
 			}
-		} else {
-			err = queries.AddSymbol(ctx, db.AddSymbolParams{
-				SymbolID:  symbol.Symbol,
-				Type:      "crypto",
-				Source:    "coingecko",
-				Precision: 8,
-				SymbolName: sql.NullString{
-					String: symbol.Name,
-					Valid:  true,
-				},
-			})
-			if err != nil {
-				return fmt.Errorf("could not save coingecko coin %s: %w", symbol.ID, err)
-			}
-		}
 
-		queries.ConnectSymbolWithExchange(ctx, db.ConnectSymbolWithExchangeParams{
-			SymbolID: symbol.Symbol,
-			Exchange: "coingecko",
-			Symbol: sql.NullString{
-				String: symbol.ID,
-				Valid:  true,
-			},
-		})
+			importExchangeParams := db.BulkImportSymbolExchangeParams{
+				SymbolIds: symbolIDs,
+				Types:     types,
+				Sources:   sources,
+				Exchanges: exchanges,
+				Symbols:   exchangeSymbols,
+			}
+
+			err = c.executeImport(ctx, queries, importParams, importExchangeParams)
+			if err != nil {
+				return err
+			}
+
+			symbolIDs = nil
+			types = nil
+			sources = nil
+			precisions = nil
+			symbolNames = nil
+
+			exchanges = nil
+			exchangeSymbols = nil
+		}
 	}
+
 	return tx.Commit()
+}
+
+func (c *CoingeckoService) executeImport(ctx context.Context, queries *db.Queries, importParams db.BulkImportSymbolParams, importExchangeParams db.BulkImportSymbolExchangeParams) error {
+	err := queries.BulkImportSymbol(ctx, importParams)
+
+	if err != nil {
+		return fmt.Errorf("could not bulk import symbol: %w", err)
+	}
+
+	err = queries.BulkImportSymbolExchange(ctx, importExchangeParams)
+
+	if err != nil {
+		return fmt.Errorf("could not bulk import symbol with exchange: %w", err)
+	}
+
+	return nil
 }

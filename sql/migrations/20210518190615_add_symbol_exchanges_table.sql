@@ -6,6 +6,7 @@ CREATE TABLE "asset_exchange" (
     type        TEXT,
     source      TEXT,
     exchange    TEXT REFERENCES exchange,
+    symbol      TEXT,
     primary key(symbol_id, type, source, exchange),
     foreign key(symbol_id, type, source) references symbol(symbol_id, type, source)
 )

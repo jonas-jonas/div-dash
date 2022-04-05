@@ -24,6 +24,8 @@ type AccountType struct {
 
 type AssetExchange struct {
 	SymbolID string         `json:"symbolID"`
+	Type     string         `json:"type"`
+	Source   string         `json:"source"`
 	Exchange string         `json:"exchange"`
 	Symbol   sql.NullString `json:"symbol"`
 }

@@ -6,6 +6,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/lib/pq"
 )
 
 const addISINAndWKN = `-- name: AddISINAndWKN :exec
@@ -50,20 +52,86 @@ func (q *Queries) AddSymbol(ctx context.Context, arg AddSymbolParams) error {
 	return err
 }
 
+const bulkImportSymbol = `-- name: BulkImportSymbol :exec
+INSERT INTO "symbol"
+SELECT unnest($1::text[]) AS symbol_id,
+  unnest($2::text[]) AS type,
+  unnest($3::text[]) AS source,
+  unnest($4::int[]) AS precision,
+  unnest($5::text[]) AS symbol_name
+ON CONFLICT DO NOTHING
+`
+
+type BulkImportSymbolParams struct {
+	SymbolIds   []string `json:"symbolIds"`
+	Types       []string `json:"types"`
+	Sources     []string `json:"sources"`
+	Precisions  []int32  `json:"precisions"`
+	SymbolNames []string `json:"symbolNames"`
+}
+
+func (q *Queries) BulkImportSymbol(ctx context.Context, arg BulkImportSymbolParams) error {
+	_, err := q.exec(ctx, q.bulkImportSymbolStmt, bulkImportSymbol,
+		pq.Array(arg.SymbolIds),
+		pq.Array(arg.Types),
+		pq.Array(arg.Sources),
+		pq.Array(arg.Precisions),
+		pq.Array(arg.SymbolNames),
+	)
+	return err
+}
+
+const bulkImportSymbolExchange = `-- name: BulkImportSymbolExchange :exec
+INSERT INTO "asset_exchange"
+SELECT unnest($1::text[]) AS symbol_id,
+  unnest($2::text[]) AS type,
+  unnest($3::text[]) AS source,
+  unnest($4::text[]) AS exchange,
+  unnest($5::text[]) AS symbol
+ON CONFLICT DO NOTHING
+`
+
+type BulkImportSymbolExchangeParams struct {
+	SymbolIds []string `json:"symbolIds"`
+	Types     []string `json:"types"`
+	Sources   []string `json:"sources"`
+	Exchanges []string `json:"exchanges"`
+	Symbols   []string `json:"symbols"`
+}
+
+func (q *Queries) BulkImportSymbolExchange(ctx context.Context, arg BulkImportSymbolExchangeParams) error {
+	_, err := q.exec(ctx, q.bulkImportSymbolExchangeStmt, bulkImportSymbolExchange,
+		pq.Array(arg.SymbolIds),
+		pq.Array(arg.Types),
+		pq.Array(arg.Sources),
+		pq.Array(arg.Exchanges),
+		pq.Array(arg.Symbols),
+	)
+	return err
+}
+
 const connectSymbolWithExchange = `-- name: ConnectSymbolWithExchange :exec
-INSERT INTO "asset_exchange" (symbol_id, exchange, symbol)
-VALUES ($1, $2, $3)
-ON CONFLICT DO UPDATE SET symbol = $3
+INSERT INTO "asset_exchange" (symbol_id, type, source, exchange, symbol)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT DO NOTHING
 `
 
 type ConnectSymbolWithExchangeParams struct {
 	SymbolID string         `json:"symbolID"`
+	Type     string         `json:"type"`
+	Source   string         `json:"source"`
 	Exchange string         `json:"exchange"`
 	Symbol   sql.NullString `json:"symbol"`
 }
 
 func (q *Queries) ConnectSymbolWithExchange(ctx context.Context, arg ConnectSymbolWithExchangeParams) error {
-	_, err := q.exec(ctx, q.connectSymbolWithExchangeStmt, connectSymbolWithExchange, arg.SymbolID, arg.Exchange, arg.Symbol)
+	_, err := q.exec(ctx, q.connectSymbolWithExchangeStmt, connectSymbolWithExchange,
+		arg.SymbolID,
+		arg.Type,
+		arg.Source,
+		arg.Exchange,
+		arg.Symbol,
+	)
 	return err
 }
 
@@ -260,12 +328,18 @@ func (q *Queries) SearchSymbol(ctx context.Context, arg SearchSymbolParams) ([]S
 const symbolExists = `-- name: SymbolExists :one
 SELECT EXISTS(
   SELECT 1 FROM "symbol"
-  WHERE symbol_id = $1
+  WHERE symbol_id = $1 AND type = $2 AND source = $3
 )
 `
 
-func (q *Queries) SymbolExists(ctx context.Context, symbolID string) (bool, error) {
-	row := q.queryRow(ctx, q.symbolExistsStmt, symbolExists, symbolID)
+type SymbolExistsParams struct {
+	SymbolID string `json:"symbolID"`
+	Type     string `json:"type"`
+	Source   string `json:"source"`
+}
+
+func (q *Queries) SymbolExists(ctx context.Context, arg SymbolExistsParams) (bool, error) {
+	row := q.queryRow(ctx, q.symbolExistsStmt, symbolExists, arg.SymbolID, arg.Type, arg.Source)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -273,8 +347,8 @@ func (q *Queries) SymbolExists(ctx context.Context, symbolID string) (bool, erro
 
 const updateSymbol = `-- name: UpdateSymbol :exec
 UPDATE "symbol"
-SET type = $2, source = $3, precision = $4, symbol_name = $5
-WHERE symbol_id = $1
+SET precision = $4, symbol_name = $5
+WHERE symbol_id = $1 AND type = $2 AND source = $3
 `
 
 type UpdateSymbolParams struct {

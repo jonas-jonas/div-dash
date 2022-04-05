@@ -20,8 +20,8 @@ func main() {
 	r := gin.Default()
 	r.Use(gin.Recovery())
 
-	services.JobService().RunJob(iex.IEXImportSymbolsJob, services.IEXService().SaveSymbols)
 	services.JobService().RunJob(iex.IEXExchangesImportJob, services.IEXService().SaveExchanges)
+	services.JobService().RunJob(iex.IEXImportSymbolsJob, services.IEXService().SaveSymbols)
 	services.JobService().RunJob(iex.ISINAndWKNImportJob, services.IEXService().ImportISINAndWKN)
 	services.JobService().RunJob(coingecko.CoingeckoImportCoinsJob, services.CoingeckoService().ImportCryptoSymbols)
 

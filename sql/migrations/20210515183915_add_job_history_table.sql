@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 CREATE TABLE "job_history" (
-    id              INTEGER PRIMARY KEY,
+    id              SERIAL PRIMARY KEY,
     name            TEXT NOT NULL,
     started         BIGINT NOT NULL,
     finished        BIGINT,

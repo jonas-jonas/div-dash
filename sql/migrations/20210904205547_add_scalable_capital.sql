@@ -14,6 +14,9 @@ VALUES (
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';
+DELETE FROM "account"
+WHERE account_type = 'scalable_capital';
+
 DELETE FROM "account_type"
 WHERE "account_type" = 'scalable_capital';
 -- +goose StatementEnd

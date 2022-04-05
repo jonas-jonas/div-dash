@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"div-dash/internal/db"
-	"errors"
 	"log"
 	"time"
 )
@@ -21,22 +20,14 @@ func New(queries *db.Queries) *JobService {
 	}
 }
 
-func (j *JobService) hasLastSuccessfulJobExpired(ctx context.Context, name string, duration time.Duration) (bool, error) {
-	lastJob, err := j.queries.GetLastJobByName(ctx, name)
-	if err != nil {
-		return true, err
-	}
-	if lastJob.HadError {
-		return true, errors.New(lastJob.ErrorMessage.String)
-	}
-	var lastJobTimestamp time.Time
-	if lastJob.Finished.Valid {
-		lastJobTimestamp = time.Unix(lastJob.Finished.Int64, 0)
+func (j *JobService) isJobExpired(job *db.GetLastJobByNameRow, duration time.Duration) bool {
+	var timestamp time.Time
+	if job.Finished.Valid {
+		timestamp = time.Unix(job.Finished.Int64, 0)
 	} else {
-		lastJobTimestamp = time.Unix(lastJob.Started, 0)
+		timestamp = time.Unix(job.Started, 0)
 	}
-
-	return lastJobTimestamp.Add(duration).Before(j.nowFunc()), nil
+	return job.HadError || timestamp.Add(duration).Before(j.nowFunc())
 }
 
 func (j *JobService) startJob(ctx context.Context, name string) (db.StartJobRow, error) {
@@ -100,14 +91,19 @@ type JobDefinition struct {
 func (j *JobService) RunJob(job JobDefinition, fn JobRunner) {
 
 	ctx := context.Background()
-	expired, err := j.hasLastSuccessfulJobExpired(ctx, job.Key, time.Duration(job.Validity))
+	lastJob, err := j.queries.GetLastJobByName(ctx, job.Key)
 	if err != nil && err != sql.ErrNoRows {
 		log.Printf("Could not check for expiration of job %s: %e", job.Key, err)
 		return
 	}
-	if !expired {
-		log.Printf("Last execution of job %s is not expired, skipping...", job.Key)
-		return
+	expired := j.isJobExpired(&lastJob, job.Validity)
+	if !lastJob.HadError {
+		if !expired {
+			log.Printf("Last execution of job %s is not expired, skipping...", job.Key)
+			return
+		}
+	} else {
+		log.Printf("Last execution of job %s had error '%s' retrying", job.Key, lastJob.ErrorMessage.String)
 	}
 
 	startedJob, err := j.startJob(ctx, job.Key)
@@ -119,6 +115,7 @@ func (j *JobService) RunJob(job JobDefinition, fn JobRunner) {
 	err = fn(ctx)
 
 	if err != nil {
+		log.Printf("Job %s#%d failed with error '%s'", job.Key, startedJob.ID, err.Error())
 		j.failJob(ctx, startedJob.ID, err.Error())
 		return
 	}

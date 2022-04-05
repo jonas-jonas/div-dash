@@ -16,3 +16,10 @@ WHERE ae.symbol_id = $1;
 SELECT symbol
 FROM "asset_exchange"
 WHERE symbol_id = $1 AND exchange = $2;
+
+-- name: DoesExchangeExist :one
+SELECT EXISTS(
+    SELECT *
+    FROM "exchange"
+    WHERE exchange = $1
+);

@@ -2,10 +2,10 @@ package iex
 
 import (
 	"context"
-	"database/sql"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -88,64 +88,71 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 
 	queries := i.queries.WithTx(tx)
 
-	for _, symbol := range symbols {
+	const BATCH_SIZE = 1000
+
+	var symbolIDs []string
+	var types []string
+	var sources []string
+	var precisions []int32
+	var symbolNames []string
+
+	var exchanges []string
+	var exchangeSymbols []string
+
+	for index, symbol := range symbols {
 		symbolId := symbol.Symbol
 		if strings.Contains(symbol.Symbol, "-") {
 			parts := strings.Split(symbol.Symbol, "-")
 			symbolId = parts[0]
 		}
 
-		exists, err := queries.SymbolExists(ctx, symbolId)
-		if err != nil {
-			log.Printf("Could not check if symbol %s exists: %s", symbolId, err.Error())
-			return err
-		}
+		symbolIDs = append(symbolIDs, symbolId)
+		types = append(types, symbol.Type)
+		sources = append(sources, "iex")
+		precisions = append(precisions, 4)
+		symbolNames = append(symbolNames, symbol.Name)
 
-		if exists {
-			err = queries.UpdateSymbol(ctx, db.UpdateSymbolParams{
-				SymbolID: symbolId,
-				SymbolName: sql.NullString{
-					Valid:  true,
-					String: symbol.Name,
-				},
-				Source:    "iex",
-				Type:      symbol.Type,
-				Precision: 4,
-			})
-			if err != nil {
-				log.Printf("Could not update iex symbol %s: %s", symbol.Symbol, err.Error())
-				continue
-			}
+		exchanges = append(exchanges, symbol.Exchange)
+		exchangeSymbols = append(exchangeSymbols, symbolId+"-"+symbol.ExchangeSuffix)
 
-		} else {
-			err = queries.AddSymbol(ctx, db.AddSymbolParams{
-				SymbolID: symbolId,
-				SymbolName: sql.NullString{
-					Valid:  true,
-					String: symbol.Name,
-				},
-				Source:    "iex",
-				Type:      symbol.Type,
-				Precision: 4,
+		if index%BATCH_SIZE == 0 || index == len(symbols)-1 {
+			err = queries.BulkImportSymbol(ctx, db.BulkImportSymbolParams{
+				SymbolIds:   symbolIDs,
+				Types:       types,
+				Sources:     sources,
+				Precisions:  precisions,
+				SymbolNames: symbolNames,
 			})
 
 			if err != nil {
-				log.Printf("Could not save iex symbol %s: %s", symbol.Symbol, err.Error())
-				continue
+				return fmt.Errorf("could not bulk import symbol %s: %w", symbol.Symbol, err)
 			}
+
+			err = queries.BulkImportSymbolExchange(ctx, db.BulkImportSymbolExchangeParams{
+				SymbolIds: symbolIDs,
+				Types:     types,
+				Sources:   sources,
+				Exchanges: exchanges,
+				Symbols:   exchangeSymbols,
+			})
+
+			if err != nil {
+				// TODO: Fix error messages here?
+				return fmt.Errorf("could not bulk import symbol with exchange %s @ %s: %w", symbol.Symbol, symbol.Exchange, err)
+			}
+
+			symbolIDs = nil
+			types = nil
+			sources = nil
+			precisions = nil
+			symbolNames = nil
+
+			exchanges = nil
+			exchangeSymbols = nil
 		}
-		err = queries.ConnectSymbolWithExchange(ctx, db.ConnectSymbolWithExchangeParams{
-			SymbolID: symbolId,
-			Exchange: symbol.Exchange,
-			Symbol: sql.NullString{
-				String: symbolId + symbol.ExchangeSuffix,
-				Valid:  true,
-			},
-		})
 
 		if err != nil {
-			log.Printf("Could not save iex symbol %s: %s", symbol.Symbol, err.Error())
-			continue
+			return fmt.Errorf("could not save iex symbol %s: %s", symbol.Symbol, err.Error())
 		}
 	}
 	return tx.Commit()

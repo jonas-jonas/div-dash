@@ -35,6 +35,21 @@ func (q *Queries) CreateExchange(ctx context.Context, arg CreateExchangeParams) 
 	return err
 }
 
+const doesExchangeExist = `-- name: DoesExchangeExist :one
+SELECT EXISTS(
+    SELECT exchange, exchange_suffix, region, description, mic
+    FROM "exchange"
+    WHERE exchange = $1
+)
+`
+
+func (q *Queries) DoesExchangeExist(ctx context.Context, exchange string) (bool, error) {
+	row := q.queryRow(ctx, q.doesExchangeExistStmt, doesExchangeExist, exchange)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const getExchangesOfAsset = `-- name: GetExchangesOfAsset :many
 SELECT e.exchange, e.exchange_suffix, e.region, e.description, e.mic
 FROM "asset_exchange" ae

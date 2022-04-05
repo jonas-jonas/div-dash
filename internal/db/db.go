@@ -31,6 +31,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.addSymbolStmt, err = db.PrepareContext(ctx, addSymbol); err != nil {
 		return nil, fmt.Errorf("error preparing query AddSymbol: %w", err)
 	}
+	if q.bulkImportSymbolStmt, err = db.PrepareContext(ctx, bulkImportSymbol); err != nil {
+		return nil, fmt.Errorf("error preparing query BulkImportSymbol: %w", err)
+	}
+	if q.bulkImportSymbolExchangeStmt, err = db.PrepareContext(ctx, bulkImportSymbolExchange); err != nil {
+		return nil, fmt.Errorf("error preparing query BulkImportSymbolExchange: %w", err)
+	}
 	if q.connectSymbolWithExchangeStmt, err = db.PrepareContext(ctx, connectSymbolWithExchange); err != nil {
 		return nil, fmt.Errorf("error preparing query ConnectSymbolWithExchange: %w", err)
 	}
@@ -60,6 +66,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
+	}
+	if q.doesExchangeExistStmt, err = db.PrepareContext(ctx, doesExchangeExist); err != nil {
+		return nil, fmt.Errorf("error preparing query DoesExchangeExist: %w", err)
 	}
 	if q.existsByEmailStmt, err = db.PrepareContext(ctx, existsByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query ExistsByEmail: %w", err)
@@ -174,6 +183,16 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing addSymbolStmt: %w", cerr)
 		}
 	}
+	if q.bulkImportSymbolStmt != nil {
+		if cerr := q.bulkImportSymbolStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing bulkImportSymbolStmt: %w", cerr)
+		}
+	}
+	if q.bulkImportSymbolExchangeStmt != nil {
+		if cerr := q.bulkImportSymbolExchangeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing bulkImportSymbolExchangeStmt: %w", cerr)
+		}
+	}
 	if q.connectSymbolWithExchangeStmt != nil {
 		if cerr := q.connectSymbolWithExchangeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing connectSymbolWithExchangeStmt: %w", cerr)
@@ -222,6 +241,11 @@ func (q *Queries) Close() error {
 	if q.deleteUserStmt != nil {
 		if cerr := q.deleteUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
+		}
+	}
+	if q.doesExchangeExistStmt != nil {
+		if cerr := q.doesExchangeExistStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing doesExchangeExistStmt: %w", cerr)
 		}
 	}
 	if q.existsByEmailStmt != nil {
@@ -421,6 +445,8 @@ type Queries struct {
 	activateUserStmt                 *sql.Stmt
 	addISINAndWKNStmt                *sql.Stmt
 	addSymbolStmt                    *sql.Stmt
+	bulkImportSymbolStmt             *sql.Stmt
+	bulkImportSymbolExchangeStmt     *sql.Stmt
 	connectSymbolWithExchangeStmt    *sql.Stmt
 	countByEmailStmt                 *sql.Stmt
 	createAccountStmt                *sql.Stmt
@@ -431,6 +457,7 @@ type Queries struct {
 	deleteAccountStmt                *sql.Stmt
 	deleteTransactionStmt            *sql.Stmt
 	deleteUserStmt                   *sql.Stmt
+	doesExchangeExistStmt            *sql.Stmt
 	existsByEmailStmt                *sql.Stmt
 	findByEmailStmt                  *sql.Stmt
 	finishJobStmt                    *sql.Stmt
@@ -471,6 +498,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		activateUserStmt:                 q.activateUserStmt,
 		addISINAndWKNStmt:                q.addISINAndWKNStmt,
 		addSymbolStmt:                    q.addSymbolStmt,
+		bulkImportSymbolStmt:             q.bulkImportSymbolStmt,
+		bulkImportSymbolExchangeStmt:     q.bulkImportSymbolExchangeStmt,
 		connectSymbolWithExchangeStmt:    q.connectSymbolWithExchangeStmt,
 		countByEmailStmt:                 q.countByEmailStmt,
 		createAccountStmt:                q.createAccountStmt,
@@ -481,6 +510,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		deleteAccountStmt:                q.deleteAccountStmt,
 		deleteTransactionStmt:            q.deleteTransactionStmt,
 		deleteUserStmt:                   q.deleteUserStmt,
+		doesExchangeExistStmt:            q.doesExchangeExistStmt,
 		existsByEmailStmt:                q.existsByEmailStmt,
 		findByEmailStmt:                  q.findByEmailStmt,
 		finishJobStmt:                    q.finishJobStmt,
