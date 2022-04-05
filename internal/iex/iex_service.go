@@ -116,12 +116,14 @@ func (i *IEXService) GetPrice(ctx context.Context, asset db.Symbol) (float64, er
 		}
 	}
 
-	if quote, found := i.quoteCache.Get(asset.SymbolID + exchange.ExchangeSuffix); found {
+	iexSymbolId := asset.SymbolID + "-" + exchange.ExchangeSuffix
+
+	if quote, found := i.quoteCache.Get(iexSymbolId); found {
 		return quote.(Quote).LatestPrice, nil
 	}
 
 	resp, err := i.client.R().
-		SetPathParam("symbol", asset.SymbolID+exchange.ExchangeSuffix).
+		SetPathParam("symbol", iexSymbolId).
 		Get("/stock/{symbol}/quote")
 
 	if err != nil {
