@@ -5,16 +5,16 @@ INSERT INTO "exchange" (
     $1, $2, $3, $4, $5
 ) ON CONFLICT DO NOTHING;
 
--- name: GetExchangesOfAsset :many
+-- name: GetExchangesOfSymbol :many
 SELECT e.*
-FROM "asset_exchange" ae
+FROM "symbol_exchange" ae
 JOIN "exchange" e
     ON ae.exchange = e.exchange
 WHERE ae.symbol_id = $1;
 
 -- name: GetSymbolOfSymbolAndExchange :one
 SELECT symbol
-FROM "asset_exchange"
+FROM "symbol_exchange"
 WHERE symbol_id = $1 AND exchange = $2;
 
 -- name: DoesExchangeExist :one

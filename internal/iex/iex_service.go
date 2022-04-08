@@ -100,7 +100,7 @@ type Quote struct {
 
 func (i *IEXService) GetPrice(ctx context.Context, asset db.Symbol) (float64, error) {
 
-	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
+	exchanges, err := i.queries.GetExchangesOfSymbol(context.Background(), asset.SymbolID)
 	if err != nil {
 		return -1.0, err
 	}
@@ -238,7 +238,7 @@ func assembleIndicators(companyKeyStats CompanyKeyStats) []model.SymbolIndicator
 
 func (i *IEXService) GetDetails(ctx context.Context, asset db.Symbol) (model.SymbolDetails, error) {
 
-	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
+	exchanges, err := i.queries.GetExchangesOfSymbol(context.Background(), asset.SymbolID)
 	if err != nil {
 		return model.SymbolDetails{}, err
 	}
@@ -278,7 +278,7 @@ func (i *IEXService) GetDetails(ctx context.Context, asset db.Symbol) (model.Sym
 
 func (i *IEXService) GetChart(ctx context.Context, asset db.Symbol, span int) (model.Chart, error) {
 
-	exchanges, err := i.queries.GetExchangesOfAsset(context.Background(), asset.SymbolID)
+	exchanges, err := i.queries.GetExchangesOfSymbol(context.Background(), asset.SymbolID)
 	if err != nil {
 		return model.Chart{}, err
 	}

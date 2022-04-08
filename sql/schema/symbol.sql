@@ -43,7 +43,7 @@ SELECT unnest(@symbol_ids::text[]) AS symbol_id,
 ON CONFLICT DO NOTHING;
   
 -- name: BulkImportSymbolExchange :exec
-INSERT INTO "asset_exchange"
+INSERT INTO "symbol_exchange"
 SELECT unnest(@symbol_ids::text[]) AS symbol_id,
   unnest(@types::text[]) AS type,
   unnest(@sources::text[]) AS source,
@@ -52,7 +52,7 @@ SELECT unnest(@symbol_ids::text[]) AS symbol_id,
 ON CONFLICT DO NOTHING;
 
 -- name: ConnectSymbolWithExchange :exec
-INSERT INTO "asset_exchange" (symbol_id, type, source, exchange, symbol)
+INSERT INTO "symbol_exchange" (symbol_id, type, source, exchange, symbol)
 VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT DO NOTHING;
 
