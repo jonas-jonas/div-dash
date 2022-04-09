@@ -5,8 +5,13 @@ import (
 	"div-dash/internal/config"
 	"div-dash/internal/controllers"
 	"div-dash/internal/iex"
+	"div-dash/internal/job"
+	"div-dash/internal/logging"
 	"div-dash/internal/services"
 	"log"
+	"time"
+
+	ginzap "github.com/gin-contrib/zap"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -14,18 +19,30 @@ import (
 
 func main() {
 
-	log.SetFlags(log.Lshortfile | log.LstdFlags)
+	// log.SetFlags(log.Lshortfile | log.LstdFlags)
+	logger, err := logging.InitLogger()
+	if err != nil {
+		log.Panicf("Could not initialize logger")
+		return
+	}
 	config.ReadConfig()
 	config.InitDB()
-	r := gin.Default()
-	r.Use(gin.Recovery())
+	r := gin.New()
+	r.Use(ginzap.Ginzap(logger, time.RFC3339, false))
+	r.Use(ginzap.RecoveryWithZap(logger, true))
 
-	services.JobService().RunJob(iex.IEXExchangesImportJob, services.IEXService().SaveExchanges)
-	services.JobService().RunJob(iex.IEXImportSymbolsJob, services.IEXService().SaveSymbols)
-	services.JobService().RunJob(iex.ISINAndWKNImportJob, services.IEXService().ImportISINAndWKN)
-	services.JobService().RunJob(coingecko.CoingeckoImportCoinsJob, services.CoingeckoService().ImportCryptoSymbols)
+	// TODO: Replace usage of config.Queries() with a properly initiated instance
+	jobService := job.NewJobService(config.Queries(), logger)
 
-	controllers.RegisterRoutes(r)
+	jobService.RunJob(iex.IEXExchangesImportJob, services.IEXService().SaveExchanges)
+	jobService.RunJob(iex.IEXImportSymbolsJob, services.IEXService().SaveSymbols)
+	jobService.RunJob(iex.ISINAndWKNImportJob, services.IEXService().ImportISINAndWKN)
+	jobService.RunJob(coingecko.CoingeckoImportCoinsJob, services.CoingeckoService().ImportCryptoSymbols)
+
+	// TODO: Replace usage of config.Queries() with a properly initiated instance
+	controllerRouter := controllers.NewControllerRouter(r, config.Queries(), logger)
+	controllerRouter.RegisterRoutes()
+
 	port := viper.GetString("server.port")
 	r.Run(":" + port)
 }

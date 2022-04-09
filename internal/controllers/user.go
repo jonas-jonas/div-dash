@@ -6,7 +6,24 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
+
+type UserController interface {
+	GetUser(c *gin.Context)
+}
+
+type userController struct {
+	queries *db.Queries
+	logger  *zap.SugaredLogger
+}
+
+func NewUserController(queries *db.Queries, logger *zap.Logger) UserController {
+	return &userController{
+		queries: queries,
+		logger:  logger.Sugar(),
+	}
+}
 
 type CreateUserRequest struct {
 	Email    string `json:"email" binding:"required"`
@@ -18,14 +35,7 @@ type UserResponse struct {
 	Email string `json:"email"`
 }
 
-func userResponseFromUser(user db.User) UserResponse {
-	return UserResponse{
-		ID:    user.ID,
-		Email: user.Email,
-	}
-}
-
-func GetUser(c *gin.Context) {
+func (u *userController) GetUser(c *gin.Context) {
 	id := c.Param("id")
 
 	user, err := config.Queries().GetUser(c, id)
@@ -39,4 +49,11 @@ func GetUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, userResponseFromUser(user))
+}
+
+func userResponseFromUser(user db.User) UserResponse {
+	return UserResponse{
+		ID:    user.ID,
+		Email: user.Email,
+	}
 }

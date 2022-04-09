@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"div-dash/internal/config"
+	"div-dash/internal/db"
 	"div-dash/internal/middleware"
 	"log"
 	"net/http"
@@ -9,7 +10,26 @@ import (
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
+
+type ControllerRouter interface {
+	RegisterRoutes()
+}
+
+type controllerRouter struct {
+	*gin.Engine
+	*db.Queries
+	*zap.Logger
+}
+
+func NewControllerRouter(engine *gin.Engine, queries *db.Queries, logger *zap.Logger) ControllerRouter {
+	return &controllerRouter{
+		Engine:  engine,
+		Queries: queries,
+		Logger:  logger,
+	}
+}
 
 type APIError struct {
 	Message   string    `json:"message"`
@@ -33,7 +53,8 @@ func handleErrors(c *gin.Context) {
 		AbortServerError(c)
 	}
 }
-func RegisterRoutes(r *gin.Engine) {
+
+func (r *controllerRouter) RegisterRoutes() {
 
 	r.Use(static.Serve("/", static.LocalFile("web/build", true)))
 	r.NoRoute(func(c *gin.Context) {
@@ -52,7 +73,10 @@ func RegisterRoutes(r *gin.Engine) {
 	{
 		authorized.GET("/auth/identity", GetAuthIdentity)
 		authorized.GET("/auth/logout", GetLogout)
-		authorized.GET("/user/:id", GetUser)
+
+		userController := NewUserController(r.Queries, r.Logger)
+
+		authorized.GET("/user/:id", userController.GetUser)
 
 		authorized.POST("/account", PostAccount)
 		authorized.GET("/account", GetAccounts)
