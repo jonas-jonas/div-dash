@@ -1,16 +1,15 @@
 package main
 
 import (
+	"context"
 	"div-dash/internal/coingecko"
-	"div-dash/internal/config"
-	"div-dash/internal/controllers"
 	"div-dash/internal/iex"
 	"div-dash/internal/job"
-	"div-dash/internal/logging"
+	"div-dash/internal/registry"
 	"div-dash/internal/services"
-	"log"
 	"time"
 
+	"github.com/gin-contrib/static"
 	ginzap "github.com/gin-contrib/zap"
 
 	"github.com/gin-gonic/gin"
@@ -20,28 +19,34 @@ import (
 func main() {
 
 	// log.SetFlags(log.Lshortfile | log.LstdFlags)
-	logger, err := logging.InitLogger()
-	if err != nil {
-		log.Panicf("Could not initialize logger")
-		return
-	}
-	config.ReadConfig()
-	config.InitDB()
-	r := gin.New()
-	r.Use(ginzap.Ginzap(logger, time.RFC3339, false))
-	r.Use(ginzap.RecoveryWithZap(logger, true))
+	reg := registry.NewRegistryDefault()
 
-	// TODO: Replace usage of config.Queries() with a properly initiated instance
-	jobService := job.NewJobService(config.Queries(), logger)
+	r := gin.New()
+	r.Use(ginzap.Ginzap(reg.Logger().Desugar(), time.RFC3339, false))
+	r.Use(ginzap.RecoveryWithZap(reg.Logger().Desugar(), true))
+
+	jobService := job.NewJobService(reg)
 
 	jobService.RunJob(iex.IEXExchangesImportJob, services.IEXService().SaveExchanges)
 	jobService.RunJob(iex.IEXImportSymbolsJob, services.IEXService().SaveSymbols)
 	jobService.RunJob(iex.ISINAndWKNImportJob, services.IEXService().ImportISINAndWKN)
 	jobService.RunJob(coingecko.CoingeckoImportCoinsJob, services.CoingeckoService().ImportCryptoSymbols)
 
-	// TODO: Replace usage of config.Queries() with a properly initiated instance
-	controllerRouter := controllers.NewControllerRouter(r, config.Queries(), logger)
-	controllerRouter.RegisterRoutes()
+	r.Use(static.Serve("/", static.LocalFile("web/build", true)))
+
+	r.NoRoute(func(c *gin.Context) {
+		c.File("web/build/index.html")
+	})
+
+	api := r.Group("/api")
+	api.Use(reg.ErrorHandler().HandleErrors)
+	reg.RegisterPublicRoutes(context.TODO(), api)
+
+	authorizedApi := api.Group("/")
+
+	reg.RegisterProtectedMiddleware(context.TODO(), authorizedApi)
+
+	reg.RegisterProtectedRoutes(context.TODO(), api)
 
 	port := viper.GetString("server.port")
 	r.Run(":" + port)

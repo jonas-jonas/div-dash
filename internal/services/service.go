@@ -5,53 +5,27 @@ import (
 	"div-dash/internal/config"
 	"div-dash/internal/id"
 	"div-dash/internal/iex"
-	"div-dash/internal/mail"
 	"div-dash/internal/price"
-	"div-dash/internal/token"
 	"sync"
 
-	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var services struct {
-	TokenService     *token.TokenService
-	MailService      *mail.MailService
 	IdService        *id.IdService
 	PriceService     *price.PriceService
 	IEXService       *iex.IEXService
 	CoingeckoService *coingecko.CoingeckoService
+
+	logger *zap.Logger
 }
 
 var (
-	onceTokenService     sync.Once
-	onceMailService      sync.Once
 	onceIdService        sync.Once
 	oncePriceService     sync.Once
 	onceIEXService       sync.Once
 	onceCoingeckoService sync.Once
 )
-
-func initTokenService() {
-	services.TokenService = token.NewTokenService(config.Config().Token)
-}
-
-func TokenService() *token.TokenService {
-	onceTokenService.Do(initTokenService)
-
-	return services.TokenService
-}
-
-func initMailService() {
-	password := viper.GetString("smtp.password")
-	port := viper.GetInt("smtp.port")
-	server := viper.GetString("smtp.server")
-	services.MailService = mail.NewMailService(password, server, port)
-}
-
-func MailService() *mail.MailService {
-	onceMailService.Do(initMailService)
-	return services.MailService
-}
 
 func initIdService() {
 	services.IdService = id.New()

@@ -1,23 +1,34 @@
 package mail
 
 import (
+	"div-dash/internal/config"
 	"net/smtp"
 	"strconv"
 )
 
-type MailService struct {
-	smtpPassword string
-	smtpServer   string
-	smtpPort     int
-	auth         smtp.Auth
-}
+type (
+	mailServiceDependencies interface {
+		config.ConfigProvider
+	}
 
-func NewMailService(smtpPassword, smtpServer string, smtpPort int) *MailService {
-	auth := smtp.PlainAuth("", "sender@div-dash.io", smtpPassword, smtpServer) //TODO
+	MailServiceProvider interface {
+		MailService() *MailService
+	}
+	MailService struct {
+		smtpPassword string
+		smtpServer   string
+		smtpPort     int
+		auth         smtp.Auth
+	}
+)
+
+func NewMailService(m mailServiceDependencies) *MailService {
+	config := m.Config().SMTP
+	auth := smtp.PlainAuth("", "sender@div-dash.io", config.Password, config.Server) //TODO
 	return &MailService{
-		smtpPassword,
-		smtpServer,
-		smtpPort,
+		config.Password,
+		config.Server,
+		config.Port,
 		auth,
 	}
 }

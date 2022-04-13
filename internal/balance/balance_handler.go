@@ -1,7 +1,6 @@
-package controllers
+package balance
 
 import (
-	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/services"
 	"log"
@@ -10,6 +9,30 @@ import (
 	"github.com/Rhymond/go-money"
 	"github.com/gin-gonic/gin"
 )
+
+type (
+	balanceHandlerDependencies interface {
+		db.QueriesProvider
+	}
+
+	BalanceHandlerProvider interface {
+		BalanceHandler() *BalanceHandler
+	}
+
+	BalanceHandler struct {
+		balanceHandlerDependencies
+	}
+)
+
+func NewBalanceHandler(b balanceHandlerDependencies) *BalanceHandler {
+	return &BalanceHandler{
+		balanceHandlerDependencies: b,
+	}
+}
+
+func (b *BalanceHandler) RegisterProtectedRoutes(api gin.IRoutes) {
+	api.GET("/balance", b.getBalance)
+}
 
 type symbolResponse struct {
 	SymbolID   string `json:"symbolID"`
@@ -53,10 +76,10 @@ type balanceResponse struct {
 	PNL       pnlResponse           `json:"pnl"`
 }
 
-func GetBalance(c *gin.Context) {
+func (b *BalanceHandler) getBalance(c *gin.Context) {
 	userId := c.GetString("userId")
 
-	balances, err := config.Queries().GetBalanceByUser(c, userId)
+	balances, err := b.Queries().GetBalanceByUser(c, userId)
 	if err != nil {
 		c.Error(err)
 		return
@@ -66,7 +89,7 @@ func GetBalance(c *gin.Context) {
 
 	for _, entry := range balances {
 		costBasis := money.New(int64(entry.CostBasis/entry.Amount), "EUR").AsMajorUnits()
-		symbol, err := config.Queries().GetSymbol(c, entry.Symbol)
+		symbol, err := b.Queries().GetSymbol(c, entry.Symbol)
 		if err != nil {
 			log.Printf("Could not find asset for symbol %s: %s. Skipping balance entry... ", entry.Symbol, err.Error())
 			continue

@@ -1,16 +1,45 @@
-package controllers
+package transaction
 
 import (
-	"div-dash/internal/config"
+	"div-dash/internal/account_types/comdirect"
 	"div-dash/internal/db"
+	"div-dash/internal/httputil"
 	"div-dash/internal/services"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/Rhymond/go-money"
 	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 )
+
+type (
+	transactionHandlerDependencies interface {
+		db.QueriesProvider
+	}
+
+	TransactionHandlerProvider interface {
+		TransactionHandler() *TransactionHandler
+	}
+
+	TransactionHandler struct {
+		transactionHandlerDependencies
+	}
+)
+
+func NewTransactionHandler(t transactionHandlerDependencies) *TransactionHandler {
+	return &TransactionHandler{
+		transactionHandlerDependencies: t,
+	}
+}
+
+func (t *TransactionHandler) RegisterProtectedRoutes(api gin.IRoutes) {
+	api.POST("/account/:accountId/transaction", t.postTransaction)
+	api.GET("/account/:accountId/transaction", t.getTransactions)
+	api.GET("/account/:accountId/transaction/:transactionId", t.getTransaction)
+	api.POST("/account/:accountId/transaction-import", t.postAccountTransactionImport)
+}
 
 type transactionResponse struct {
 	ID                  string    `json:"transactionId"`
@@ -39,13 +68,13 @@ func marshalTransactionResponse(transaction db.Transaction) transactionResponse 
 	}
 }
 
-func GetTransaction(c *gin.Context) {
+func (t *TransactionHandler) getTransaction(c *gin.Context) {
 	// TODO: Check permissions
 	transactionId := c.Param("transactionId")
 	accountId := c.Param("accountId")
 	userId := c.GetString("userId")
 
-	transaction, err := config.Queries().GetTransaction(c, db.GetTransactionParams{
+	transaction, err := t.Queries().GetTransaction(c, db.GetTransactionParams{
 		ID:        transactionId,
 		AccountID: accountId,
 		UserID:    userId,
@@ -72,7 +101,7 @@ type createTransactionRequest struct {
 	Side                string    `json:"side" binding:"required"`
 }
 
-func PostTransaction(c *gin.Context) {
+func (t *TransactionHandler) postTransaction(c *gin.Context) {
 	// TODO: Check permissions
 
 	accountId := c.Param("accountId")
@@ -80,7 +109,7 @@ func PostTransaction(c *gin.Context) {
 
 	var createTransactionRequest createTransactionRequest
 	if err := c.ShouldBindJSON(&createTransactionRequest); err != nil {
-		AbortBadRequest(c, err.Error())
+		httputil.AbortBadRequest(c, err.Error())
 		return
 	}
 
@@ -97,13 +126,13 @@ func PostTransaction(c *gin.Context) {
 		Side:                createTransactionRequest.Side,
 	}
 
-	transactionId, err := config.Queries().CreateTransaction(c, params)
+	transactionId, err := t.Queries().CreateTransaction(c, params)
 	if err != nil {
 		c.Error(err)
 		return
 	}
 
-	transaction, err := config.Queries().GetTransaction(c, db.GetTransactionParams{
+	transaction, err := t.Queries().GetTransaction(c, db.GetTransactionParams{
 		ID:        transactionId,
 		AccountID: accountId,
 		UserID:    userId,
@@ -118,12 +147,12 @@ func PostTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func GetTransactions(c *gin.Context) {
+func (t *TransactionHandler) getTransactions(c *gin.Context) {
 
 	accountId := c.Param("accountId")
 	userId := c.GetString("userId")
 
-	transactions, err := config.Queries().ListTransactions(c, db.ListTransactionsParams{
+	transactions, err := t.Queries().ListTransactions(c, db.ListTransactionsParams{
 		AccountID: accountId,
 		UserID:    userId,
 	})
@@ -140,4 +169,48 @@ func GetTransactions(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+}
+
+func (h *TransactionHandler) postAccountTransactionImport(c *gin.Context) {
+	userId := c.GetString("userId")
+	accountId := c.Param("accountId")
+
+	file, headers, err := c.Request.FormFile("file")
+
+	if err != nil {
+		httputil.AbortBadRequest(c, "file err "+err.Error())
+		return
+	}
+
+	if ext := filepath.Ext(headers.Filename); ext != ".xls" {
+		httputil.AbortBadRequest(c, "Unsupported file type: "+ext)
+		return
+	}
+
+	importer := comdirect.NewCsvImporter(h.Queries(), config.DB())
+
+	err = importer.ImportTransactionsXLS(c, file, accountId, userId)
+
+	if err != nil {
+		httputil.AbortBadRequest(c, "Could not parse file: "+err.Error())
+		return
+	}
+
+	transactions, err := h.Queries().ListTransactions(c, db.ListTransactionsParams{
+		AccountID: accountId,
+		UserID:    userId,
+	})
+
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	var response []transactionResponse
+
+	for _, transaction := range transactions {
+		response = append(response, marshalTransactionResponse(transaction))
+	}
+
+	c.JSON(http.StatusOK, response)
 }

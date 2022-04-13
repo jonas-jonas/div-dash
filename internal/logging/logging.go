@@ -1,10 +1,21 @@
 package logging
 
 import (
+	"fmt"
+
 	"go.uber.org/zap"
 )
 
-func InitLogger() (*zap.Logger, error) {
-	logger, err := zap.NewDevelopmentConfig().Build()
-	return logger, err
+type (
+	LoggerProvider interface {
+		Logger() *zap.SugaredLogger
+	}
+)
+
+func NewLogger() *zap.SugaredLogger {
+	newLogger, err := zap.NewDevelopment()
+	if err != nil {
+		fmt.Printf("could not instantiate zap logger: %s", err.Error())
+	}
+	return newLogger.Sugar()
 }

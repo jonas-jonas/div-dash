@@ -1,8 +1,7 @@
-package controllers
+package account
 
 import (
 	"database/sql"
-	"div-dash/internal/config"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,9 +12,9 @@ type accountTypeResponse struct {
 	Label       string `json:"label"`
 }
 
-func GetAccountTypes(c *gin.Context) {
+func (h *Handler) getAccountTypes(c *gin.Context) {
 
-	accountTypes, err := config.Queries().ListAccountTypes(c)
+	accountTypes, err := h.Queries().ListAccountTypes(c)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

@@ -3,71 +3,73 @@ package config
 import (
 	"fmt"
 	"log"
-	"sync"
 
 	"github.com/spf13/viper"
 )
 
-type Configuration struct {
-	Server   ServerConfiguration
-	Database DatabaseConfiguration
-	SMTP     SmtpConfiguration
-	Token    TokenConfiguration
-	IEX      IEXConfiguration
-}
+type (
+	ConfigProvider interface {
+		Config() *Configuration
+	}
 
-type ServerConfiguration struct {
-	Port int
-}
+	Configuration struct {
+		Server   ServerConfiguration
+		Database DatabaseConfiguration
+		SMTP     SmtpConfiguration
+		Token    TokenConfiguration
+		IEX      IEXConfiguration
+	}
 
-type DatabaseConfiguration struct {
-	Host     string
-	Port     int
-	Database string
-	Username string
-	Password string
-}
+	ServerConfiguration struct {
+		Port int
+	}
 
-type SmtpConfiguration struct {
-	Server   string
-	Port     int
-	Password string
-}
+	DatabaseConfiguration struct {
+		Host     string
+		Port     int
+		Database string
+		Username string
+		Password string
+	}
 
-type TokenConfiguration struct {
-	Key        string
-	TokenValid uint32
-}
+	SmtpConfiguration struct {
+		Server   string
+		Port     int
+		Password string
+	}
 
-type IEXConfiguration struct {
-	Token   string
-	BaseUrl string
-}
+	TokenConfiguration struct {
+		Key        string
+		TokenValid uint32
+	}
 
-var configuration Configuration
+	IEXConfiguration struct {
+		Token   string
+		BaseUrl string
+	}
+)
 
-var configOnce sync.Once
-
-func ReadConfig() {
+func NewConfig() *Configuration {
 	viper.SetConfigName("config") // name of config file (without extension)
 	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
 	viper.AddConfigPath(".")      // look for config in the working directory
-	err := viper.ReadInConfig()   // Find and read the config file
-	if err != nil {               // Handle errors reading the config file
+	return unmarshalConfiguration()
+}
+
+func ReadConfig() {
+	err := viper.ReadInConfig() // Find and read the config file
+	if err != nil {             // Handle errors reading the config file
 		panic(fmt.Errorf("fatal error config file: %s", err))
 	}
 }
 
-func unmarshalConfiguration() {
+func unmarshalConfiguration() *Configuration {
+	var configuration Configuration
 	err := viper.Unmarshal(&configuration)
 	if err != nil {
 		panic(fmt.Errorf("could not unmarshal configuration object: %s", err))
 	}
 
 	log.Println("Read config file")
-}
-
-func Config() *Configuration {
-	configOnce.Do(unmarshalConfiguration)
 	return &configuration
 }
