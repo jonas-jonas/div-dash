@@ -1,10 +1,10 @@
 package transaction
 
 import (
-	"div-dash/internal/account_types/comdirect"
+	"div-dash/internal/csvimport"
 	"div-dash/internal/db"
 	"div-dash/internal/httputil"
-	"div-dash/internal/services"
+	"div-dash/internal/id"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -17,6 +17,8 @@ import (
 type (
 	transactionHandlerDependencies interface {
 		db.QueriesProvider
+		id.IdServiceProvider
+		csvimport.CSVImporterProvider
 	}
 
 	TransactionHandlerProvider interface {
@@ -114,7 +116,7 @@ func (t *TransactionHandler) postTransaction(c *gin.Context) {
 	}
 
 	params := db.CreateTransactionParams{
-		ID:                  "T" + services.IdService().NewId(5),
+		ID:                  "T" + t.IdService().NewID(5),
 		Symbol:              createTransactionRequest.Symbol,
 		Type:                createTransactionRequest.Type,
 		TransactionProvider: createTransactionRequest.TransactionProvider,
@@ -187,9 +189,7 @@ func (h *TransactionHandler) postAccountTransactionImport(c *gin.Context) {
 		return
 	}
 
-	importer := comdirect.NewCsvImporter(h.Queries(), config.DB())
-
-	err = importer.ImportTransactionsXLS(c, file, accountId, userId)
+	err = h.CSVImporter().ImportCSV(c, file, accountId, userId)
 
 	if err != nil {
 		httputil.AbortBadRequest(c, "Could not parse file: "+err.Error())

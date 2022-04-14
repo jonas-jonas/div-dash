@@ -3,9 +3,9 @@ package identity
 import (
 	"div-dash/internal/db"
 	"div-dash/internal/httputil"
+	"div-dash/internal/id"
 	"div-dash/internal/logging"
 	"div-dash/internal/mail"
-	"div-dash/internal/services"
 	"div-dash/internal/token"
 	"div-dash/util/security"
 	"net/http"
@@ -21,10 +21,11 @@ type (
 		db.QueriesProvider
 		token.TokenServiceProvider
 		mail.MailServiceProvider
+		id.IdServiceProvider
 	}
 
 	HandlerProvider interface {
-		LoginHandler() *Handler
+		IdentityHandler() *Handler
 	}
 
 	Handler struct {
@@ -46,7 +47,7 @@ func (h *Handler) RegisterPublicRoutes(api gin.IRoutes) {
 
 func (h *Handler) RegisterPrivateRoutes(api gin.IRoutes) {
 	api.POST("/auth/logout", h.getLogout)
-	api.POST("/auth/identity", h.getLogout)
+	api.GET("/auth/identity", h.getAuthIdentity)
 
 	api.GET("/user/:id", h.getUser)
 }
@@ -130,7 +131,7 @@ func (h *Handler) postRegister(c *gin.Context) {
 		return
 	}
 
-	registerRequestId, err := services.IdService().NewUUID()
+	registerRequestId, err := h.IdService().NewUUID()
 
 	if err != nil {
 		c.Error(err)
@@ -138,7 +139,7 @@ func (h *Handler) postRegister(c *gin.Context) {
 	}
 
 	user, err := h.Queries().CreateUser(c, db.CreateUserParams{
-		ID:           services.IdService().NewId(16),
+		ID:           h.IdService().NewID(16),
 		Email:        registerRequest.Email,
 		PasswordHash: passwordHash,
 		Status:       db.UserStatusRegistered,
@@ -217,7 +218,7 @@ func (h *Handler) getLogout(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (h *Handler) GetAuthIdentity(c *gin.Context) {
+func (h *Handler) getAuthIdentity(c *gin.Context) {
 	userId := c.GetString("userId")
 
 	user, err := h.Queries().GetUser(c, userId)

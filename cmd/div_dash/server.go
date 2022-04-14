@@ -6,7 +6,6 @@ import (
 	"div-dash/internal/iex"
 	"div-dash/internal/job"
 	"div-dash/internal/registry"
-	"div-dash/internal/services"
 	"time"
 
 	"github.com/gin-contrib/static"
@@ -27,10 +26,10 @@ func main() {
 
 	jobService := job.NewJobService(reg)
 
-	jobService.RunJob(iex.IEXExchangesImportJob, services.IEXService().SaveExchanges)
-	jobService.RunJob(iex.IEXImportSymbolsJob, services.IEXService().SaveSymbols)
-	jobService.RunJob(iex.ISINAndWKNImportJob, services.IEXService().ImportISINAndWKN)
-	jobService.RunJob(coingecko.CoingeckoImportCoinsJob, services.CoingeckoService().ImportCryptoSymbols)
+	jobService.RunJob(iex.IEXExchangesImportJob, reg.IEXService().SaveExchanges)
+	jobService.RunJob(iex.IEXImportSymbolsJob, reg.IEXService().SaveSymbols)
+	jobService.RunJob(iex.ISINAndWKNImportJob, reg.IEXService().ImportISINAndWKN)
+	jobService.RunJob(coingecko.CoingeckoImportCoinsJob, reg.CoingeckoService().ImportCryptoSymbols)
 
 	r.Use(static.Serve("/", static.LocalFile("web/build", true)))
 
@@ -46,7 +45,7 @@ func main() {
 
 	reg.RegisterProtectedMiddleware(context.TODO(), authorizedApi)
 
-	reg.RegisterProtectedRoutes(context.TODO(), api)
+	reg.RegisterProtectedRoutes(context.TODO(), authorizedApi)
 
 	port := viper.GetString("server.port")
 	r.Run(":" + port)

@@ -3,7 +3,6 @@ package symbol
 import (
 	"div-dash/internal/db"
 	"div-dash/internal/httputil"
-	"div-dash/internal/services"
 	"net/http"
 	"strconv"
 
@@ -55,8 +54,8 @@ func NewSymbolHandler(s symbolHandlerDependencies) *SymbolHandler {
 func (s *SymbolHandler) RegisterProtectedRoutes(api gin.IRoutes) {
 	api.GET("/symbols", s.getSymbols)
 	api.GET("/symbol/search", s.searchSymbol)
-	api.GET("/symbol/details/:symbolId", s.getSymbolDetails)
-	api.GET("/symbol/chart/:symbolId", s.getSymbolChart)
+	// api.GET("/symbol/details/:symbolId", s.getSymbolDetails)
+	// api.GET("/symbol/chart/:symbolId", s.getSymbolChart)
 }
 
 type paginatedSymbols struct {
@@ -145,40 +144,4 @@ func (s *SymbolHandler) searchSymbol(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
-}
-
-func (s *SymbolHandler) getSymbolDetails(c *gin.Context) {
-	symbolId := c.Param("symbolId")
-
-	symbol, err := s.Queries().GetSymbol(c, symbolId)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	details, err := services.PriceService().GetDetails(c, symbol)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.JSON(http.StatusOK, details)
-}
-
-func (s *SymbolHandler) getSymbolChart(c *gin.Context) {
-	symbolId := c.Param("symbolId")
-
-	symbol, err := s.Queries().GetSymbol(c, symbolId)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	chart, err := services.PriceService().GetChart(c, symbol, 1)
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	c.JSON(http.StatusOK, chart)
 }

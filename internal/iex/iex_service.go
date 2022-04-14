@@ -2,7 +2,6 @@ package iex
 
 import (
 	"context"
-	"database/sql"
 	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/model"
@@ -17,23 +16,30 @@ import (
 	"zgo.at/zcache"
 )
 
-type IEXService struct {
-	client     *resty.Client
-	queries    *db.Queries
-	db         *sql.DB
-	quoteCache *zcache.Cache
-	token      string
-	baseUrl    string
-}
+type (
+	iexServiceDependencies interface {
+		db.QueriesProvider
+		db.DBProvider
+		config.ConfigProvider
+	}
 
-func New(queries *db.Queries, db *sql.DB, iexConfig config.IEXConfiguration) *IEXService {
+	IEXServiceProvider interface {
+		IEXService() *IEXService
+	}
+	IEXService struct {
+		iexServiceDependencies
+		client     *resty.Client
+		quoteCache *zcache.Cache
+	}
+)
+
+func New(i iexServiceDependencies) *IEXService {
 	client := resty.New()
 	quoteCache := zcache.New(zcache.NoExpiration, -1)
-	token := iexConfig.Token
-	baseUrl := iexConfig.BaseUrl
-	client.SetHostURL(baseUrl)
-	client.SetQueryParam("token", token)
-	return &IEXService{client, queries, db, quoteCache, token, baseUrl}
+	iexConfig := i.Config().IEX
+	client.SetHostURL(iexConfig.BaseUrl)
+	client.SetQueryParam("token", iexConfig.Token)
+	return &IEXService{iexServiceDependencies: i, client: client, quoteCache: quoteCache}
 }
 
 var exchangeWeights = map[string]int{
@@ -100,7 +106,7 @@ type Quote struct {
 
 func (i *IEXService) GetPrice(ctx context.Context, asset db.Symbol) (float64, error) {
 
-	exchanges, err := i.queries.GetExchangesOfSymbol(context.Background(), asset.SymbolID)
+	exchanges, err := i.Queries().GetExchangesOfSymbol(context.Background(), asset.SymbolID)
 	if err != nil {
 		return -1.0, err
 	}
@@ -238,7 +244,7 @@ func assembleIndicators(companyKeyStats CompanyKeyStats) []model.SymbolIndicator
 
 func (i *IEXService) GetDetails(ctx context.Context, asset db.Symbol) (model.SymbolDetails, error) {
 
-	exchanges, err := i.queries.GetExchangesOfSymbol(context.Background(), asset.SymbolID)
+	exchanges, err := i.Queries().GetExchangesOfSymbol(context.Background(), asset.SymbolID)
 	if err != nil {
 		return model.SymbolDetails{}, err
 	}
@@ -278,7 +284,7 @@ func (i *IEXService) GetDetails(ctx context.Context, asset db.Symbol) (model.Sym
 
 func (i *IEXService) GetChart(ctx context.Context, asset db.Symbol, span int) (model.Chart, error) {
 
-	exchanges, err := i.queries.GetExchangesOfSymbol(context.Background(), asset.SymbolID)
+	exchanges, err := i.Queries().GetExchangesOfSymbol(context.Background(), asset.SymbolID)
 	if err != nil {
 		return model.Chart{}, err
 	}

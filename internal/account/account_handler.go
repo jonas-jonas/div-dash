@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"div-dash/internal/db"
 	"div-dash/internal/httputil"
-	"div-dash/internal/services"
+	"div-dash/internal/id"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +13,7 @@ import (
 type (
 	accountHandlerDependencies interface {
 		db.QueriesProvider
+		id.IdServiceProvider
 	}
 
 	AccountHandlerProvider interface {
@@ -68,7 +69,7 @@ func (h *Handler) postAccount(c *gin.Context) {
 	}
 
 	account, err := h.Queries().CreateAccount(c, db.CreateAccountParams{
-		ID:     "A" + services.IdService().NewId(4),
+		ID:     "A" + h.IdService().NewID(4),
 		Name:   createAccountRequest.Name,
 		UserID: c.GetString("userId"),
 		AccountType: sql.NullString{

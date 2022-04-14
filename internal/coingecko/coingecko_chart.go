@@ -11,7 +11,7 @@ import (
 
 func (c *CoingeckoService) GetChart(ctx context.Context, asset db.Symbol, span int) (model.Chart, error) {
 
-	symbol, err := c.queries.GetSymbolOfSymbolAndExchange(ctx, db.GetSymbolOfSymbolAndExchangeParams{
+	symbol, err := c.Queries().GetSymbolOfSymbolAndExchange(ctx, db.GetSymbolOfSymbolAndExchangeParams{
 		SymbolID: asset.SymbolID,
 		Exchange: "coingecko",
 	})

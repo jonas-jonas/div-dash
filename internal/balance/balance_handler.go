@@ -2,7 +2,6 @@ package balance
 
 import (
 	"div-dash/internal/db"
-	"div-dash/internal/services"
 	"log"
 	"net/http"
 
@@ -94,7 +93,7 @@ func (b *BalanceHandler) getBalance(c *gin.Context) {
 			log.Printf("Could not find asset for symbol %s: %s. Skipping balance entry... ", entry.Symbol, err.Error())
 			continue
 		}
-		currentPrice, err := services.PriceService().GetPriceOfAsset(c, symbol)
+		currentPrice, err := 0.0, nil
 		if err != nil {
 			log.Printf("Could not get current price for asset %s: %s.", entry.Symbol, err.Error())
 			currentPrice = 0.0

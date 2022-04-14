@@ -9,7 +9,7 @@ import (
 
 func (c *CoingeckoService) GetPrice(ctx context.Context, asset db.Symbol) (float64, error) {
 
-	symbol, err := c.queries.GetSymbolOfSymbolAndExchange(ctx, db.GetSymbolOfSymbolAndExchangeParams{
+	symbol, err := c.Queries().GetSymbolOfSymbolAndExchange(ctx, db.GetSymbolOfSymbolAndExchangeParams{
 		SymbolID: asset.SymbolID,
 		Exchange: "coingecko",
 	})

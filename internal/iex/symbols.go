@@ -81,12 +81,12 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 
 	count := len(symbols)
 	log.Printf("Importing %v IEX Assets...", count)
-	tx, err := i.db.BeginTx(ctx, nil)
+	tx, err := i.DB().BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	queries := i.queries.WithTx(tx)
+	queries := i.Queries().WithTx(tx)
 
 	const BATCH_SIZE = 1000
 
