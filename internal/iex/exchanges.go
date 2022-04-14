@@ -59,12 +59,12 @@ func (i *IEXService) SaveExchanges(ctx context.Context) error {
 
 	count := len(exchanges)
 	log.Printf("Importing %v IEX Exchanges...", count)
-	tx, err := i.db.BeginTx(ctx, nil)
+	tx, err := i.DB().BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	queries := i.queries.WithTx(tx)
+	queries := i.Queries().WithTx(tx)
 
 	for _, exchange := range exchanges {
 

@@ -6,13 +6,28 @@ import (
 	"pkg.re/essentialkaos/branca.v1"
 )
 
-type TokenService struct {
-	key        []byte
-	tokenValid uint32
-}
+type (
+	tokenServiceDependencies interface {
+		config.ConfigProvider
+	}
 
-func NewTokenService(config config.TokenConfiguration) *TokenService {
-	return &TokenService{[]byte(config.Key), config.TokenValid}
+	TokenServiceProvider interface {
+		TokenService() *TokenService
+	}
+	TokenService struct {
+		tokenServiceDependencies
+		key        []byte
+		tokenValid uint32
+	}
+)
+
+func NewTokenService(t tokenServiceDependencies) *TokenService {
+	return &TokenService{
+		tokenServiceDependencies: t,
+
+		key:        []byte(t.Config().Token.Key),
+		tokenValid: t.Config().Token.TokenValid,
+	}
 }
 
 func (t *TokenService) GenerateToken(userId string) (string, error) {

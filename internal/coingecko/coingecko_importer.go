@@ -34,14 +34,14 @@ var CoingeckoImportCoinsJob job.JobDefinition = job.JobDefinition{
 const COINGECKO_EXCHANGE = "coingecko"
 
 func (c *CoingeckoService) ensureCoingeckoExchange(ctx context.Context) error {
-	exists, err := c.queries.DoesExchangeExist(ctx, COINGECKO_EXCHANGE)
+	exists, err := c.Queries().DoesExchangeExist(ctx, COINGECKO_EXCHANGE)
 	if err != nil {
 		return err
 	}
 	if exists {
 		return nil
 	}
-	err = c.queries.CreateExchange(ctx, db.CreateExchangeParams{
+	err = c.Queries().CreateExchange(ctx, db.CreateExchangeParams{
 		Exchange:       COINGECKO_EXCHANGE,
 		Region:         "", // TODO: Change to null
 		Description:    "Coingecko",
@@ -74,11 +74,11 @@ func (c *CoingeckoService) ImportCryptoSymbols(ctx context.Context) error {
 	var exchanges []string
 	var exchangeSymbols []string
 
-	tx, err := c.db.BeginTx(ctx, nil)
+	tx, err := c.DB().BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	queries := c.queries
+	queries := c.Queries()
 
 	for index, symbol := range symbols {
 

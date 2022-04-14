@@ -3,7 +3,6 @@ package iex
 import (
 	"context"
 	"database/sql"
-	"div-dash/internal/config"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
 	"encoding/csv"
@@ -32,8 +31,8 @@ func (i *IEXService) ImportISINAndWKN(ctx context.Context) error {
 		return err
 	}
 
-	for i, line := range lines {
-		if i < 3 {
+	for index, line := range lines {
+		if index < 3 {
 			continue
 		}
 		if len(line) < 8 {
@@ -46,7 +45,7 @@ func (i *IEXService) ImportISINAndWKN(ctx context.Context) error {
 		wknLength := len(wknPadded)
 		wkn := wknPadded[wknLength-6 : wknLength]
 
-		err = config.Queries().AddISINAndWKN(ctx, db.AddISINAndWKNParams{
+		err = i.Queries().AddISINAndWKN(ctx, db.AddISINAndWKNParams{
 			Isin:     sql.NullString{String: isin, Valid: true},
 			Wkn:      sql.NullString{String: wkn, Valid: true},
 			SymbolID: symbolId,

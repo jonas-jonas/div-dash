@@ -36,7 +36,7 @@ func assembleIndicators(details CoingeckoDetails) []model.SymbolIndicator {
 
 func (c *CoingeckoService) GetDetails(ctx context.Context, asset db.Symbol) (model.SymbolDetails, error) {
 
-	symbol, err := c.queries.GetSymbolOfSymbolAndExchange(ctx, db.GetSymbolOfSymbolAndExchangeParams{
+	symbol, err := c.Queries().GetSymbolOfSymbolAndExchange(ctx, db.GetSymbolOfSymbolAndExchangeParams{
 		SymbolID: asset.SymbolID,
 		Exchange: "coingecko",
 	})

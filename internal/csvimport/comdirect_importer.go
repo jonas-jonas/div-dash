@@ -1,11 +1,9 @@
-package comdirect
+package csvimport
 
 import (
 	"context"
 	"database/sql"
-	"div-dash/internal/config"
 	"div-dash/internal/db"
-	"div-dash/internal/services"
 	"fmt"
 	"log"
 	"mime/multipart"
@@ -43,19 +41,7 @@ const (
 
 var hundred = decimal.New(100, 0)
 
-type CsvImporter struct {
-	queries *db.Queries
-	db      *sql.DB
-}
-
-func NewCsvImporter(queries *db.Queries, db *sql.DB) *CsvImporter {
-	return &CsvImporter{
-		queries: queries,
-		db:      db,
-	}
-}
-
-func (c *CsvImporter) ImportTransactionsXLS(ctx context.Context, file multipart.File, accountId string, userId string) error {
+func (c *csvImporter) importComdirectStatement(ctx context.Context, file multipart.File, accountId string, userId string) error {
 	fileReader, err := xls.OpenReader(file, "utf-8")
 	if err != nil {
 		return fmt.Errorf("could not open excelize reader on file: %w", err)
@@ -66,11 +52,11 @@ func (c *CsvImporter) ImportTransactionsXLS(ctx context.Context, file multipart.
 		return fmt.Errorf("no sheet found in file")
 	}
 
-	tx, err := c.db.BeginTx(ctx, nil)
+	tx, err := c.DB().BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	queries := c.queries.WithTx(tx)
+	queries := c.Queries().WithTx(tx)
 
 	for i := 1; i <= (int(sheet.MaxRow)); i++ {
 
@@ -119,7 +105,7 @@ func (c *CsvImporter) ImportTransactionsXLS(ctx context.Context, file multipart.
 			continue
 		}
 
-		symbol, err := config.Queries().GetSymbolByWKN(ctx, sql.NullString{
+		symbol, err := c.Queries().GetSymbolByWKN(ctx, sql.NullString{
 			String: wkn,
 			Valid:  true,
 		})
@@ -132,7 +118,7 @@ func (c *CsvImporter) ImportTransactionsXLS(ctx context.Context, file multipart.
 		}
 
 		params := db.CreateTransactionParams{
-			ID:                  "T" + services.IdService().NewId(5),
+			ID:                  "T" + c.IdService().NewID(5),
 			Symbol:              symbol.SymbolID,
 			Type:                symbol.Type,
 			TransactionProvider: "NONE",
