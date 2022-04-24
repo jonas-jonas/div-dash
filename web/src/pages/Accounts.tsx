@@ -179,7 +179,7 @@ function CreateAccountModal({ close }: CreateAccountModalProps) {
               {accountTypes &&
                 accountTypes.map((accountType) => {
                   return (
-                    <option value={accountType.accountType}>
+                    <option value={accountType.accountType} key={accountType.accountType}>
                       {accountType.label}
                     </option>
                   );
