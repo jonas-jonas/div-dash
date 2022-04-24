@@ -84,7 +84,9 @@ func (b *BalanceHandler) getBalance(c *gin.Context) {
 		return
 	}
 
-	resp := balanceResponse{}
+	resp := balanceResponse{
+		Symbols: []balanceItemResponse{},
+	}
 
 	for _, entry := range balances {
 		costBasis := money.New(int64(entry.CostBasis/entry.Amount), "EUR").AsMajorUnits()
