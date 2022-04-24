@@ -5,6 +5,7 @@ import {
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons";
 import ky from "ky";
 import numeral from "numeral";
 import { useQuery } from "react-query";
@@ -130,14 +131,14 @@ function Pagination({
   const handleSelectPage = (page: number) => () => onPageSelect(page);
 
   return (
-    <div className="bg-white rounded shadow p-2 text-gray-900">
+    <div className="bg-white rounded shadow p-2 text-gray-900 flex">
       {numeral(totalCount).format("0a")} Total Items
       <button
         className="px-2 text-blue-700"
         disabled={activePage === 1}
         onClick={handlePrevClick}
       >
-        <FontAwesomeIcon icon={faChevronLeft} size="sm" />
+        <IconChevronLeft size={20} stroke={3} />
       </button>
       {activePage > 2 && (
         <>
@@ -173,7 +174,7 @@ function Pagination({
         disabled={activePage === pages}
         onClick={handleNextClick}
       >
-        <FontAwesomeIcon icon={faChevronRight} size="sm" />
+        <IconChevronRight size={20} stroke={3} />
       </button>
     </div>
   );

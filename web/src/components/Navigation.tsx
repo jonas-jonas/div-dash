@@ -1,13 +1,4 @@
-import { faBitcoin } from "@fortawesome/free-brands-svg-icons";
-import {
-  faChevronDown,
-  faFileInvoice,
-  faFileInvoiceDollar,
-  faSearch,
-  faSignOutAlt,
-  faUser,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconChevronDown, IconCurrencyEthereum, IconFileCertificate, IconFileInvoice, IconLogout, IconSearch, IconUser } from "@tabler/icons";
 import classNames from "classnames";
 import ky from "ky";
 import { useCallback, useEffect, useState } from "react";
@@ -72,43 +63,43 @@ export function Navigation() {
             <img src="/logo-white@2x.png" alt="Logo" width="112" height="28" />
           </Link>
           <Link className={navItemClasses("/accounts")} to="/accounts">
-            <FontAwesomeIcon icon={faFileInvoice} className="mr-3" />
+            <IconFileInvoice  className="mr-3" />
             <span className="tracking-wider">Accounts</span>
           </Link>
           <Link className={navItemClasses("/symbols/cs")} to="/symbols/cs">
-            <FontAwesomeIcon icon={faFileInvoiceDollar} className="mr-3" />
+            <IconFileCertificate className="mr-3" />
             <span className="tracking-wider">Stocks</span>
           </Link>
           <Link
             className={navItemClasses("/symbols/crypto")}
             to="/symbols/crypto"
           >
-            <FontAwesomeIcon icon={faBitcoin} className="mr-3" />
+            <IconCurrencyEthereum className="mr-3" />
             <span className="tracking-wider">Cryptocurrencies</span>
           </Link>
         </div>
         <div className="flex items-center">
           <button className="px-3 py-2">
-            <FontAwesomeIcon icon={faSearch} />
+            <IconSearch />
           </button>
           <span className="mx-5 border-l-2 border-white h-4/6 block"></span>
           <div className="relative">
             <button onClick={handleUserClick} className="px-3 py-2 focus:underline focus:outline-none">
               <span className="mr-2">{user?.email}</span>
-              <FontAwesomeIcon icon={faChevronDown} size="xs" />
+              <IconChevronDown size={20} className="inline" stroke={3}/>
             </button>
             {showUserMenu && (
               <div className="absolute right-0 bg-white rounded shadow-xl border p-2 text-gray-800 flex flex-col w-full mt-4">
                 <div className="absolute -top-2 w-4 h-4 right-0 -translate-x-1/2 transform rotate-45 bg-white border-l border-t"></div>
                 <button className="px-4 text-left rounded hover:bg-gray-100 transition-colors relative flex items-center py-2">
-                  <FontAwesomeIcon icon={faUser} className="absolute" />
+                  <IconUser className="absolute" />
                   <span className="ml-8 block font-bold">Profile</span>
                 </button>
                 <button
                   className="px-4 text-left rounded hover:bg-gray-100 transition-colors relative flex items-center py-2"
                   onClick={handleLogout}
                 >
-                  <FontAwesomeIcon icon={faSignOutAlt} className="absolute" />
+                  <IconLogout className="absolute" />
                   <span className="ml-8 block font-bold">Logout</span>
                 </button>
               </div>

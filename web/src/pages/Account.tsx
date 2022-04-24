@@ -8,6 +8,15 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconCross,
+  IconFileUpload,
+  IconPencil,
+  IconTrash,
+  IconX,
+} from "@tabler/icons";
 import classNames from "classnames";
 import ky from "ky";
 import { ChangeEvent, useEffect, useReducer, useState } from "react";
@@ -85,17 +94,15 @@ export function Account() {
     <div className="container mx-auto pt-10">
       <div className="flex justify-between mb-4">
         <h1 className="text-2xl pl-4">{account?.name}</h1>
-        <div>
-          <label className="p-2">
-            <FontAwesomeIcon icon={faUpload} />
-            <input
-              type="file"
-              className="hidden"
-              accept=".xls"
-              onChange={handleImport}
-            />
-          </label>
-        </div>
+        <label className="p-2">
+          <IconFileUpload />
+          <input
+            type="file"
+            className="hidden"
+            accept=".xls"
+            onChange={handleImport}
+          />
+        </label>
       </div>
       <div className="w-full flex">
         <div className="flex-grow">
@@ -162,10 +169,10 @@ export function Account() {
                     </td>
                     <td className="py-3 px-3 text-right">
                       <button className="text-gray-700 opacity-0 group-hover:opacity-100 px-2">
-                        <FontAwesomeIcon icon={faPencilAlt} />
+                        <IconPencil />
                       </button>
                       <button className="text-gray-700 opacity-0 group-hover:opacity-100 px-2">
-                        <FontAwesomeIcon icon={faTrash} />
+                        <IconTrash />
                       </button>
                     </td>
                   </tr>
@@ -193,9 +200,9 @@ export function Account() {
           )}
           {!isLoading && transactions && transactions.length > 0 && (
             <div className="flex justify-end mt-4">
-              <div className="bg-white rounded shadow p-2 text-gray-900">
+              <div className="bg-white rounded shadow p-2 text-gray-900 flex items-center">
                 <button className="px-2 text-blue-700">
-                  <FontAwesomeIcon icon={faChevronLeft} size="sm" />
+                  <IconChevronLeft size={20} stroke={3} />
                 </button>
                 <button className="px-2 border border-blue-700 text-blue-700 rounded font-bold">
                   1
@@ -205,7 +212,7 @@ export function Account() {
                 <button className="px-2">...</button>
                 <button className="px-2">22</button>
                 <button className="px-2 text-blue-700">
-                  <FontAwesomeIcon icon={faChevronRight} size="sm" />
+                  <IconChevronRight size={20} stroke={3} />
                 </button>
               </div>
             </div>
@@ -319,7 +326,7 @@ function CreateTransactionModal({
             className="flex flex-col items-center text-gray-500 hover:text-gray-900 transition-colors"
             type="reset"
           >
-            <FontAwesomeIcon icon={faTimes} />
+            <IconX />
             <span className="text-xs">ESC</span>
           </button>
         </div>
@@ -615,9 +622,9 @@ function TypeAheadSymbolInput<T>({
           )}
           <button
             onClick={() => dispatch({ type: "HIDE" })}
-            className="w-full text-center font-bold mt-2 py-1"
+            className="w-full text-center font-bold mt-2 py-1 flex justify-center"
           >
-            <FontAwesomeIcon icon={faTimes} className="mr-2" />
+            <IconX className="mr-2" />
             Close
           </button>
         </div>

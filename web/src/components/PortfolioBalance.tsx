@@ -1,5 +1,4 @@
-import { faSadTear, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconMoodSad } from "@tabler/icons";
 import classNames from "classnames";
 import ky from "ky";
 import { useQuery } from "react-query";
@@ -117,7 +116,7 @@ export function PortfolioBalance() {
       </table>
       {!isLoading && error && (
         <div className="flex items-center justify-center py-20 flex-col text-gray-500">
-          <FontAwesomeIcon icon={faSadTear} size="2x" className="mb-3" />
+          <IconMoodSad className="mb-3" />
           <span>There was an error while loading your assets</span>
           <b className="my-1">{error.message}</b>
           <span>Please try again later</span>
@@ -125,7 +124,6 @@ export function PortfolioBalance() {
       )}
       {isLoading && (
         <div className="flex items-center justify-center py-24 flex-col text-gray-500">
-          <FontAwesomeIcon icon={faSpinner} spin size="2x" className="mb-3 " />
           <span className="">Loading Assets...</span>
         </div>
       )}

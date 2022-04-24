@@ -6,6 +6,7 @@ import {
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconChevronRight } from "@tabler/icons";
 import numeral from "numeral";
 import { useQuery } from "react-query";
 import { Link, useParams } from "react-router-dom";
@@ -57,19 +58,11 @@ export function SymbolPage() {
             <a href="/assets" className="">
               Assets
             </a>
-            <FontAwesomeIcon
-              icon={faChevronRight}
-              className="mr-2 ml-2"
-              size="xs"
-            />
+            <IconChevronRight className="mr-2 ml-2" size={20} />
             <Link to={"/symbols/" + symbolDetails.type} className="">
               {SymbolTypeLabels[symbolDetails.type]}
             </Link>
-            <FontAwesomeIcon
-              icon={faChevronRight}
-              className="mr-2 ml-2"
-              size="xs"
-            />
+            <IconChevronRight className="mr-2 ml-2" size={20} />
             <span className="text-gray-900">{symbolDetails.name}</span>
           </div>
           <div className="flex justify-between border-b pb-8">

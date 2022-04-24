@@ -1,7 +1,4 @@
-import {
-  faCopy
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconClipboard } from "@tabler/icons";
 type CopyElementProps = {
   value: string;
 };
@@ -18,10 +15,10 @@ export function CopyElement({ value }: CopyElementProps) {
 
   return (
     <button
-      className="focus:outline-none hover:text-gray-900"
+      className="focus:outline-none hover:text-gray-900 inline-flex"
       onClick={handleClick}
     >
-      <FontAwesomeIcon icon={faCopy} className="mr-1" />
+      <IconClipboard className="mr-1" size={16} />
       {value}
     </button>
   );

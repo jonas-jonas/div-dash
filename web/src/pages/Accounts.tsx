@@ -1,9 +1,6 @@
-import {
-  faChartLine,
-  faSpinner,
-  faTimes,
-} from "@fortawesome/free-solid-svg-icons";
+import { faSpinner, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconChartBar, IconX } from "@tabler/icons";
 import ky from "ky";
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
@@ -45,7 +42,7 @@ export function Accounts() {
             >
               <div className="flex flex-col mb-4 items-center w-full justify-between">
                 <div>
-                  <FontAwesomeIcon icon={faChartLine} size="7x" />
+                  <IconChartBar size={70} />
                 </div>
                 <h2 className="text-lg font-bold">{account.name}</h2>
                 <span className="text-gray-700 text-sm mb-5">Stocks, ETFs</span>
@@ -154,7 +151,7 @@ function CreateAccountModal({ close }: CreateAccountModalProps) {
             onClick={close}
             className="flex flex-col items-center text-gray-500 hover:text-gray-900 transition-colors"
           >
-            <FontAwesomeIcon icon={faTimes} />
+            <IconX />
             <span className="text-xs">ESC</span>
           </button>
         </div>
@@ -179,7 +176,10 @@ function CreateAccountModal({ close }: CreateAccountModalProps) {
               {accountTypes &&
                 accountTypes.map((accountType) => {
                   return (
-                    <option value={accountType.accountType} key={accountType.accountType}>
+                    <option
+                      value={accountType.accountType}
+                      key={accountType.accountType}
+                    >
                       {accountType.label}
                     </option>
                   );
