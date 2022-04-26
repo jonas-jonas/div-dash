@@ -95,6 +95,9 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 	var sources []string
 	var precisions []int32
 	var symbolNames []string
+	var figis []string
+	var ciks []string
+	var leis []string
 
 	var exchanges []string
 	var exchangeSymbols []string
@@ -111,6 +114,9 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 		sources = append(sources, "iex")
 		precisions = append(precisions, 4)
 		symbolNames = append(symbolNames, symbol.Name)
+		figis = append(figis, symbol.Figi)
+		ciks = append(ciks, symbol.Cik)
+		leis = append(leis, symbol.Lei)
 
 		exchanges = append(exchanges, symbol.Exchange)
 		exchangeSymbols = append(exchangeSymbols, symbolId+"-"+symbol.ExchangeSuffix)
@@ -122,6 +128,9 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 				Sources:     sources,
 				Precisions:  precisions,
 				SymbolNames: symbolNames,
+				Figis:       figis,
+				Ciks:        ciks,
+				Leis:        leis,
 			})
 
 			if err != nil {
@@ -146,6 +155,9 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 			sources = nil
 			precisions = nil
 			symbolNames = nil
+			figis = nil
+			ciks = nil
+			leis = nil
 
 			exchanges = nil
 			exchangeSymbols = nil

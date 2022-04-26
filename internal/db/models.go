@@ -48,6 +48,9 @@ type Symbol struct {
 	SymbolName sql.NullString `json:"symbolName"`
 	Isin       sql.NullString `json:"isin"`
 	Wkn        sql.NullString `json:"wkn"`
+	Figi       sql.NullString `json:"figi"`
+	Cik        sql.NullString `json:"cik"`
+	Lei        sql.NullString `json:"lei"`
 }
 
 type SymbolExchange struct {
