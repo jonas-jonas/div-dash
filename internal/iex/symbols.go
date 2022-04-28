@@ -4,6 +4,7 @@ import (
 	"context"
 	"div-dash/internal/db"
 	"div-dash/internal/job"
+	"div-dash/util"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -26,6 +27,22 @@ type Symbol struct {
 	Figi           string `json:"figi"`
 	Cik            string `json:"cik"`
 	Lei            string `json:"lei"`
+}
+
+func (i *IEXService) getRootSymbols() ([]Symbol, error) {
+
+	file, err := ioutil.ReadFile("data/iex/symbols.json")
+	if err != nil {
+		return nil, err
+	}
+
+	symbols := []Symbol{}
+
+	err = json.Unmarshal([]byte(file), &symbols)
+	if err != nil {
+		return nil, err
+	}
+	return symbols, nil
 }
 
 func (i *IEXService) getSymbolsByRegion(region string) ([]Symbol, error) {
@@ -72,7 +89,38 @@ var IEXImportSymbolsJob job.JobDefinition = job.JobDefinition{
 	Validity: 24 * 7 * time.Hour,
 }
 
+type figiLookup map[string]Symbol
+type cikLookup map[string]Symbol
+type leiLookup map[string]Symbol
+
+func (i *IEXService) buildIDLookups(rootSymbols []Symbol) (figiLookup, cikLookup, leiLookup) {
+	resultFIGI := map[string]Symbol{}
+	resultCIK := map[string]Symbol{}
+	resultLEI := map[string]Symbol{}
+	for _, symbol := range rootSymbols {
+		if symbol.Figi != "" {
+			resultFIGI[symbol.Figi] = symbol
+		}
+		if symbol.Cik != "" {
+			resultCIK[symbol.Cik] = symbol
+		}
+		if symbol.Lei != "" {
+			resultLEI[symbol.Lei] = symbol
+		}
+	}
+	return resultFIGI, resultCIK, resultLEI
+}
+
 func (i *IEXService) SaveSymbols(ctx context.Context) error {
+
+	rootSymbols, err := i.getRootSymbols()
+
+	if err != nil {
+		return err
+	}
+
+	// CIK Lookup doesn't really make sense here, since CIKs are scoped to companies, even those that are just publishing ETFs.
+	figiLookup, _, leiLookup := i.buildIDLookups(rootSymbols)
 
 	symbols, err := i.getSymbolsByRegion("de")
 	if err != nil {
@@ -98,6 +146,7 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 	var figis []string
 	var ciks []string
 	var leis []string
+	var iexSymbols []string
 
 	var exchanges []string
 	var exchangeSymbols []string
@@ -107,6 +156,26 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 		if strings.Contains(symbol.Symbol, "-") {
 			parts := strings.Split(symbol.Symbol, "-")
 			symbolId = parts[0]
+		}
+
+		var resolvedIexSymbol util.Optional[Symbol]
+
+		if symbol.Lei != "" {
+			if iexSymbol, ok := leiLookup[symbol.Lei]; ok {
+				resolvedIexSymbol = util.New(iexSymbol)
+			}
+		}
+
+		if symbol.Figi != "" {
+			if iexSymbol, ok := figiLookup[symbol.Figi]; ok {
+				resolvedIexSymbol = util.New(iexSymbol)
+			}
+		}
+
+		if resolvedIexSymbol.IsDefined() {
+			iexSymbols = append(iexSymbols, resolvedIexSymbol.Get().Symbol)
+		} else {
+			iexSymbols = append(iexSymbols, "")
 		}
 
 		symbolIDs = append(symbolIDs, symbolId)
@@ -131,6 +200,7 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 				Figis:       figis,
 				Ciks:        ciks,
 				Leis:        leis,
+				IexSymbols:  iexSymbols,
 			})
 
 			if err != nil {
@@ -158,6 +228,7 @@ func (i *IEXService) SaveSymbols(ctx context.Context) error {
 			figis = nil
 			ciks = nil
 			leis = nil
+			iexSymbols = nil
 
 			exchanges = nil
 			exchangeSymbols = nil

@@ -55,7 +55,7 @@ func (q *Queries) AddSymbol(ctx context.Context, arg AddSymbolParams) error {
 }
 
 const bulkImportSymbol = `-- name: BulkImportSymbol :exec
-INSERT INTO "symbol" (symbol_id, type, source, precision, symbol_name, figi, cik, lei)
+INSERT INTO "symbol" (symbol_id, type, source, precision, symbol_name, figi, cik, lei, iex_symbol)
 SELECT unnest($1::text[]) AS symbol_id,
   unnest($2::text[]) AS type,
   unnest($3::text[]) AS source,
@@ -63,7 +63,8 @@ SELECT unnest($1::text[]) AS symbol_id,
   unnest($5::text[]) AS symbol_name,
   unnest($6::text[]) AS figi,
   unnest($7::text[]) AS cik,
-  unnest($8::text[]) AS lei
+  unnest($8::text[]) AS lei,
+  unnest($9::text[]) AS iex_symbol
 ON CONFLICT DO NOTHING
 `
 
@@ -76,6 +77,7 @@ type BulkImportSymbolParams struct {
 	Figis       []string `json:"figis"`
 	Ciks        []string `json:"ciks"`
 	Leis        []string `json:"leis"`
+	IexSymbols  []string `json:"iexSymbols"`
 }
 
 func (q *Queries) BulkImportSymbol(ctx context.Context, arg BulkImportSymbolParams) error {
@@ -88,6 +90,7 @@ func (q *Queries) BulkImportSymbol(ctx context.Context, arg BulkImportSymbolPara
 		pq.Array(arg.Figis),
 		pq.Array(arg.Ciks),
 		pq.Array(arg.Leis),
+		pq.Array(arg.IexSymbols),
 	)
 	return err
 }
@@ -147,7 +150,7 @@ func (q *Queries) ConnectSymbolWithExchange(ctx context.Context, arg ConnectSymb
 }
 
 const getSymbol = `-- name: GetSymbol :one
-SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei, iex_symbol
 FROM "symbol"
 WHERE symbol_id = $1
 `
@@ -166,12 +169,13 @@ func (q *Queries) GetSymbol(ctx context.Context, symbolID string) (Symbol, error
 		&i.Figi,
 		&i.Cik,
 		&i.Lei,
+		&i.IexSymbol,
 	)
 	return i, err
 }
 
 const getSymbolByWKN = `-- name: GetSymbolByWKN :one
-SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei, iex_symbol
 FROM "symbol"
 WHERE wkn = $1
 `
@@ -190,6 +194,7 @@ func (q *Queries) GetSymbolByWKN(ctx context.Context, wkn sql.NullString) (Symbo
 		&i.Figi,
 		&i.Cik,
 		&i.Lei,
+		&i.IexSymbol,
 	)
 	return i, err
 }
@@ -220,7 +225,7 @@ func (q *Queries) GetSymbolCountByType(ctx context.Context, symboltype string) (
 }
 
 const getSymbols = `-- name: GetSymbols :many
-SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei, iex_symbol
 FROM "symbol"
 LIMIT $1
 `
@@ -245,6 +250,7 @@ func (q *Queries) GetSymbols(ctx context.Context, limit int32) ([]Symbol, error)
 			&i.Figi,
 			&i.Cik,
 			&i.Lei,
+			&i.IexSymbol,
 		); err != nil {
 			return nil, err
 		}
@@ -260,7 +266,7 @@ func (q *Queries) GetSymbols(ctx context.Context, limit int32) ([]Symbol, error)
 }
 
 const getSymbolsByType = `-- name: GetSymbolsByType :many
-SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei, iex_symbol
 FROM "symbol" s
 WHERE s.type = $1
 LIMIT $2
@@ -291,6 +297,7 @@ func (q *Queries) GetSymbolsByType(ctx context.Context, arg GetSymbolsByTypePara
 			&i.Figi,
 			&i.Cik,
 			&i.Lei,
+			&i.IexSymbol,
 		); err != nil {
 			return nil, err
 		}
@@ -306,7 +313,7 @@ func (q *Queries) GetSymbolsByType(ctx context.Context, arg GetSymbolsByTypePara
 }
 
 const searchSymbol = `-- name: SearchSymbol :many
-SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei
+SELECT symbol_id, type, source, precision, symbol_name, isin, wkn, figi, cik, lei, iex_symbol
 FROM "symbol"
 WHERE symbol_id LIKE $1 OR symbol_name LIKE $1
 LIMIT $2
@@ -337,6 +344,7 @@ func (q *Queries) SearchSymbol(ctx context.Context, arg SearchSymbolParams) ([]S
 			&i.Figi,
 			&i.Cik,
 			&i.Lei,
+			&i.IexSymbol,
 		); err != nil {
 			return nil, err
 		}

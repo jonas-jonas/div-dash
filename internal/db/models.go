@@ -51,6 +51,7 @@ type Symbol struct {
 	Figi       sql.NullString `json:"figi"`
 	Cik        sql.NullString `json:"cik"`
 	Lei        sql.NullString `json:"lei"`
+	IexSymbol  sql.NullString `json:"iexSymbol"`
 }
 
 type SymbolExchange struct {

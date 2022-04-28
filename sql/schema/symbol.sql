@@ -34,7 +34,7 @@ VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT DO NOTHING;
 
 -- name: BulkImportSymbol :exec
-INSERT INTO "symbol" (symbol_id, type, source, precision, symbol_name, figi, cik, lei)
+INSERT INTO "symbol" (symbol_id, type, source, precision, symbol_name, figi, cik, lei, iex_symbol)
 SELECT unnest(@symbol_ids::text[]) AS symbol_id,
   unnest(@types::text[]) AS type,
   unnest(@sources::text[]) AS source,
@@ -42,7 +42,8 @@ SELECT unnest(@symbol_ids::text[]) AS symbol_id,
   unnest(@symbol_names::text[]) AS symbol_name,
   unnest(@figis::text[]) AS figi,
   unnest(@ciks::text[]) AS cik,
-  unnest(@leis::text[]) AS lei
+  unnest(@leis::text[]) AS lei,
+  unnest(@iex_symbols::text[]) AS iex_symbol
 ON CONFLICT DO NOTHING;
   
 -- name: BulkImportSymbolExchange :exec
