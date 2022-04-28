@@ -72,7 +72,7 @@ export function SymbolPage() {
                   <img
                     src={symbolDetails.images?.thumb}
                     alt={symbolDetails.name + "Logo"}
-                    className="mr-4"
+                    className="mr-4 rounded-full w-16"
                   />
                 )}
                 <span>{symbolDetails.name}</span>

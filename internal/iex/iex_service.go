@@ -260,6 +260,10 @@ func (i *IEXService) GetDetails(ctx context.Context, asset db.Symbol) (model.Sym
 		return model.SymbolDetails{}, err
 	}
 
+	images := model.SymbolImages{
+		Thumb: fmt.Sprintf("https://storage.googleapis.com/iex/api/logos/%s.png", iexSymbolId),
+	}
+
 	return model.SymbolDetails{
 		Type:        asset.Type,
 		Name:        companyDetails.CompanyName,
@@ -267,6 +271,7 @@ func (i *IEXService) GetDetails(ctx context.Context, asset db.Symbol) (model.Sym
 		Tags:        assembleTags(companyDetails),
 		Indicators:  assembleIndicators(companyKeyStats),
 		Dates:       []model.SymbolDate{},
+		Images:      images,
 	}, nil
 }
 
