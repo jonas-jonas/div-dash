@@ -243,24 +243,12 @@ func assembleIndicators(companyKeyStats CompanyKeyStats) []model.SymbolIndicator
 }
 
 func (i *IEXService) GetDetails(ctx context.Context, asset db.Symbol) (model.SymbolDetails, error) {
-
-	exchanges, err := i.Queries().GetExchangesOfSymbol(context.Background(), asset.SymbolID)
-	if err != nil {
-		return model.SymbolDetails{}, err
+	var iexSymbolId string
+	if asset.IexSymbol.Valid && asset.IexSymbol.String != "" {
+		iexSymbolId = asset.IexSymbol.String
+	} else {
+		return model.SymbolDetails{}, fmt.Errorf("could not find information for %s because no iexSymbolId was present", asset.SymbolID)
 	}
-
-	var exchange db.Exchange
-	lastExchangeWeight := -1
-
-	for _, ex := range exchanges {
-		weight := exchangeWeights[ex.Exchange]
-		if weight > lastExchangeWeight {
-			exchange = ex
-			lastExchangeWeight = weight
-		}
-	}
-
-	iexSymbolId := asset.SymbolID + "-" + exchange.ExchangeSuffix
 
 	companyDetails, err := i.getCompanyDetails(iexSymbolId)
 

@@ -3,6 +3,7 @@ package symbol
 import (
 	"div-dash/internal/db"
 	"div-dash/internal/httputil"
+	"div-dash/internal/iex"
 	"net/http"
 	"strconv"
 
@@ -12,6 +13,7 @@ import (
 type (
 	symbolHandlerDependencies interface {
 		db.QueriesProvider
+		iex.IEXServiceProvider
 	}
 
 	SymbolHandlerProvider interface {
@@ -54,7 +56,7 @@ func NewSymbolHandler(s symbolHandlerDependencies) *SymbolHandler {
 func (s *SymbolHandler) RegisterProtectedRoutes(api gin.IRoutes) {
 	api.GET("/symbols", s.getSymbols)
 	api.GET("/symbol/search", s.searchSymbol)
-	// api.GET("/symbol/details/:symbolId", s.getSymbolDetails)
+	api.GET("/symbol/details/:symbolId", s.getSymbolDetails)
 	// api.GET("/symbol/chart/:symbolId", s.getSymbolChart)
 }
 

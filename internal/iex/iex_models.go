@@ -45,7 +45,7 @@ type CompanyKeyStats struct {
 	ExDividendDate            string  `json:"exDividendDate"`
 	NextEarningsDate          string  `json:"nextEarningsDate"`
 	PeRatio                   float64 `json:"peRatio"`
-	Beta                      int     `json:"beta"`
+	Beta                      float64 `json:"beta"`
 	MaxChangePercent          float64 `json:"maxChangePercent"`
 	Year5ChangePercent        float64 `json:"year5ChangePercent"`
 	Year2ChangePercent        float64 `json:"year2ChangePercent"`
