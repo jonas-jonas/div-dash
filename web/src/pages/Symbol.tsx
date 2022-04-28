@@ -54,7 +54,7 @@ export function SymbolPage() {
       )}
       {!loadingSymbol && symbolDetails && (
         <div>
-          <div className="text-sm mb-4 text-gray-500">
+          <div className="text-sm mb-4 text-gray-500 flex">
             <a href="/assets" className="">
               Assets
             </a>
