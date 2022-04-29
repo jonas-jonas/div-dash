@@ -1,18 +1,8 @@
 import {
-  faChevronLeft,
-  faChevronRight,
-  faPencilAlt,
-  faSpinner,
-  faTimes,
-  faTrash,
-  faUpload,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
   IconChevronLeft,
   IconChevronRight,
-  IconCross,
   IconFileUpload,
+  IconLoader,
   IconPencil,
   IconTrash,
   IconX,
@@ -434,7 +424,7 @@ function CreateTransactionModal({
               type="submit"
             >
               {formState.isSubmitting ? (
-                <FontAwesomeIcon icon={faSpinner} spin />
+                <IconLoader className="animate-spin-slow" />
               ) : (
                 "Create"
               )}
@@ -617,7 +607,7 @@ function TypeAheadSymbolInput<T>({
           ))}
           {state.loading && (
             <div className="text-center py-2">
-              <FontAwesomeIcon icon={faSpinner} spin />
+              <IconLoader className="animate-spin-slow" />
             </div>
           )}
           <button

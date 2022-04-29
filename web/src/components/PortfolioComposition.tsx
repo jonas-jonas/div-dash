@@ -1,5 +1,4 @@
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconChevronDown, IconChevronUp } from "@tabler/icons";
 import classNames from "classnames";
 import { useMemo } from "react";
 import { useQuery } from "react-query";
@@ -101,11 +100,11 @@ export function PortfolioComposition() {
                     "bg-red-600": isUp,
                   })}
                 >
-                  <FontAwesomeIcon
-                    icon={isUp ? faChevronUp : faChevronDown}
-                    className="mr-1"
-                    size="xs"
-                  />
+                  {isUp ? (
+                    <IconChevronUp className="mr-1" />
+                  ) : (
+                    <IconChevronDown className="mr-1" />
+                  )}
                   {formatPercent(pnl)}
                 </span>
               </div>

@@ -1,11 +1,9 @@
 import {
-  faChevronLeft,
-  faChevronRight,
-  faSadTear,
-  faSpinner,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons";
+  IconChevronLeft,
+  IconChevronRight,
+  IconLoader,
+  IconMoodSad,
+} from "@tabler/icons";
 import ky from "ky";
 import numeral from "numeral";
 import { useQuery } from "react-query";
@@ -38,13 +36,13 @@ export function SymbolListPage() {
     <div className="container mb-24 mx-auto pt-8">
       {isLoading && (
         <div className="flex items-center justify-center py-24 flex-col text-gray-500">
-          <FontAwesomeIcon icon={faSpinner} spin size="2x" className="mb-3 " />
+          <IconLoader className="animate-spin-slow mr-3" />
           <span className="">Loading Assets...</span>
         </div>
       )}
       {!isLoading && error && (
         <div className="flex items-center justify-center py-20 flex-col text-gray-500">
-          <FontAwesomeIcon icon={faSadTear} size="2x" className="mb-3" />
+          <IconMoodSad className="mb-3" />
           <span>There was an error while loading symbols</span>
           <b className="my-1">{error.message}</b>
           <span>Please try again later</span>

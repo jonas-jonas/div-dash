@@ -1,6 +1,4 @@
-import { faSpinner, faTimes } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IconChartBar, IconX } from "@tabler/icons";
+import { IconChartBar, IconRefresh, IconX } from "@tabler/icons";
 import ky from "ky";
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
@@ -199,7 +197,7 @@ function CreateAccountModal({ close }: CreateAccountModalProps) {
               type="submit"
             >
               {formState.isSubmitting ? (
-                <FontAwesomeIcon icon={faSpinner} spin />
+                <IconRefresh className="animate-spin" />
               ) : (
                 "Create Account"
               )}

@@ -1,12 +1,11 @@
 import {
-  faChevronDown,
-  faChevronRight,
-  faExternalLinkAlt,
-  faLink,
-  faSpinner,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IconChevronRight } from "@tabler/icons";
+  IconChevronDown,
+  IconChevronRight,
+  IconExternalLink,
+  IconLink,
+  IconLoader,
+  IconRefresh,
+} from "@tabler/icons";
 import numeral from "numeral";
 import { useQuery } from "react-query";
 import { Link, useParams } from "react-router-dom";
@@ -49,7 +48,7 @@ export function SymbolPage() {
     <div className="container mb-24 mx-auto pt-8">
       {loadingSymbol && (
         <div className="w-full py-14 flex items-center justify-center">
-          <FontAwesomeIcon icon={faSpinner} spin />
+          <IconRefresh className="animate-spin" />
         </div>
       )}
       {!loadingSymbol && symbolDetails && (
@@ -77,47 +76,44 @@ export function SymbolPage() {
                 )}
                 <span>{symbolDetails.name}</span>
               </h2>
-              {symbolDetails.tags.map((tag) => {
-                if (tag.type === "CHIP") {
-                  return (
-                    <span
-                      className="rounded-full bg-gray-300 text-gray-700 text-sm shadow px-4 py-1 mr-2"
-                      key={tag.label}
-                    >
-                      {tag.label}
-                    </span>
-                  );
-                } else if (tag.type === "LINK") {
-                  return (
-                    <a
-                      href={tag.link}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="rounded-full bg-gray-300 text-gray-700 text-sm shadow px-4 py-1 hover:bg-gray-500 hover:text-white transition-colors"
-                      key={tag.link}
-                    >
-                      <FontAwesomeIcon
-                        icon={faLink}
-                        className="mr-1"
-                        size="sm"
-                      />
-                      {tag.link}
-                      <FontAwesomeIcon
-                        icon={faExternalLinkAlt}
-                        className="ml-1 text-gray-400"
-                        size="sm"
-                      />
-                    </a>
-                  );
-                }
-                return null;
-              })}
+              <div className="flex">
+                {symbolDetails.tags.map((tag) => {
+                  if (tag.type === "CHIP") {
+                    return (
+                      <span
+                        className="rounded-full bg-gray-300 text-gray-700 text-sm shadow px-4 py-1 mr-2"
+                        key={tag.label}
+                      >
+                        {tag.label}
+                      </span>
+                    );
+                  } else if (tag.type === "LINK") {
+                    return (
+                      <a
+                        href={tag.link}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="rounded-full bg-gray-300 text-gray-700 text-sm shadow px-4 py-1 hover:bg-gray-500 hover:text-white transition-colors inline-flex items-center"
+                        key={tag.link}
+                      >
+                        <IconLink className="mr-1" size={16} />
+                        {tag.link}
+                        <IconExternalLink
+                          className="ml-1 text-gray-400"
+                          size={16}
+                        />
+                      </a>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
             </div>
             <div className="flex items-end flex-col">
               <h2 className="text-4xl font-bold text-gray-800 mb-2">
                 54,89 €
                 <span className="text-base font-normal ml-2">
-                  <FontAwesomeIcon icon={faChevronDown} />
+                  <IconChevronDown className="inline" />
                   -4,23%
                 </span>
               </h2>
@@ -148,7 +144,7 @@ export function SymbolPage() {
               <div className="flex-grow-1 py-8 h-1/2">
                 {loadingChart && (
                   <div className="flex items-center justify-center h-full">
-                    <FontAwesomeIcon icon={faSpinner} spin />
+                    <IconLoader className="animate-spin-slow" />
                   </div>
                 )}
                 {!loadingChart && chart && chart.length > 0 && (
@@ -230,15 +226,15 @@ export function SymbolPage() {
                 </h3>
                 <a className="flex justify-between py-2" href="/sector/">
                   Apple - AAPL
-                  <FontAwesomeIcon icon={faChevronRight} />
+                  <IconChevronRight />
                 </a>
                 <a className="flex justify-between py-2" href="/sector/">
                   Apple - AAPL
-                  <FontAwesomeIcon icon={faChevronRight} />
+                  <IconChevronRight />
                 </a>
                 <a className="flex justify-between py-2" href="/sector/">
                   Apple - AAPL
-                  <FontAwesomeIcon icon={faChevronRight} />
+                  <IconChevronRight />
                 </a>
               </div>
             </div>
@@ -246,7 +242,7 @@ export function SymbolPage() {
               <h3 className="text-2xl font-bold mb-4 text-gray-800">Markets</h3>
               <a className="flex justify-between" href="/sector/">
                 XETRA
-                <FontAwesomeIcon icon={faChevronRight} />
+                <IconChevronRight />
               </a>
             </div>
           </div>
