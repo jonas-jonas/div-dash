@@ -1,6 +1,7 @@
 package symbol
 
 import (
+	"div-dash/internal/coingecko"
 	"div-dash/internal/db"
 	"div-dash/internal/httputil"
 	"div-dash/internal/iex"
@@ -14,6 +15,7 @@ type (
 	symbolHandlerDependencies interface {
 		db.QueriesProvider
 		iex.IEXServiceProvider
+		coingecko.CoingeckoServiceProvider
 	}
 
 	SymbolHandlerProvider interface {
